@@ -257,10 +257,40 @@
   background-color: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
-  padding: 14px;
+  padding: 12px 14px;
   box-shadow: var(--shadow-lg);
   z-index: 1000;
-  max-width: 200px;
+  width: 240px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.map-legend.collapsed {
+  padding: 8px 12px;
+  width: 200px;
+}
+
+.legend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  gap: 8px;
+}
+
+.legend-header-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.legend-agency-logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .legend-title {
@@ -269,9 +299,29 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-secondary);
-  margin-bottom: 8px;
+  margin-bottom: 0;
+  flex-grow: 1;
+}
+
+.map-legend.expanded .legend-header {
   border-bottom: 1px solid var(--border-default);
-  padding-bottom: 4px;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+}
+
+.legend-toggle-icon {
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.legend-toggle-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.legend-content {
+  display: flex;
+  flex-direction: column;
 }
 
 .legend-item {
@@ -280,11 +330,39 @@
   gap: 10px;
   font-size: 12px;
   color: var(--text-primary);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.legend-item:hover {
+  background-color: var(--bg-primary);
 }
 
 .legend-item:last-child {
   margin-bottom: 0;
+}
+
+.legend-item.disabled {
+  opacity: 0.45;
+}
+
+.legend-toggle-indicator {
+  margin-left: auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10b981; /* Green dot when active */
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.legend-item.disabled .legend-toggle-indicator {
+  background-color: transparent;
+  border: 1px solid var(--text-secondary);
 }
 
 .legend-color {

@@ -1,0 +1,38 @@
+export function mapTextToProvinceId(text: string): string {
+  const t = text.toLowerCase();
+  if (t.includes('aceh')) return 'ID-AC';
+  if (t.includes('sumatera utara') || t.includes('sumut')) return 'ID-SU';
+  if (t.includes('sumatera barat') || t.includes('sumbar')) return 'ID-SB';
+  if (t.includes('riau')) return 'ID-RI';
+  if (t.includes('kepulauan riau') || t.includes('kepri')) return 'ID-KR';
+  if (t.includes('jambi')) return 'ID-JA';
+  if (t.includes('bengkulu')) return 'ID-BE';
+  if (t.includes('sumatera selatan') || t.includes('sumsel')) return 'ID-SS';
+  if (t.includes('bangka belitung') || t.includes('babel')) return 'ID-BB';
+  if (t.includes('lampung')) return 'ID-LA';
+  if (t.includes('jakarta') || t.includes('dki')) return 'ID-JK';
+  if (t.includes('jawa barat') || t.includes('jabar')) return 'ID-JB';
+  if (t.includes('banten')) return 'ID-BT';
+  if (t.includes('jawa tengah') || t.includes('jateng')) return 'ID-JT';
+  if (t.includes('yogyakarta') || t.includes('diy')) return 'ID-YO';
+  if (t.includes('jawa timur') || t.includes('jatim')) return 'ID-JI';
+  if (t.includes('kalimantan barat') || t.includes('kalbar')) return 'ID-KB';
+  if (t.includes('kalimantan tengah') || t.includes('kalteng')) return 'ID-KT';
+  if (t.includes('kalimantan selatan') || t.includes('kalsel')) return 'ID-KS';
+  if (t.includes('kalimantan timur') || t.includes('kaltim')) return 'ID-KI';
+  if (t.includes('kalimantan utara') || t.includes('kalut')) return 'ID-KU';
+  if (t.includes('bali')) return 'ID-BA';
+  if (t.includes('nusa tenggara barat') || t.includes('ntb')) return 'ID-NB';
+  if (t.includes('nusa tenggara timur') || t.includes('ntt')) return 'ID-NT';
+  if (t.includes('sulawesi utara') || t.includes('sulut')) return 'ID-SA';
+  if (t.includes('gorontalo')) return 'ID-GO';
+  if (t.includes('sulawesi tengah') || t.includes('sulteng')) return 'ID-ST';
+  if (t.includes('sulawesi barat') || t.includes('sulbar')) return 'ID-SR';
+  if (t.includes('sulawesi tenggara') || t.includes('sultra')) return 'ID-SG';
+  if (t.includes('sulawesi selatan') || t.includes('sulsel')) return 'ID-SN';
+  if (t.includes('maluku utara')) return 'ID-MU';
+  if (t.includes('maluku')) return 'ID-MA';
+  if (t.includes('papua barat')) return 'ID-PB';
+  if (t.includes('papua')) return 'ID-PA';
+  return 'ID-JK';
+}

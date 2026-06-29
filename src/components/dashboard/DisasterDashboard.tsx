@@ -1,137 +1,154 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useAlerts } from '../../hooks/useAlerts';
+import { useDisasterAlert } from '../../hooks/useDisasterAlert';
 import type { AlertSeverity, DisasterType } from '../../types';
 import TopBar from './TopBar';
 import Sidebar from './Sidebar';
 import EwsMap from './EwsMap';
 import ReportModal from './ReportModal';
+import AlertToast from '../ui/AlertToast';
+import type { ToastItem } from '../ui/AlertToast';
+import DisasterAlertBanner from '../ui/DisasterAlertBanner';
 import './DisasterDashboard.css';
 
-export const DisasterDashboard: React.FC = () => {
-  const {
-    alerts,
-    stats,
-    isLoading,
-    getFilteredAlerts,
-  } = useAlerts();
+interface DisasterDashboardProps {
+  onSwitchToKerentanan: () => void;
+}
 
-  // Filters State
+export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({ onSwitchToKerentanan }) => {
+  const { alerts, isLoading } = useAlerts();
+  const { activeAlerts, riskResults } = useDisasterAlert();
+
   const [severityFilter, setSeverityFilter] = useState<AlertSeverity | 'all'>('all');
   const [typeFilter, setTypeFilter] = useState<DisasterType | 'all'>('all');
-  const [weatherTab, setWeatherTab] = useState<'nowcast' | 'day1' | 'day2' | 'day3'>('nowcast');
 
-  // Selection State
   const [selectedProvinceId, setSelectedProvinceId] = useState<string | null>(null);
   const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null);
-  const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
-  // Extract forecast dates from alerts
-  const forecastDates = useMemo(() => {
-    const dates = { day1: 'Hari 1', day2: 'Hari 2', day3: 'Hari 3' };
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const shownAlertIds = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (isLoading) return;
+    const unseen = activeAlerts.filter(
+      (calc) => !shownAlertIds.current.has(calc.event.id)
+    );
+    unseen.forEach((calc) => shownAlertIds.current.add(calc.event.id));
+    if (unseen.length === 0) return;
+    // Show max 4; stagger by 350 ms so they don't all pop at once
+    unseen.slice(0, 4).forEach((calc, i) => {
+      const alert = alerts.find((a) => a.id === calc.event.id);
+      if (!alert) return;
+      setTimeout(() => {
+        setToasts((prev) => [
+          ...prev,
+          { toastId: `${alert.id}-${Date.now()}`, alert },
+        ]);
+      }, i * 350);
+    });
+  }, [activeAlerts, alerts, isLoading]);
+
+  const dismissToast = useCallback((toastId: string) => {
+    setToasts((prev) => prev.filter((t) => t.toastId !== toastId));
+  }, []);
+
+  // Rolling 3-day window — alerts older than this are excluded
+  const threeDaysAgo = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 3);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  }, []);
+
+  const calculatedCriticalAlerts = useMemo(() => {
+    return alerts.filter((a) => {
+      if (a.isForecast) return false;
+      if (new Date(a.timestamp).getTime() < threeDaysAgo) return false;
+      if (typeFilter !== 'all' && a.type !== typeFilter) return false;
+      const riskRes = riskResults.find((r) => r.event.id === a.id);
+      return riskRes && riskRes.riskLevel === 'Tinggi';
+    });
+  }, [alerts, riskResults, typeFilter, threeDaysAgo]);
+
+  const filteredAlerts = useMemo(() => {
+    return alerts.filter((a) => {
+      if (a.isForecast) return false;
+      if (new Date(a.timestamp).getTime() < threeDaysAgo) return false;
+
+      const riskRes = riskResults.find((r) => r.event.id === a.id);
+      if (!riskRes) return false;
+
+      if (severityFilter !== 'all') {
+        const mappedRiskLevel = { critical: 'Tinggi', warning: 'Sedang', watch: 'Rendah' }[severityFilter];
+        if (riskRes.riskLevel !== mappedRiskLevel) return false;
+      }
+
+      if (typeFilter !== 'all' && a.type !== typeFilter) return false;
+      return true;
+    });
+  }, [alerts, riskResults, severityFilter, typeFilter, threeDaysAgo]);
+
+  const filteredStats = useMemo(() => {
+    const stats = { critical: 0, warning: 0, watch: 0, total: 0 };
+
     alerts.forEach((a) => {
-      if (a.isForecast) {
-        if (a.forecastDay === 1 && a.forecastDateStr) dates.day1 = a.forecastDateStr;
-        if (a.forecastDay === 2 && a.forecastDateStr) dates.day2 = a.forecastDateStr;
-        if (a.forecastDay === 3 && a.forecastDateStr) dates.day3 = a.forecastDateStr;
+      if (a.isForecast) return;
+      if (new Date(a.timestamp).getTime() < threeDaysAgo) return;
+      if (typeFilter !== 'all' && a.type !== typeFilter) return;
+
+      const riskRes = riskResults.find((r) => r.event.id === a.id);
+      if (riskRes) {
+        if (riskRes.riskLevel === 'Tinggi') stats.critical++;
+        else if (riskRes.riskLevel === 'Sedang') stats.warning++;
+        else if (riskRes.riskLevel === 'Rendah') stats.watch++;
+        stats.total++;
       }
     });
-    return dates;
-  }, [alerts]);
 
-  // Compute active alerts based on selection and filters
-  const filteredAlerts = useMemo(() => {
-    let list = getFilteredAlerts(severityFilter, typeFilter);
-
-    // Apply forecast filters
-    if (typeFilter === 'all') {
-      // In general view, hide 3-day forecast items to prevent map/list clutter
-      list = list.filter((a) => !a.isForecast);
-    } else if (typeFilter === 'extreme_weather') {
-      if (weatherTab === 'nowcast') {
-        list = list.filter((a) => !a.isForecast);
-      } else if (weatherTab === 'day1') {
-        list = list.filter((a) => a.isForecast && a.forecastDay === 1);
-      } else if (weatherTab === 'day2') {
-        list = list.filter((a) => a.isForecast && a.forecastDay === 2);
-      } else if (weatherTab === 'day3') {
-        list = list.filter((a) => a.isForecast && a.forecastDay === 3);
-      }
+    if (severityFilter !== 'all') {
+      const activeVal = stats[severityFilter];
+      stats.critical = 0; stats.warning = 0; stats.watch = 0;
+      stats.total = activeVal;
+      stats[severityFilter] = activeVal;
     }
 
-    return list;
-  }, [getFilteredAlerts, severityFilter, typeFilter, weatherTab]);
+    return stats;
+  }, [alerts, riskResults, severityFilter, typeFilter, threeDaysAgo]);
 
-  // Handle province selection (sidebar quick-jump or map marker click)
   const handleProvinceSelect = (provinceId: string) => {
     setSelectedProvinceId(provinceId);
-    setSelectedAlertId(null); // Clear selected alert if direct province clicked
-
-    // If province has an active alert, select it automatically
-    const provinceAlert = filteredAlerts.find((a) => a.provinceId === provinceId);
-    if (provinceAlert) {
-      setSelectedAlertId(provinceAlert.id);
-    }
+    setSelectedAlertId(null);
   };
 
-  // Handle alert selection (sidebar alert list click or map marker click)
   const handleAlertSelect = (alertId: string) => {
     setSelectedAlertId(alertId);
-    
-    // Set associated province ID
     const alert = alerts.find((a) => a.id === alertId);
-    if (alert) {
-      setSelectedProvinceId(alert.provinceId);
-    }
+    if (alert) setSelectedProvinceId(alert.provinceId);
   };
 
   return (
     <div className="dashboard-container">
+      <DisasterAlertBanner activeAlerts={activeAlerts} />
       <TopBar
-        criticalCount={stats.critical}
-        totalAlerts={alerts.length}
+        criticalCount={filteredStats.critical}
+        totalAlerts={filteredAlerts.length}
+        criticalAlerts={calculatedCriticalAlerts}
+        allAlerts={filteredAlerts}
+        riskResults={riskResults}
+        onAlertSelect={handleAlertSelect}
         onGenerateReport={() => setIsReportOpen(true)}
         selectedType={typeFilter}
-        onTypeChange={(type) => {
-          setTypeFilter(type);
-          // Auto reset to nowcast tab when switching disaster type
-          setWeatherTab('nowcast');
-        }}
+        onTypeChange={setTypeFilter}
+        onSwitchToKerentanan={onSwitchToKerentanan}
       />
 
-      {typeFilter === 'extreme_weather' && (
-        <div className="weather-tab-selector">
-          <button 
-            className={`weather-tab-btn ${weatherTab === 'nowcast' ? 'active' : ''}`}
-            onClick={() => setWeatherTab('nowcast')}
-          >
-            🚨 Nowcast (Peringatan Dini)
-          </button>
-          <button 
-            className={`weather-tab-btn ${weatherTab === 'day1' ? 'active' : ''}`}
-            onClick={() => setWeatherTab('day1')}
-          >
-            📅 Hari 1: {forecastDates.day1}
-          </button>
-          <button 
-            className={`weather-tab-btn ${weatherTab === 'day2' ? 'active' : ''}`}
-            onClick={() => setWeatherTab('day2')}
-          >
-            📅 Hari 2: {forecastDates.day2}
-          </button>
-          <button 
-            className={`weather-tab-btn ${weatherTab === 'day3' ? 'active' : ''}`}
-            onClick={() => setWeatherTab('day3')}
-          >
-            📅 Hari 3: {forecastDates.day3}
-          </button>
-        </div>
-      )}
-      
       <div className="dashboard-content">
         <Sidebar
-          alerts={alerts}
           filteredAlerts={filteredAlerts}
-          stats={stats}
+          riskResults={riskResults}
+          stats={filteredStats}
           selectedProvinceId={selectedProvinceId}
           onProvinceSelect={handleProvinceSelect}
           selectedAlertId={selectedAlertId}
@@ -141,15 +158,19 @@ export const DisasterDashboard: React.FC = () => {
           typeFilter={typeFilter}
           setTypeFilter={setTypeFilter}
           isLoading={isLoading}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed((c) => !c)}
         />
-        
+
         <EwsMap
           alerts={filteredAlerts}
+          riskResults={riskResults}
           selectedProvinceId={selectedProvinceId}
           selectedAlertId={selectedAlertId}
           onProvinceSelect={handleProvinceSelect}
           onAlertSelect={handleAlertSelect}
           activeTypeFilter={typeFilter}
+          isSidebarCollapsed={isSidebarCollapsed}
         />
       </div>
 
@@ -158,6 +179,8 @@ export const DisasterDashboard: React.FC = () => {
         onClose={() => setIsReportOpen(false)}
         alerts={alerts}
       />
+
+      <AlertToast toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 };

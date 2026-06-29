@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import type { DisasterAlert, KpwbiOffice } from '../../types';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { isOfficeAffectedByAlert } from '../../utils/disasterImpact';
-import { haversineDistance } from '../../utils/nearestKpw';
+import { haversineDistance } from '../../utils/geo';
 import './ReportModal.css';
 
 interface ReportModalProps {

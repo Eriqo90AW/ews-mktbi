@@ -42,11 +42,6 @@ export interface DisasterAlert {
   forecastDateStr?: string; // e.g. "25 Jun 2026"
 }
 
-export interface NearestKpwResult {
-  office: KpwbiOffice;
-  distanceKm: number;
-}
-
 export interface DrcLocation {
   id: string;
   name: string;       // e.g. "Sinergi"
@@ -56,3 +51,54 @@ export interface DrcLocation {
   longitude: number;
   type: 'DC' | 'DRC'; // Data Center or Disaster Recovery Center
 }
+
+export type VolcanoLevel = 'III' | 'II' | 'I';
+
+export interface VolcanoSeismicity {
+  count: number;
+  type: string;  // e.g. "gempa Letusan/Erupsi"
+}
+
+export interface VolcanoReport {
+  no: number;
+  name: string;
+  visual: string;
+  seismicity: VolcanoSeismicity[];
+  recommendation: string;
+  level: VolcanoLevel;
+}
+
+// === Disaster Risk Calculator Types ===
+
+export type VulnerabilityLevel = 'Tinggi' | 'Sedang' | 'Rendah';
+
+export type RiskLevel = 'Tinggi' | 'Sedang' | 'Rendah';
+
+export interface DisasterEvent {
+  id: string;
+  latitude: number;
+  longitude: number;
+  radiusKm: number;          // radius dampak bencana
+  disasterScore: 1 | 2 | 3;  // skor bencana real-time
+  type: DisasterType;
+  title: string;
+}
+
+export interface MarkedLocation {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface RiskCalcResult {
+  event: DisasterEvent;
+  vulnerabilityLevel: VulnerabilityLevel;
+  vulnerabilityScore: number; // 1, 2, atau 3
+  riskScore: number;          // disasterScore × vulnerabilityScore (1–9)
+  riskLevel: RiskLevel;       // mapping dari riskScore
+  affectedLocations: MarkedLocation[]; // lokasi terdampak dalam radius
+  shouldAlert: boolean;       // true jika riskLevel "Tinggi" DAN ada lokasi terdampak
+}
+
+

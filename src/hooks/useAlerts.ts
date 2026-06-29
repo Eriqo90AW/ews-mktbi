@@ -1,138 +1,89 @@
 import { useState, useMemo, useEffect } from 'react';
-import type { DisasterAlert, AlertSeverity, DisasterType } from '../types';
+import type { DisasterAlert } from '../types';
 import { fetchLatestEarthquakes, fetchExtremeWeather, fetchThreeDayForecast } from '../services/bmkgService';
 import { BMKGGisService } from '../services/bmkgGisService';
-import { BnpbInariskService } from '../services/bnpbInariskService';
-import { KPWBI_OFFICES } from '../constants/kpwbiOffices';
+import { MagmaService } from '../services/magmaService';
+
+// InaRisk / BNPB data is shown in the Kerentanan screen, not as live alerts.
+// This hook only aggregates real-time BMKG alert streams.
+
+// Global cache variables to persist data across component mounts
+let cachedAlerts: DisasterAlert[] = [];
+let cachedIsLoading = true;
+let isFetching = false;
+const listeners = new Set<() => void>();
+
+const notifyListeners = () => {
+  listeners.forEach((listener) => listener());
+};
 
 export const useAlerts = () => {
-  const [alerts, setAlerts] = useState<DisasterAlert[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [alerts, setAlerts] = useState<DisasterAlert[]>(cachedAlerts);
+  const [isLoading, setIsLoading] = useState(cachedIsLoading);
 
   useEffect(() => {
-    let active = true;
+    const handleUpdate = () => {
+      setAlerts(cachedAlerts);
+      setIsLoading(cachedIsLoading);
+    };
 
-    async function loadAlerts() {
-      setIsLoading(true);
-      
-      // Start BMKG fetches (these are typically faster, fetching direct XMLs/JSONs)
-      const bmkgPromises = Promise.all([
-        fetchLatestEarthquakes().catch(e => { console.error(e); return []; }),
-        fetchExtremeWeather().catch(e => { console.error(e); return []; }),
-        fetchThreeDayForecast().catch(e => { console.error(e); return []; }),
-        BMKGGisService.fetchSignatureData().catch(e => { console.error(e); return []; }),
-        BMKGGisService.fetchHotspotData().catch(e => { console.error(e); return []; })
-      ]);
+    listeners.add(handleUpdate);
 
-      // Start BNPB fetches (typically slower due to 4 multi-point external proxy API calls)
-      const bnpbPromise = BnpbInariskService.fetchInaRiskAlerts(KPWBI_OFFICES).catch(e => { console.error(e); return []; });
+    // Only load if the cache is empty and we're not already fetching
+    if (cachedAlerts.length === 0 && !isFetching) {
+      isFetching = true;
+      cachedIsLoading = true;
+      notifyListeners();
 
-      // Handle BMKG Data as soon as it resolves
-      bmkgPromises.then(bmkgData => {
-        if (!active) return;
-        
-        const [liveEarthquakes, liveExtremeWeather, threeDayForecast, gisSignature, gisHotspot] = bmkgData;
-        
-        setAlerts(prevAlerts => {
-          // Check if we are updating from empty or merging (in case bnpb resolved exceptionally fast)
-          // We use functional state update to guarantee we don't overwrite data
-          return [
-            ...prevAlerts,
-            ...liveEarthquakes,
-            ...liveExtremeWeather,
-            ...threeDayForecast,
-            ...gisSignature,
-            ...gisHotspot
-          ];
-        });
-        
-        // Stop primary loading spinner as soon as BMKG is done
-        setIsLoading(false);
-      });
-
-      // Handle BNPB Data as soon as it resolves
-      bnpbPromise.then(inariskAlerts => {
-        if (!active) return;
-        
-        setAlerts(prevAlerts => {
-          return [
-            ...prevAlerts,
-            ...inariskAlerts
-          ];
-        });
+      Promise.all([
+        fetchLatestEarthquakes().catch((e) => { console.error(e); return [] as DisasterAlert[]; }),
+        fetchExtremeWeather().catch((e) => { console.error(e); return [] as DisasterAlert[]; }),
+        fetchThreeDayForecast().catch((e) => { console.error(e); return [] as DisasterAlert[]; }),
+        BMKGGisService.fetchSignatureData().catch((e) => { console.error(e); return [] as DisasterAlert[]; }),
+        BMKGGisService.fetchHotspotData().catch((e) => { console.error(e); return [] as DisasterAlert[]; }),
+        MagmaService.fetchLiveAlerts().catch((e) => { console.error(e); return [] as DisasterAlert[]; }),
+      ]).then(([liveEarthquakes, liveExtremeWeather, threeDayForecast, gisSignature, gisHotspot, liveVolcanoes]) => {
+        cachedAlerts = [
+          ...liveEarthquakes,
+          ...liveExtremeWeather,
+          ...threeDayForecast,
+          ...gisSignature,
+          ...gisHotspot,
+          ...liveVolcanoes
+        ];
+        cachedIsLoading = false;
+        isFetching = false;
+        notifyListeners();
       });
     }
 
-    loadAlerts();
-
     return () => {
-      active = false;
+      listeners.delete(handleUpdate);
     };
   }, []);
 
-  const stats = useMemo(() => {
-    return alerts.reduce(
-      (acc, alert) => {
-        acc[alert.severity]++;
-        acc.total++;
-        return acc;
-      },
-      { critical: 0, warning: 0, watch: 0, total: 0 }
-    );
-  }, [alerts]);
-
-  const criticalAlerts = useMemo(() => {
-    return alerts.filter((a) => a.severity === 'critical');
-  }, [alerts]);
-
-  const warningAlerts = useMemo(() => {
-    return alerts.filter((a) => a.severity === 'warning');
-  }, [alerts]);
-
-  const watchAlerts = useMemo(() => {
-    return alerts.filter((a) => a.severity === 'watch');
-  }, [alerts]);
-
-  // Helper to fetch all alerts for a specific province
-  const getAlertsByProvince = (provinceId: string): DisasterAlert[] => {
-    return alerts.filter((a) => a.provinceId === provinceId);
-  };
-
-  // Helper to fetch the highest severity alert for a province (for marker overrides)
-  const getActiveAlertForProvince = (provinceId: string): DisasterAlert | undefined => {
-    const provinceAlerts = getAlertsByProvince(provinceId);
-    if (provinceAlerts.length === 0) return undefined;
-
-    // Sort by severity weight: critical > warning > watch
-    const severityWeight = { critical: 3, warning: 2, watch: 1 };
-    return provinceAlerts.reduce((highest, current) => {
-      const highestWeight = severityWeight[highest.severity] || 0;
-      const currentWeight = severityWeight[current.severity] || 0;
-      return currentWeight > highestWeight ? current : highest;
-    });
-  };
-
-  // Filter alerts based on active filters
-  const getFilteredAlerts = (
-    severityFilter: AlertSeverity | 'all',
-    typeFilter: DisasterType | 'all'
-  ): DisasterAlert[] => {
-    return alerts.filter((alert) => {
-      const matchesSeverity = severityFilter === 'all' || alert.severity === severityFilter;
-      const matchesType = typeFilter === 'all' || alert.type === typeFilter;
-      return matchesSeverity && matchesType;
-    });
-  };
+  const stats = useMemo(
+    () =>
+      alerts.reduce(
+        (acc, alert) => { acc[alert.severity]++; acc.total++; return acc; },
+        { critical: 0, warning: 0, watch: 0, total: 0 }
+      ),
+    [alerts]
+  );
 
   return {
     alerts,
     stats,
     isLoading,
-    criticalAlerts,
-    warningAlerts,
-    watchAlerts,
-    getAlertsByProvince,
-    getActiveAlertForProvince,
-    getFilteredAlerts,
+    criticalAlerts: useMemo(() => alerts.filter((a) => a.severity === 'critical'), [alerts]),
+    warningAlerts: useMemo(() => alerts.filter((a) => a.severity === 'warning'), [alerts]),
+    watchAlerts: useMemo(() => alerts.filter((a) => a.severity === 'watch'), [alerts]),
+    getAlertsByProvince: (provinceId: string) => alerts.filter((a) => a.provinceId === provinceId),
+    getActiveAlertForProvince: (provinceId: string): DisasterAlert | undefined => {
+      const list = alerts.filter((a) => a.provinceId === provinceId);
+      if (list.length === 0) return undefined;
+      const w = { critical: 3, warning: 2, watch: 1 } as const;
+      return list.reduce((h, c) => (w[c.severity] || 0) > (w[h.severity] || 0) ? c : h);
+    },
   };
 };

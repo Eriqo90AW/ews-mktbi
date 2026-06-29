@@ -16,30 +16,48 @@
 src/
   App.tsx                         # Root — renders DisasterDashboard
   main.tsx                        # Entry point with ErrorBoundary
-  types/index.ts                  # Shared types (DisasterAlert, Province, KpwbiOffice, etc.)
-  hooks/
-    useAlerts.ts                  # Fetches + aggregates all alert data (BMKG + BNPB)
-  services/
-    bmkgService.ts                # BMKG earthquake, extreme weather, 3-day forecast
-    bmkgGisService.ts             # BMKG GIS — signature events, hotspot data
-    bnpbInariskService.ts         # BNPB InaRISK — multi-hazard risk alerts per KPW office
-  components/dashboard/
-    DisasterDashboard.tsx         # Main layout shell (TopBar + Sidebar + EwsMap)
-    TopBar.tsx                    # Header with stats (critical/warning/watch counts)
-    Sidebar.tsx                   # Alert list with severity/type filters
-    AlertCard.tsx                 # Individual alert card
-    EwsMap.tsx                    # Leaflet map with province markers and alert overlays
-    ReportModal.tsx               # Detailed report modal for a selected alert
-  components/ui/
-    Badge.tsx                     # Reusable severity/type badge
+  types/index.ts                  # Shared domain types (DisasterAlert, Province, KpwbiOffice, etc.)
+
   constants/
     provinces.ts                  # Indonesia province list with lat/lng
-    kpwbiOffices.ts               # KPW BI office locations (incl. Korwil + Kantor Pusat flags)
+    kpwbiOffices.ts               # KPW BI office locations (Korwil + Kantor Pusat flags)
     drcLocations.ts               # Data Center and Disaster Recovery Center locations
-    alerts.ts                     # Alert type/severity label and color maps
+    alerts.ts                     # Seed mock alerts (used for development)
+
   utils/
-    nearestKpw.ts                 # Haversine distance — finds nearest KPW office to a point
-    disasterImpact.ts             # Derives impact text from alert data
+    geo.ts                        # Haversine, isValidCoord, findNearestKpwOffice,
+                                  # findNearestOffices, findNearestOfficesByProvince, NearestKpwResult
+    provinceMap.ts                # mapTextToProvinceId — text → province ID lookup
+    alertUtils.ts                 # getDisasterEmoji — shared across components
+    disasterImpact.ts             # getAlertImpactRadiusKm, isOfficeAffectedByAlert
+
+  services/
+    proxy.ts                      # fetchWithCorsProxy — shared allorigins.win CORS helper
+    bmkgService.ts                # BMKG: earthquake feed, extreme weather nowcast, 3-day forecast
+    bmkgGisService.ts             # BMKG ArcGIS: signature events (polygons), hotspot data
+    bnpbInariskService.ts         # BNPB InaRISK: multi-hazard risk indices per KPW office
+
+  hooks/
+    useAlerts.ts                  # Aggregates all data sources; BMKG resolves first, BNPB appends
+
+  components/
+    ui/
+      Badge.tsx                   # Severity/type badge
+    dashboard/
+      DisasterDashboard.tsx       # Layout shell — owns all selection + filter state
+      TopBar.tsx                  # Header, clock, disaster type filter
+      Sidebar.tsx                 # Alert list + province browser, severity/type/sort filters
+      AlertCard.tsx               # Individual alert row in the sidebar
+      ReportModal.tsx             # Impact report with CSV export
+      EwsMap.tsx                  # Map orchestrator — GeoJSON layer + sub-component composition
+      map/
+        MapController.tsx         # Leaflet hook — flyTo on selection change or reset
+        MapEventsHandler.tsx      # Leaflet hook — clears selection on background click
+        AlertCircles.tsx          # Impact radius circles for each active alert
+        KpwMarkers.tsx            # All KPW BI office markers with alert/InaRisk popups
+        DrcMarkers.tsx            # Data Center / DRC triangle markers
+        NearestKpwPanel.tsx       # Overlay panel listing nearest KPW offices
+        MapLegend.tsx             # Overlay legend (switches between alert and InaRisk modes)
 ```
 
 ## Key Types

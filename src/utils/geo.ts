@@ -1,28 +1,30 @@
 import type { KpwbiOffice, Province } from '../types';
+import { KPWBI_OFFICES } from '../constants/kpwbiOffices';
 
-/**
- * Calculates the distance between two geographic coordinates using the Haversine formula.
- * Returns the distance in kilometers.
- */
 export function haversineDistance(
   lat1: number,
   lon1: number,
   lat2: number,
   lon2: number
 ): number {
-  const R = 6371; // Earth's radius in kilometers
+  const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
       Math.cos((lat2 * Math.PI) / 180) *
       Math.sin(dLon / 2) *
       Math.sin(dLon / 2);
-      
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
+}
+
+export function isValidCoord(lat?: unknown, lng?: unknown): boolean {
+  if (lat == null || lng == null) return false;
+  if (typeof lat === 'string' && lat.trim() === '') return false;
+  if (typeof lng === 'string' && lng.trim() === '') return false;
+  return !isNaN(Number(lat)) && !isNaN(Number(lng));
 }
 
 export interface NearestKpwResult {
@@ -30,32 +32,39 @@ export interface NearestKpwResult {
   distanceKm: number;
 }
 
-/**
- * Finds the top N nearest offices to the target office, excluding the target office itself.
- */
+export function findNearestKpwOffice(lat: number, lon: number): KpwbiOffice {
+  let nearest = KPWBI_OFFICES[0];
+  let minDist = haversineDistance(lat, lon, nearest.latitude, nearest.longitude);
+  for (let i = 1; i < KPWBI_OFFICES.length; i++) {
+    const d = haversineDistance(lat, lon, KPWBI_OFFICES[i].latitude, KPWBI_OFFICES[i].longitude);
+    if (d < minDist) {
+      minDist = d;
+      nearest = KPWBI_OFFICES[i];
+    }
+  }
+  return nearest;
+}
+
 export function findNearestOffices(
   targetOffice: KpwbiOffice,
   allOffices: KpwbiOffice[],
   count: number = 5
 ): NearestKpwResult[] {
   return allOffices
-    .filter((office) => office.id !== targetOffice.id)
-    .map((office) => {
-      const distanceKm = haversineDistance(
+    .filter((o) => o.id !== targetOffice.id)
+    .map((o) => ({
+      office: o,
+      distanceKm: haversineDistance(
         targetOffice.latitude,
         targetOffice.longitude,
-        office.latitude,
-        office.longitude
-      );
-      return { office, distanceKm };
-    })
+        o.latitude,
+        o.longitude
+      ),
+    }))
     .sort((a, b) => a.distanceKm - b.distanceKm)
     .slice(0, count);
 }
 
-/**
- * Finds the top N nearest offices by province distance, excluding the target office's own province.
- */
 export function findNearestOfficesByProvince(
   targetOffice: KpwbiOffice,
   allOffices: KpwbiOffice[],
@@ -65,56 +74,45 @@ export function findNearestOfficesByProvince(
   const targetProvince = allProvinces.find((p) => p.id === targetOffice.provinceId);
   if (!targetProvince) return [];
 
-  // Find all other provinces, calculate distance to target province, and sort them
   const nearestProvinces = allProvinces
     .filter((p) => p.id !== targetOffice.provinceId)
-    .map((p) => {
-      const distanceKm = haversineDistance(
+    .map((p) => ({
+      province: p,
+      distanceKm: haversineDistance(
         targetProvince.latitude,
         targetProvince.longitude,
         p.latitude,
         p.longitude
-      );
-      return { province: p, distanceKm };
-    })
+      ),
+    }))
     .sort((a, b) => a.distanceKm - b.distanceKm)
     .slice(0, count);
 
-  // For each nearest province, find the closest KPW office to targetOffice
   const results: NearestKpwResult[] = [];
-  
   for (const { province, distanceKm: provinceDistance } of nearestProvinces) {
     const officesInProvince = allOffices.filter((o) => o.provinceId === province.id);
     if (officesInProvince.length === 0) continue;
 
-    // Find the one closest to targetOffice
-    let closestOffice = officesInProvince[0];
-    let minDistance = haversineDistance(
+    let closest = officesInProvince[0];
+    let minDist = haversineDistance(
       targetOffice.latitude,
       targetOffice.longitude,
-      closestOffice.latitude,
-      closestOffice.longitude
+      closest.latitude,
+      closest.longitude
     );
-
     for (let i = 1; i < officesInProvince.length; i++) {
-      const dist = haversineDistance(
+      const d = haversineDistance(
         targetOffice.latitude,
         targetOffice.longitude,
         officesInProvince[i].latitude,
         officesInProvince[i].longitude
       );
-      if (dist < minDistance) {
-        minDistance = dist;
-        closestOffice = officesInProvince[i];
+      if (d < minDist) {
+        minDist = d;
+        closest = officesInProvince[i];
       }
     }
-
-    results.push({
-      office: closestOffice,
-      distanceKm: provinceDistance, // we use the province-to-province distance
-    });
+    results.push({ office: closest, distanceKm: provinceDistance });
   }
-
   return results;
 }
-

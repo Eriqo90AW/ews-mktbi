@@ -1,5 +1,5 @@
 import type { KpwbiOffice, DisasterAlert } from '../types';
-import { haversineDistance } from './nearestKpw';
+import { haversineDistance } from './geo';
 
 /**
  * Gets the impact radius of a disaster alert in kilometers.
@@ -24,7 +24,7 @@ export function getAlertImpactRadiusKm(alert: DisasterAlert): number {
       return 40;
     default:
       return 20;
-    }
+  }
 }
 
 /**
