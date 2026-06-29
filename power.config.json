@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "appId": null,
+  "appDisplayName": "Early Warning System - MKTBI",
+  "region": "prod",
+  "appType": "CodeApp",
+  "environmentId": "Default-ca37492e-f410-427b-ab39-055bdc18ce02",
+  "description": " ",
+  "buildPath": "./dist",
+  "buildEntryPoint": "index.html",
+  "localAppUrl": "http://localhost:3000",
+  "logoPath": "Default",
+  "connectionReferences": {},
+  "databaseReferences": {}
+}
