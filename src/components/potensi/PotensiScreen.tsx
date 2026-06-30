@@ -13,11 +13,11 @@ interface PotensiScreenProps {
   onBack: () => void;
 }
 
-const HAZARD_TABS: { key: PotensiHazard; emoji: string; label: string }[] = [
-  { key: 'gempa', emoji: '🫨', label: 'Gempa Bumi' },
-  { key: 'karhutla', emoji: '🔥', label: 'Karhutla' },
-  { key: 'cuaca', emoji: '⚡', label: 'Cuaca Ekstrim' },
-  { key: 'pasang', emoji: '🌊', label: 'Gelombang Pasang' },
+const HAZARD_TABS: { key: PotensiHazard; label: string }[] = [
+  { key: 'gempa', label: 'Gempa Bumi' },
+  { key: 'karhutla', label: 'Karhutla' },
+  { key: 'cuaca', label: 'Cuaca Ekstrim' },
+  { key: 'pasang', label: 'Gelombang Pasang' },
 ];
 
 function riskLevel(score: number): { label: string; cls: string } {

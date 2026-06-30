@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { MagmaService, getJakartaDateString } from '../../services/magmaService';
+import {
+  Volcano as VolcanoIcon,
+  Warning as WarningIcon,
+  CheckCircle as CheckCircleIcon
+} from '@mui/icons-material';
 import type { VolcanoReport, VolcanoLevel } from '../../types';
 import '../dashboard/TopBar.css';
 import './GunungApiScreen.css';
@@ -8,10 +13,10 @@ interface GunungApiScreenProps {
   onBack: () => void;
 }
 
-const LEVEL_TABS: { key: VolcanoLevel; emoji: string; label: string; cls: string }[] = [
-  { key: 'III', emoji: '🌋', label: 'Level III (Siaga)', cls: 'level-siaga' },
-  { key: 'II', emoji: '⚠️', label: 'Level II (Waspada)', cls: 'level-waspada' },
-  { key: 'I', emoji: '✅', label: 'Level I (Normal)', cls: 'level-normal' },
+const LEVEL_TABS: { key: VolcanoLevel; label: string; cls: string; icon: React.ComponentType<any> }[] = [
+  { key: 'III', label: 'Level III (Siaga)', cls: 'level-siaga', icon: VolcanoIcon },
+  { key: 'II', label: 'Level II (Waspada)', cls: 'level-waspada', icon: WarningIcon },
+  { key: 'I', label: 'Level I (Normal)', cls: 'level-normal', icon: CheckCircleIcon },
 ];
 
 export const GunungApiScreen: React.FC<GunungApiScreenProps> = ({ onBack }) => {
@@ -145,20 +150,23 @@ export const GunungApiScreen: React.FC<GunungApiScreenProps> = ({ onBack }) => {
         {/* Center: level tabs */}
         <div className="topbar-center">
           <div className="topbar-filter-group gunungapi">
-            {LEVEL_TABS.map((tab) => (
-              <button
-                key={tab.key}
-                className={`topbar-filter-pill${selectedLevel === tab.key ? ' active' : ''} ${tab.cls}-tab`}
-                onClick={() => {
-                  setSelectedLevel(tab.key);
-                  setSelectedVolcanoName(null);
-                }}
-              >
-                <span>{tab.emoji}</span>
-                <span>{tab.label}</span>
-                <span className="level-pill-count">{stats[tab.key] || 0}</span>
-              </button>
-            ))}
+            {LEVEL_TABS.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.key}
+                  className={`topbar-filter-pill${selectedLevel === tab.key ? ' active' : ''} ${tab.cls}-tab`}
+                  onClick={() => {
+                    setSelectedLevel(tab.key);
+                    setSelectedVolcanoName(null);
+                  }}
+                >
+                  <Icon style={{ fontSize: 14, display: 'inline-block', marginRight: '4px', verticalAlign: 'middle' }} />
+                  <span>{tab.label}</span>
+                  <span className="level-pill-count">{stats[tab.key] || 0}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -240,8 +248,9 @@ export const GunungApiScreen: React.FC<GunungApiScreenProps> = ({ onBack }) => {
               )}
               
               {isMockData && reportDate === todayStr && (
-                <div className="rtc-warning-text">
-                  ⚠️ Gagal mengambil data live dari MAGMA (CORS/Sibuk). Menggunakan data simulasi.
+                <div className="rtc-warning-text" style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                  <WarningIcon style={{ fontSize: 14, color: '#d97706', flexShrink: 0 }} />
+                  <span>Gagal mengambil data live dari MAGMA (CORS/Sibuk). Menggunakan data simulasi.</span>
                 </div>
               )}
             </div>

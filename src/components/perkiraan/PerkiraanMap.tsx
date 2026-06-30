@@ -136,8 +136,8 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
       layer.bindTooltip(
         `<div style="font-size:12px;padding:4px">
           <strong>${propName}</strong><br/>
-          ${isDrought ? '<span style="color:#f97316">⚠️ Risiko Kekeringan meningkat</span>' : ''}
-          ${isFlood ? '<span style="color:#3b82f6">⚠️ Risiko Banjir meningkat</span>' : ''}
+          ${isDrought ? '<span style="color:#f97316; font-weight: 600;">Risiko Kekeringan Meningkat</span>' : ''}
+          ${isFlood ? '<span style="color:#3b82f6; font-weight: 600;">Risiko Banjir Meningkat</span>' : ''}
         </div>`,
         { sticky: true }
       );
@@ -146,27 +146,41 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
 
   // Province centroid severity icons for mingguan & iklim
   const provinceSeverityMarkers = PROVINCES.map((prov) => {
-    let emoji = '';
+    let iconHtml = '';
     let color = '';
 
     if (mode === 'mingguan') {
       const sev = getForecastSeverityForProvince(prov.id, forecastAlerts);
       const floodRisk = getProvinceFloodRisk(prov.id);
-      if (sev === 'critical') { emoji = '🔴'; color = '#dc2626'; }
-      else if (sev === 'warning') { emoji = '🟡'; color = '#d97706'; }
-      else if (sev === 'watch') { emoji = '🔵'; color = '#0ea5e9'; }
-      else if (floodRisk > 0.5) { emoji = '💧'; color = '#6366f1'; }
+      if (sev === 'critical') {
+        color = '#dc2626';
+        iconHtml = `<svg viewBox="0 0 24 24" width="20" height="20" fill="#dc2626" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6))"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+      } else if (sev === 'warning') {
+        color = '#d97706';
+        iconHtml = `<svg viewBox="0 0 24 24" width="20" height="20" fill="#d97706" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6))"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+      } else if (sev === 'watch') {
+        color = '#0ea5e9';
+        iconHtml = `<svg viewBox="0 0 24 24" width="20" height="20" fill="#0ea5e9" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6))"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
+      } else if (floodRisk > 0.5) {
+        color = '#6366f1';
+        iconHtml = `<svg viewBox="0 0 24 24" width="20" height="20" fill="#6366f1" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6))"><path d="M12 22a7 7 0 0 0 7-7c0-4.3-7-11-7-11S5 10.7 5 15a7 7 0 0 0 7 7z"/></svg>`;
+      }
     } else if (mode === 'iklim') {
       const { flood: fp, drought: dp } = getEnsoElevatedProvinces(ensoPhase);
-      if (dp.includes(prov.id)) { emoji = '🌵'; color = '#f97316'; }
-      else if (fp.includes(prov.id)) { emoji = '🌧️'; color = '#3b82f6'; }
+      if (dp.includes(prov.id)) {
+        color = '#f97316';
+        iconHtml = `<svg viewBox="0 0 24 24" width="20" height="20" fill="#f97316" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6))"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
+      } else if (fp.includes(prov.id)) {
+        color = '#3b82f6';
+        iconHtml = `<svg viewBox="0 0 24 24" width="20" height="20" fill="#3b82f6" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6))"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>`;
+      }
     }
 
-    if (!emoji) return null;
+    if (!iconHtml) return null;
 
     const icon = L.divIcon({
       className: '',
-      html: `<div style="font-size:18px;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,0.6)">${emoji}</div>`,
+      html: `<div style="display: flex; align-items: center; justify-content: center; width: 20px; height: 20px;">${iconHtml}</div>`,
       iconSize: [20, 20],
       iconAnchor: [10, 10],
     });
@@ -252,7 +266,9 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
           const levelColor = v.level === 'III' ? '#dc2626' : v.level === 'II' ? '#d97706' : '#6b7280';
           const icon = L.divIcon({
             className: '',
-            html: `<div style="font-size:16px;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,0.8)">🌋</div>`,
+            html: `<div style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="${levelColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8))"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
+            </div>`,
             iconSize: [18, 18],
             iconAnchor: [9, 9],
           });

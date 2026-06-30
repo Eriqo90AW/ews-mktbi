@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import type { DisasterAlert, KpwbiOffice } from '../../types';
+import { renderDisasterIcon } from '../../utils/alertUtils';
+import { CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { isOfficeAffectedByAlert } from '../../utils/disasterImpact';
 import { haversineDistance } from '../../utils/geo';
@@ -320,9 +322,9 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
                             <td className="font-semibold">{office.name}</td>
                             <td>{office.city}</td>
                             <td>
-                              <span className="disaster-tag font-semibold">
-                                {alert.type === 'earthquake' ? '🌋 ' : alert.type === 'extreme_weather' ? '⚡ ' : alert.type === 'karhutla' ? '🔥 ' : '⚠️ '}
-                                {alert.title}
+                              <span className="disaster-tag font-semibold" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                {renderDisasterIcon(alert.type, undefined, { width: '14px', height: '14px' })}
+                                <span>{alert.title}</span>
                               </span>
                             </td>
                             <td style={{ textAlign: 'center' }}>
@@ -354,8 +356,9 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
                     </table>
                   </div>
                 ) : (
-                  <div className="empty-report-state">
-                    ✅ Tidak ada Kantor Perwakilan (KPW) Bank Indonesia yang terdampak radius kebencanaan pada periode ini.
+                  <div className="empty-report-state" style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
+                    <CheckCircleIcon style={{ fontSize: 16, color: '#22c55e', flexShrink: 0 }} />
+                    <span>Tidak ada Kantor Perwakilan (KPW) Bank Indonesia yang terdampak radius kebencanaan pada periode ini.</span>
                   </div>
                 )}
               </div>

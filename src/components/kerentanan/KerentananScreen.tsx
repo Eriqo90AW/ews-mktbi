@@ -3,6 +3,7 @@ import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { PROVINCES } from '../../constants/provinces';
 import { BnpbInariskService } from '../../services/bnpbInariskService';
 import EwsMap from '../dashboard/EwsMap';
+import { renderDisasterIcon } from '../../utils/alertUtils';
 import '../dashboard/TopBar.css';
 import './KerentananScreen.css';
 
@@ -12,11 +13,11 @@ interface KerentananScreenProps {
   onBack: () => void;
 }
 
-const HAZARD_TABS: { key: InariskHazard; emoji: string; label: string }[] = [
-  { key: 'flood', emoji: '🌧️', label: 'Banjir' },
-  { key: 'tsunami', emoji: '🌊', label: 'Tsunami' },
-  { key: 'kekeringan', emoji: '🏜️', label: 'Kekeringan' },
-  { key: 'volcanic', emoji: '🌋', label: 'Gunung Api' },
+const HAZARD_TABS: { key: InariskHazard; label: string }[] = [
+  { key: 'flood', label: 'Banjir' },
+  { key: 'tsunami', label: 'Tsunami' },
+  { key: 'kekeringan', label: 'Kekeringan' },
+  { key: 'volcanic', label: 'Gunung Api' },
 ];
 
 function riskLevel(score: number): { label: string; cls: string } {
@@ -75,7 +76,7 @@ const KerentananScreen: React.FC<KerentananScreenProps> = ({ onBack }) => {
                 className={`topbar-filter-pill${selectedHazard === tab.key ? ' active' : ''}`}
                 onClick={() => setSelectedHazard(tab.key)}
               >
-                <span>{tab.emoji}</span>
+                <span>{renderDisasterIcon(tab.key)}</span>
                 <span>{tab.label}</span>
               </button>
             ))}
@@ -86,7 +87,10 @@ const KerentananScreen: React.FC<KerentananScreenProps> = ({ onBack }) => {
         <div className="topbar-right">
           <div className="topbar-status kerentanan">
             <span className="topbar-status-dot" />
-            <span>{currentHazard.emoji} {rankedOffices.length} Wilayah — {currentHazard.label}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+              {renderDisasterIcon(selectedHazard, undefined, { width: '14px', height: '14px' })}
+              <span>{rankedOffices.length} Wilayah — {currentHazard.label}</span>
+            </span>
           </div>
         </div>
       </header>

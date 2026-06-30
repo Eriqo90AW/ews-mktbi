@@ -10,11 +10,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@microsoft/power-apps": "^1.0.3",
+    "@mui/icons-material": "^9.1.1",
+    "@mui/material": "^9.1.2",
     "html2canvas": "^1.4.1",
     "leaflet": "^1.9.4",
+    "lucide-react": "^1.22.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-icons": "^5.7.0",
     "react-leaflet": "^5.0.0",
     "xlsx": "^0.18.5"
   },

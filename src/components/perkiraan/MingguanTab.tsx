@@ -1,5 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
+import {
+  FlashOn as FlashOnIcon,
+  WaterDrop as WaterDropIcon
+} from '@mui/icons-material';
 import { PROVINCES } from '../../constants/provinces';
 import { BnpbInariskService } from '../../services/bnpbInariskService';
 import { useAlerts } from '../../hooks/useAlerts';
@@ -97,13 +101,13 @@ const MingguanTab: React.FC<MingguanTabProps> = () => {
                     <span className="perkiraan-province-name">{province?.name ?? office.provinceId}</span>
                     <div className="perkiraan-row-tags">
                       {forecastSev && (
-                        <span className={`perkiraan-badge sev-${forecastSev}`}>
-                          ⚡ {SEV_LABEL[forecastSev]}
+                        <span className={`perkiraan-badge sev-${forecastSev}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                          <FlashOnIcon style={{ fontSize: 10 }} /> {SEV_LABEL[forecastSev]}
                         </span>
                       )}
                       {floodScore > 0.3 && (
-                        <span className="perkiraan-badge flood">
-                          💧 Banjir {Math.round(floodScore * 100)}
+                        <span className="perkiraan-badge flood" style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                          <WaterDropIcon style={{ fontSize: 10 }} /> Banjir {Math.round(floodScore * 100)}
                         </span>
                       )}
                     </div>

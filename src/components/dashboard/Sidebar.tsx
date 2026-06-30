@@ -376,10 +376,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             <label className="filter-label">Jenis Bencana</label>
                             <select className="filter-select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as DisasterType | 'all')}>
                               <option value="all">Semua Jenis</option>
-                              <option value="earthquake">💢 Gempa Bumi</option>
-                              <option value="extreme_weather">⚡ Cuaca Ekstrem</option>
-                              <option value="karhutla">🔥 Karhutla</option>
-                              <option value="volcanic">🌋 Gunung Api</option>
+                              <option value="earthquake">Gempa Bumi</option>
+                              <option value="extreme_weather">Cuaca Ekstrem</option>
+                              <option value="karhutla">Karhutla</option>
+                              <option value="volcanic">Gunung Api</option>
                             </select>
                           </div>
                           <div className="filter-group">

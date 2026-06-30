@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { fetchProvinceWeatherForecast } from '../../../services/bmkgService';
+import {
+  Warning as WarningIcon,
+  WaterDrop as WaterDropIcon,
+  Air as AirIcon
+} from '@mui/icons-material';
 import './WeatherCard.css';
 
 interface WeatherCardProps {
@@ -75,8 +80,9 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({ provinceId, cityName }
 
   if (error || !weatherData || !weatherData.cuaca || weatherData.cuaca.length === 0) {
     return (
-      <div className="weather-card-error">
-        <span>⚠️ Cuaca tidak tersedia untuk wilayah ini</span>
+      <div className="weather-card-error" style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+        <WarningIcon style={{ fontSize: 16, color: '#d97706' }} />
+        <span>Cuaca tidak tersedia untuk wilayah ini</span>
       </div>
     );
   }
@@ -89,8 +95,9 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({ provinceId, cityName }
 
   if (!currentItem) {
     return (
-      <div className="weather-card-error">
-        <span>⚠️ Data prakiraan cuaca kosong</span>
+      <div className="weather-card-error" style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+        <WarningIcon style={{ fontSize: 16, color: '#d97706' }} />
+        <span>Data prakiraan cuaca kosong</span>
       </div>
     );
   }
@@ -136,15 +143,15 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({ provinceId, cityName }
 
       {/* Metrics Grid */}
       <div className="weather-metrics-grid">
-        <div className="weather-metric-item">
-          <span className="weather-metric-emoji">💧</span>
+        <div className="weather-metric-item" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span className="weather-metric-emoji" style={{ display: 'inline-flex', alignItems: 'center' }}><WaterDropIcon style={{ fontSize: 16, color: '#0284c7' }} /></span>
           <div className="weather-metric-info">
             <span className="weather-metric-val">{currentItem.hu}%</span>
             <span className="weather-metric-label">Kelembapan</span>
           </div>
         </div>
-        <div className="weather-metric-item">
-          <span className="weather-metric-emoji">💨</span>
+        <div className="weather-metric-item" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span className="weather-metric-emoji" style={{ display: 'inline-flex', alignItems: 'center' }}><AirIcon style={{ fontSize: 16, color: '#64748b' }} /></span>
           <div className="weather-metric-info">
             <span className="weather-metric-val">{currentItem.ws} km/h</span>
             <span className="weather-metric-label">Angin ({currentItem.wd})</span>

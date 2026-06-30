@@ -1,5 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { ENSO_HISTORY, ENSO_CURRENT, getPhaseColor, getPhaseLabel, getEnsoElevatedProvinces } from '../../constants/ensoData';
+import {
+  Flood as FloodIcon,
+  Dry as DryIcon
+} from '@mui/icons-material';
 import { PROVINCES } from '../../constants/provinces';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { BnpbInariskService } from '../../services/bnpbInariskService';
@@ -168,7 +172,9 @@ const IklimView: React.FC = () => {
               <div className="enso-hazards-title">Bahaya yang Meningkat</div>
               {currentOutlook.elevatedHazards.map((h) => (
                 <div key={h.hazard} className={`enso-hazard-row ${h.hazard}`}>
-                  <span className="enso-hazard-icon">{h.hazard === 'banjir' ? '🌧️' : '🏜️'}</span>
+                  <span className="enso-hazard-icon" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    {h.hazard === 'banjir' ? <FloodIcon style={{ fontSize: 16 }} /> : <DryIcon style={{ fontSize: 16 }} />}
+                  </span>
                   <div>
                     <span className="enso-hazard-type">{h.hazard === 'banjir' ? 'Risiko Banjir Meningkat' : 'Risiko Kekeringan Meningkat'}</span>
                     <p className="enso-hazard-regions">{h.regions}</p>
@@ -196,8 +202,16 @@ const IklimView: React.FC = () => {
                       <span className="perkiraan-office-name">{office.name}</span>
                       <span className="perkiraan-province-name">{province?.name}</span>
                       <div className="perkiraan-row-tags">
-                        {isFlood && <span className="perkiraan-badge flood">🌧️ Banjir {Math.round(floodIdx * 100)}</span>}
-                        {isDrought && <span className="perkiraan-badge drought">🏜️ Kekeringan {Math.round(droughtIdx * 100)}</span>}
+                        {isFlood && (
+                          <span className="perkiraan-badge flood" style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                            <FloodIcon style={{ fontSize: 10 }} /> Banjir {Math.round(floodIdx * 100)}
+                          </span>
+                        )}
+                        {isDrought && (
+                          <span className="perkiraan-badge drought" style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                            <DryIcon style={{ fontSize: 10 }} /> Kekeringan {Math.round(droughtIdx * 100)}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

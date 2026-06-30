@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import type { DisasterAlert, DisasterType, RiskCalcResult } from '../../types';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { renderDisasterIcon } from '../../utils/alertUtils';
+import { Public as PublicIcon } from '@mui/icons-material';
 import { useAlerts } from '../../hooks/useAlerts';
 import './TopBar.css';
 
@@ -19,12 +20,12 @@ interface TopBarProps {
   onSwitchToPerkiraan: () => void;
 }
 
-const FILTER_OPTIONS: Array<{ value: DisasterType | 'all'; emoji: string; label: string }> = [
-  { value: 'all', emoji: '🌐', label: 'Semua' },
-  { value: 'earthquake', emoji: '💢', label: 'Gempa' },
-  { value: 'extreme_weather', emoji: '⚡', label: 'Cuaca' },
-  { value: 'karhutla', emoji: '🔥', label: 'Karhutla' },
-  { value: 'volcanic', emoji: '🌋', label: 'Gunung Api' },
+const FILTER_OPTIONS: Array<{ value: DisasterType | 'all'; label: string }> = [
+  { value: 'all', label: 'Semua' },
+  { value: 'earthquake', label: 'Gempa' },
+  { value: 'extreme_weather', label: 'Cuaca' },
+  { value: 'karhutla', label: 'Karhutla' },
+  { value: 'volcanic', label: 'Gunung Api' },
 ];
 
 function formatRelativeTime(timestamp: string): string {
@@ -244,7 +245,13 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
               className={`topbar-filter-pill${selectedType === opt.value ? ' active' : ''}`}
               onClick={() => onTypeChange(opt.value)}
             >
-              <span>{opt.value === 'all' ? opt.emoji : renderDisasterIcon(opt.value)}</span>
+              <span>
+                {opt.value === 'all' ? (
+                  <PublicIcon style={{ width: '14px', height: '14px', display: 'inline-block', verticalAlign: 'middle' }} />
+                ) : (
+                  renderDisasterIcon(opt.value, undefined, { width: '14px', height: '14px' })
+                )}
+              </span>
               <span>{opt.label}</span>
             </button>
           ))}

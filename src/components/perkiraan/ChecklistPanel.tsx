@@ -1,5 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
+import {
+  Business as BusinessIcon,
+  MonitorHeart as MonitorHeartIcon,
+  Waves as WavesIcon,
+  WaterDrop as WaterDropIcon,
+  Lightbulb as LightbulbIcon
+} from '@mui/icons-material';
 import { PROVINCES } from '../../constants/provinces';
 import { CHECKLIST_ITEMS } from '../../constants/preparednessChecklist';
 import { usePreparednessChecklist } from '../../hooks/usePreparednessChecklist';
@@ -60,10 +67,10 @@ const ChecklistPanel: React.FC = () => {
   const progressPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
   const progressClass = progressPct === 100 ? 'complete' : progressPct >= 60 ? 'good' : progressPct >= 30 ? 'partial' : 'low';
 
-  const CATEGORY_ICONS: Record<string, string> = {
-    umum: '🏢',
-    gempa: '🫨',
-    banjir: '🌊',
+  const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+    umum: <BusinessIcon style={{ fontSize: 13, display: 'inline-block', verticalAlign: 'middle' }} />,
+    gempa: <MonitorHeartIcon style={{ fontSize: 13, display: 'inline-block', verticalAlign: 'middle' }} />,
+    banjir: <WavesIcon style={{ fontSize: 13, display: 'inline-block', verticalAlign: 'middle' }} />,
   };
 
   const goToPrev = () => setSelectedIndex((i) => Math.max(0, i - 1));
@@ -100,13 +107,13 @@ const ChecklistPanel: React.FC = () => {
           <span>{provincesMap.get(selectedOffice.provinceId)?.name}</span>
           <span>{selectedOffice.region}</span>
           {isHighFlood && (
-            <span className="flood-risk-tag">
-              💧 Banjir Tinggi ({Math.round(floodScore * 100)}/100)
+            <span className="flood-risk-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <WaterDropIcon style={{ fontSize: 12 }} /> Banjir Tinggi ({Math.round(floodScore * 100)}/100)
             </span>
           )}
           {isHighGempa && (
-            <span className="gempa-risk-tag">
-              🫨 Gempa Tinggi ({Math.round(gempaScore * 100)}/100)
+            <span className="gempa-risk-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <MonitorHeartIcon style={{ fontSize: 12 }} /> Gempa Tinggi ({Math.round(gempaScore * 100)}/100)
             </span>
           )}
         </div>
@@ -172,10 +179,14 @@ const ChecklistPanel: React.FC = () => {
                   <span className="checklist-category-icon">{CATEGORY_ICONS[item.category]}</span>
                   <span className="checklist-item-label">{item.label}</span>
                   {isFloodItem && (
-                    <span className="checklist-flood-tag">💧 Khusus Banjir</span>
+                    <span className="checklist-flood-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <WaterDropIcon style={{ fontSize: 11 }} /> Khusus Banjir
+                    </span>
                   )}
                   {isGempaItem && (
-                    <span className="checklist-gempa-tag">🫨 Khusus Gempa</span>
+                    <span className="checklist-gempa-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <MonitorHeartIcon style={{ fontSize: 11 }} /> Khusus Gempa
+                    </span>
                   )}
                 </div>
                 <p className="checklist-item-desc">{item.description}</p>
@@ -186,9 +197,12 @@ const ChecklistPanel: React.FC = () => {
       </div>
 
       {(!isHighFlood || !isHighGempa) && (
-        <p className="checklist-flood-note">
-          💡 Beberapa item disembunyikan karena tidak relevan dengan profil risiko wilayah ini
-          {!isHighGempa ? ' (gempa)' : ''}{!isHighFlood ? ' (banjir)' : ''}.
+        <p className="checklist-flood-note" style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+          <LightbulbIcon style={{ fontSize: 14, color: '#eab308', flexShrink: 0, marginTop: '2px' }} />
+          <span>
+            Beberapa item disembunyikan karena tidak relevan dengan profil risiko wilayah ini
+            {!isHighGempa ? ' (gempa)' : ''}{!isHighFlood ? ' (banjir)' : ''}.
+          </span>
         </p>
       )}
     </div>

@@ -2,12 +2,16 @@ import React, { useState } from 'react';
 import IklimView from './IklimView';
 import GempaView from './GempaView';
 import ChecklistPanel from './ChecklistPanel';
+import {
+  Thermostat as ThermostatIcon,
+  MonitorHeart as MonitorHeartIcon
+} from '@mui/icons-material';
 
 type SubTab = 'iklim' | 'gempa';
 
-const SUB_TABS: { key: SubTab; emoji: string; label: string }[] = [
-  { key: 'iklim', emoji: '🌡️', label: 'Iklim' },
-  { key: 'gempa', emoji: '🌋', label: 'Gempa Bumi' },
+const SUB_TABS: { key: SubTab; label: string; icon: React.ComponentType<any> }[] = [
+  { key: 'iklim', label: 'Iklim', icon: ThermostatIcon },
+  { key: 'gempa', label: 'Gempa Bumi', icon: MonitorHeartIcon },
 ];
 
 const JangkaPanjangTab: React.FC = () => {
@@ -18,16 +22,19 @@ const JangkaPanjangTab: React.FC = () => {
     <div className="jangka-panjang-container">
       {/* Sub-tab navigation */}
       <div className="jangka-panjang-subtabs">
-        {SUB_TABS.map((tab) => (
-          <button
-            key={tab.key}
-            className={`jangka-subtab-btn${activeSubTab === tab.key ? ' active' : ''}`}
-            onClick={() => setActiveSubTab(tab.key)}
-          >
-            <span>{tab.emoji}</span>
-            <span>{tab.label}</span>
-          </button>
-        ))}
+        {SUB_TABS.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.key}
+              className={`jangka-subtab-btn${activeSubTab === tab.key ? ' active' : ''}`}
+              onClick={() => setActiveSubTab(tab.key)}
+            >
+              <Icon style={{ fontSize: 14, display: 'inline-block', marginRight: '4px', verticalAlign: 'middle' }} />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Body: main content + checklist right sidebar */}

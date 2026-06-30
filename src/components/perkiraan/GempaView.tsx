@@ -1,6 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { MEGATHRUST_ZONES } from '../../constants/megathrustZones';
 import { RING_OF_FIRE_ARCS, VOLCANO_POINTS } from '../../constants/ringOfFire';
+import {
+  FlashOn as FlashOnIcon,
+  Business as BusinessIcon,
+  Volcano as VolcanoIcon
+} from '@mui/icons-material';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { PROVINCES } from '../../constants/provinces';
 import { distanceToPolyline, haversineDistance } from '../../utils/geo';
@@ -77,11 +82,13 @@ const GempaView: React.FC = () => {
 
         {/* Layer toggle */}
         <div className="gempa-layer-tabs">
-          <button className={`gempa-layer-btn${activeLayer === 'megathrust' ? ' active' : ''}`} onClick={() => setActiveLayer('megathrust')}>
-            🟣 Zona Megathrust
+          <button className={`gempa-layer-btn${activeLayer === 'megathrust' ? ' active' : ''}`} onClick={() => setActiveLayer('megathrust')} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#a855f7', display: 'inline-block' }} />
+            Zona Megathrust
           </button>
-          <button className={`gempa-layer-btn${activeLayer === 'ringoffire' ? ' active' : ''}`} onClick={() => setActiveLayer('ringoffire')}>
-            🔴 Ring of Fire
+          <button className={`gempa-layer-btn${activeLayer === 'ringoffire' ? ' active' : ''}`} onClick={() => setActiveLayer('ringoffire')} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#dc2626', display: 'inline-block' }} />
+            Ring of Fire
           </button>
         </div>
 
@@ -112,7 +119,9 @@ const GempaView: React.FC = () => {
                       </div>
                       <div className="mt-mw-bar-label">
                         <span style={{ color }}>{getMwLabel(zone.maxMagnitude)}</span>
-                        <span>⚡ Radius {zone.impactRadiusKm} km</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <FlashOnIcon style={{ fontSize: 12 }} /> Radius {zone.impactRadiusKm} km
+                        </span>
                       </div>
                       <div className="mt-province-pills">
                         {zone.affectedProvinces.map((id) => (
@@ -182,7 +191,9 @@ const GempaView: React.FC = () => {
                       </div>
                       <div className="mt-mw-bar-label" style={{ marginTop: 2 }}>
                         <span style={{ color: arc.color }}>Busur Ring of Fire</span>
-                        <span>🏢 {offices.length} KPw terdampak</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <BusinessIcon style={{ fontSize: 12 }} /> {offices.length} KPw terdampak
+                        </span>
                       </div>
                       {/* Province pills from impacted KPW */}
                       {offices.length > 0 && (
@@ -246,14 +257,18 @@ const GempaView: React.FC = () => {
                     <div className="mt-zone-accent" style={{ background: color }} />
                     <div className="mt-zone-body">
                       <div className="mt-zone-top">
-                        <span className="mt-zone-name">🌋 G. {v.name}</span>
+                        <span className="mt-zone-name" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <VolcanoIcon style={{ fontSize: 14, color }} /> G. {v.name}
+                        </span>
                         <span className="mt-zone-mw-badge" style={{ color, borderColor: `${color}40`, background: `${color}15` }}>
                           {getLevelLabel(v.level)}
                         </span>
                       </div>
                       <div className="mt-mw-bar-label" style={{ marginTop: 2 }}>
                         <span style={{ color }}>{provincesMap.get(v.provinceId)?.name ?? v.provinceId}</span>
-                        <span>⚡ Radius {v.impactRadiusKm} km · 🏢 {offices.length} KPw</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+                          <FlashOnIcon style={{ fontSize: 12 }} /> Radius {v.impactRadiusKm} km · <BusinessIcon style={{ fontSize: 12 }} /> {offices.length} KPw
+                        </span>
                       </div>
                     </div>
                     <svg className="mt-zone-chevron" style={{ transform: isSelected ? 'rotate(90deg)' : 'none' }}
