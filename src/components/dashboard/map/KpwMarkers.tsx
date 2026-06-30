@@ -223,12 +223,14 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                     Coordinates: {office.latitude.toFixed(4)}, {office.longitude.toFixed(4)}
                   </p>
                   <div className="ews-popup-footer">
-                    {office.isKantorPusat ? (
-                      <span className="ews-popup-tag" style={{ color: '#1e3a8a', backgroundColor: '#dbeafe' }}>🏛️ KANTOR PUSAT</span>
-                    ) : office.isKorwil ? (
-                      <span className="ews-popup-tag" style={{ color: '#7c3aed', backgroundColor: '#ede9fe' }}>★ KORWIL</span>
-                    ) : (
-                      <span className="ews-popup-tag" style={{ color: 'var(--accent-primary)', backgroundColor: 'var(--accent-light)' }}>NORMAL STATE</span>
+                    {riskSeverity && (
+                      <span className="ews-popup-tag" style={{
+                        color: riskSeverity === 'critical' ? 'var(--alert-critical)' : riskSeverity === 'warning' ? 'var(--alert-warning)' : 'var(--alert-watch)',
+                        backgroundColor: riskSeverity === 'critical' ? 'var(--alert-critical-bg)' : riskSeverity === 'warning' ? 'var(--alert-warning-bg)' : 'var(--alert-watch-bg)',
+                        borderColor: riskSeverity === 'critical' ? 'var(--alert-critical-border)' : riskSeverity === 'warning' ? 'var(--alert-warning-border)' : 'var(--alert-watch-border)',
+                      }}>
+                        Risiko: {riskSeverity === 'critical' ? 'Tinggi' : riskSeverity === 'warning' ? 'Sedang' : 'Rendah'}
+                      </span>
                     )}
                   </div>
                 </div>

@@ -35,25 +35,36 @@ export const useAlerts = () => {
       cachedIsLoading = true;
       notifyListeners();
 
-      Promise.all([
-        fetchLatestEarthquakes().catch((e) => { console.error(e); return [] as DisasterAlert[]; }),
-        fetchExtremeWeather().catch((e) => { console.error(e); return [] as DisasterAlert[]; }),
-        fetchThreeDayForecast().catch((e) => { console.error(e); return [] as DisasterAlert[]; }),
-        BMKGGisService.fetchSignatureData().catch((e) => { console.error(e); return [] as DisasterAlert[]; }),
-        BMKGGisService.fetchHotspotData().catch((e) => { console.error(e); return [] as DisasterAlert[]; }),
-        MagmaService.fetchLiveAlerts().catch((e) => { console.error(e); return [] as DisasterAlert[]; }),
-      ]).then(([liveEarthquakes, liveExtremeWeather, threeDayForecast, gisSignature, gisHotspot, liveVolcanoes]) => {
-        cachedAlerts = [
-          ...liveEarthquakes,
-          ...liveExtremeWeather,
-          ...threeDayForecast,
-          ...gisSignature,
-          ...gisHotspot,
-          ...liveVolcanoes
-        ];
-        cachedIsLoading = false;
-        isFetching = false;
-        notifyListeners();
+      const apis = [
+        fetchLatestEarthquakes,
+        fetchExtremeWeather,
+        fetchThreeDayForecast,
+        BMKGGisService.fetchSignatureData,
+        BMKGGisService.fetchHotspotData,
+        MagmaService.fetchLiveAlerts
+      ];
+
+      let pending = apis.length;
+
+      apis.forEach((apiCall) => {
+        apiCall()
+          .then((data) => {
+            if (data && data.length > 0) {
+              cachedAlerts = [...cachedAlerts, ...data];
+              notifyListeners();
+            }
+          })
+          .catch((e) => {
+            console.error(e);
+          })
+          .finally(() => {
+            pending--;
+            if (pending === 0) {
+              cachedIsLoading = false;
+              isFetching = false;
+              notifyListeners();
+            }
+          });
       });
     }
 

@@ -44,6 +44,27 @@ function parsePolygonCentroid(polygonStr: string): { latitude: number; longitude
   return { latitude: totalLat / count, longitude: totalLon / count };
 }
 
+async function fetchWithProxy(url: string): Promise<string> {
+  try {
+    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+    if (res.ok) return await res.text();
+  } catch (e) {
+    console.warn('corsproxy.io failed, trying fallback', e);
+  }
+  
+  try {
+    const res = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`);
+    if (res.ok) return await res.text();
+  } catch (e) {
+    console.warn('codetabs proxy failed, trying fallback', e);
+  }
+
+  const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+  if (!res.ok) throw new Error(`All proxies failed for ${url}`);
+  const data = await res.json();
+  return data.contents;
+}
+
 export async function fetchLatestEarthquakes(): Promise<DisasterAlert[]> {
   try {
     const response = await fetch('https://data.bmkg.go.id/DataMKG/TEWS/gempadirasakan.json');
@@ -91,7 +112,8 @@ export async function fetchExtremeWeather(): Promise<DisasterAlert[]> {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
     if (data.status !== 'ok') throw new Error('RSS-to-JSON API status not ok');
-    const items = data.items || [];
+    const rawItems = data.items || [];
+    const items = rawItems.slice(0, 15);
 
     const alertsPromises = items.map(async (item: { guid: string; link: string; title: string; description: string; pubDate: string }, index: number) => {
       let latitude = -6.2088;
@@ -100,27 +122,23 @@ export async function fetchExtremeWeather(): Promise<DisasterAlert[]> {
       let hasExactCoords = false;
 
       try {
-        const capResponse = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(item.link)}`);
-        if (capResponse.ok) {
-          const capJson = await capResponse.json();
-          const xmlText = capJson.contents;
-          if (xmlText) {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+        const xmlText = await fetchWithProxy(item.link);
+        if (xmlText) {
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
 
-            const capSeverity = xmlDoc.querySelector('severity')?.textContent?.toLowerCase();
-            if (capSeverity === 'extreme' || capSeverity === 'severe') severity = 'critical';
-            else if (capSeverity === 'moderate') severity = 'warning';
-            else severity = 'watch';
+          const capSeverity = xmlDoc.querySelector('severity')?.textContent?.toLowerCase();
+          if (capSeverity === 'extreme' || capSeverity === 'severe') severity = 'critical';
+          else if (capSeverity === 'moderate') severity = 'warning';
+          else severity = 'watch';
 
-            const polygonNode = xmlDoc.querySelector('polygon');
-            if (polygonNode && polygonNode.textContent) {
-              const centroid = parsePolygonCentroid(polygonNode.textContent);
-              if (centroid) {
-                latitude = centroid.latitude;
-                longitude = centroid.longitude;
-                hasExactCoords = true;
-              }
+          const polygonNode = xmlDoc.querySelector('polygon');
+          if (polygonNode && polygonNode.textContent) {
+            const centroid = parsePolygonCentroid(polygonNode.textContent);
+            if (centroid) {
+              latitude = centroid.latitude;
+              longitude = centroid.longitude;
+              hasExactCoords = true;
             }
           }
         }
@@ -164,10 +182,7 @@ export async function fetchExtremeWeather(): Promise<DisasterAlert[]> {
 
 export async function fetchThreeDayForecast(): Promise<DisasterAlert[]> {
   try {
-    const response = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://www.bmkg.go.id/cuaca/potensi-cuaca-ekstrem'));
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const json = await response.json();
-    const html = json.contents;
+    const html = await fetchWithProxy('https://www.bmkg.go.id/cuaca/potensi-cuaca-ekstrem');
     if (!html) throw new Error('No HTML content returned');
 
     const theadMatch = html.match(/<thead[^>]*>([\s\S]*?)<\/thead>/i);
