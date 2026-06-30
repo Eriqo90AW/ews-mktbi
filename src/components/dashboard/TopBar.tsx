@@ -19,7 +19,7 @@ interface TopBarProps {
 
 const FILTER_OPTIONS: Array<{ value: DisasterType | 'all'; emoji: string; label: string }> = [
   { value: 'all', emoji: '🌐', label: 'Semua' },
-  { value: 'earthquake', emoji: '🫨', label: 'Gempa' },
+  { value: 'earthquake', emoji: '💢', label: 'Gempa' },
   { value: 'extreme_weather', emoji: '⚡', label: 'Cuaca' },
   { value: 'karhutla', emoji: '🔥', label: 'Karhutla' },
   { value: 'volcanic', emoji: '🌋', label: 'Gunung Api' },

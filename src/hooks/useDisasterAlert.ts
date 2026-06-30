@@ -96,7 +96,7 @@ export const useDisasterAlert = () => {
           riskLevel: maxRiskLevel,
           affectedLocations,
           shouldAlert,
-        };
+        } as RiskCalcResult;
       })
       .filter((res): res is RiskCalcResult => res !== null);
   }, [alerts, isLoading, markedLocations]);

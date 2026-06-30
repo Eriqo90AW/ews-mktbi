@@ -69,21 +69,17 @@
 /* Severity box indicator (3 small bars, filled = level) */
 .alertcard-sev-badge {
   display: flex;
-  align-items: flex-end;
-  gap: 2px;
+  align-items: center;
+  gap: 3px;
   flex-shrink: 0;
 }
 
 .sev-box {
-  width: 5px;
-  border-radius: 2px;
+  width: 12px;
+  height: 4px;
+  border-radius: 1px;
   background-color: var(--border-default);
 }
-
-/* stepped heights so it looks like a signal/level bar */
-.sev-box:nth-child(1) { height: 8px; }
-.sev-box:nth-child(2) { height: 12px; }
-.sev-box:nth-child(3) { height: 16px; }
 
 .alertcard-sev-badge.sev-critical .sev-box.filled { background-color: var(--alert-critical); }
 .alertcard-sev-badge.sev-warning  .sev-box.filled { background-color: var(--alert-warning); }

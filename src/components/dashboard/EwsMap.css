@@ -22,14 +22,35 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 2px 6px rgba(124, 58, 237, 0.5));
+  filter: drop-shadow(0 2px 6px rgba(37, 99, 235, 0.4));
   transition: all 0.2s ease;
   cursor: pointer;
 }
 
 .drc-marker-container:hover {
-  filter: drop-shadow(0 0 10px rgba(124, 58, 237, 0.85));
+  filter: drop-shadow(0 0 10px rgba(37, 99, 235, 0.7));
   transform: scale(1.15);
+}
+
+/* DRC triangle base = same blue as KPW markers */
+.drc-triangle {
+  color: var(--accent-primary);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drc-triangle.has-alert.alert-critical {
+  color: var(--alert-critical);
+  animation: pulse-star-critical 2s infinite cubic-bezier(0.4, 0, 0, 1);
+}
+
+.drc-triangle.has-alert.alert-warning {
+  color: var(--alert-warning);
+  animation: pulse-star-warning 2s infinite cubic-bezier(0.4, 0, 0, 1);
+}
+
+.drc-triangle.has-alert.alert-watch {
+  color: var(--alert-watch);
+  animation: pulse-star-watch 2s infinite cubic-bezier(0.4, 0, 0, 1);
 }
 
 

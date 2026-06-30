@@ -69,6 +69,64 @@ export const Sidebar: React.FC<SidebarProps> = ({
     'Sulawesi, Maluku, & Papua': true,
   });
 
+  // Build a map: officeId -> highest riskLevel from riskResults
+  const officeRiskLevels = useMemo(() => {
+    const map = new Map<string, { riskLevel: string; riskScore: number; alerts: DisasterAlert[] }>();
+    
+    riskResults.forEach((res) => {
+      res.affectedLocations.forEach((loc) => {
+        const office = KPWBI_OFFICES.find((o) => o.id === loc.id);
+        if (!office) return;
+        
+        const matchedAlert = filteredAlerts.find((a) => a.id === res.event.id);
+        const existing = map.get(office.id);
+        if (!existing || res.riskScore > existing.riskScore) {
+          map.set(office.id, {
+            riskLevel: res.riskLevel,
+            riskScore: res.riskScore,
+            alerts: existing ? [...existing.alerts, matchedAlert].filter(Boolean) as DisasterAlert[] : ([matchedAlert].filter(Boolean) as DisasterAlert[]),
+          });
+        } else if (existing && matchedAlert) {
+          if (!existing.alerts.some(a => a.id === matchedAlert.id)) {
+            existing.alerts.push(matchedAlert);
+          }
+        }
+      });
+    });
+    
+    return map;
+  }, [riskResults, filteredAlerts]);
+
+  // Counts of offices per risk level
+  const riskStats = useMemo(() => {
+    const counts: Record<AlertSeverity, number> = { critical: 0, warning: 0, watch: 0 };
+    officeRiskLevels.forEach(({ riskLevel }) => {
+      if (riskLevel === 'Tinggi') counts.critical++;
+      else if (riskLevel === 'Sedang') counts.warning++;
+      else counts.watch++;
+    });
+    return counts;
+  }, [officeRiskLevels]);
+
+  // Group offices per risk level for panel display
+  const officesByBand = useMemo(() => {
+    const result = new Map<AlertSeverity, Array<{ office: typeof KPWBI_OFFICES[0]; topHazards: string }>>([
+      ['critical', []],
+      ['warning', []],
+      ['watch', []],
+    ]);
+    
+    officeRiskLevels.forEach((data, officeId) => {
+      const office = KPWBI_OFFICES.find((o) => o.id === officeId);
+      if (!office) return;
+      const band: AlertSeverity = data.riskLevel === 'Tinggi' ? 'critical' : data.riskLevel === 'Sedang' ? 'warning' : 'watch';
+      const topHazards = data.alerts.map((a) => getDisasterEmoji(a.type)).join(' ');
+      result.get(band)?.push({ office, topHazards });
+    });
+    
+    return result;
+  }, [officeRiskLevels]);
+
   const sortedAlerts = useMemo(() => {
     const list = [...filteredAlerts];
     switch (sortBy) {
@@ -109,52 +167,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const provincesMap = useMemo(() => new Map(PROVINCES.map((p) => [p.id, p])), []);
 
-  // Build a map: riskLevel → offices whose marker is inside ≥1 alert's radius.
-  // Uses riskResults.affectedLocations (haversine-checked) not province matching.
-  const affectedOfficesBySeverity = useMemo(() => {
-
-    // Collect per-office data: which alerts affect each KPW (by radius)
-    const officeAlertMap = new Map<string, { office: typeof KPWBI_OFFICES[0]; alerts: DisasterAlert[]; riskLevel: string }>();
-
-    riskResults.forEach((res) => {
-      // Only consider results that have at least one location inside the radius
-      if (res.affectedLocations.length === 0) return;
-
-      const matchedAlert = filteredAlerts.find((a) => a.id === res.event.id);
-      if (!matchedAlert) return;
-
-      res.affectedLocations.forEach((loc) => {
-        const office = KPWBI_OFFICES.find((o) => o.id === loc.id);
-        if (!office) return; // skip DRC locations
-
-        if (!officeAlertMap.has(office.id)) {
-          officeAlertMap.set(office.id, { office, alerts: [], riskLevel: res.riskLevel });
-        }
-        const entry = officeAlertMap.get(office.id)!;
-        entry.alerts.push(matchedAlert);
-        // Escalate to highest risk level seen for this office
-        const existingWeight = { Tinggi: 3, Sedang: 2, Rendah: 1 }[entry.riskLevel] ?? 1;
-        const newWeight     = { Tinggi: 3, Sedang: 2, Rendah: 1 }[res.riskLevel]    ?? 1;
-        if (newWeight > existingWeight) entry.riskLevel = res.riskLevel;
-      });
-    });
-
-    const result = new Map<AlertSeverity, Array<{ office: typeof KPWBI_OFFICES[0]; alerts: DisasterAlert[] }>>();
-    for (const sev of ['critical', 'warning', 'watch'] as AlertSeverity[]) {
-      const targetRiskLevel = { critical: 'Tinggi', warning: 'Sedang', watch: 'Rendah' }[sev];
-      result.set(
-        sev,
-        Array.from(officeAlertMap.values())
-          .filter((entry) => entry.riskLevel === targetRiskLevel)
-          .map((entry) => ({ office: entry.office, alerts: entry.alerts })),
-      );
-    }
-    return result;
-  }, [riskResults, filteredAlerts]);
-
   const handleStatClick = (sev: AlertSeverity) => {
     setActiveStatPanel((prev) => (prev === sev ? null : sev));
   };
+
+  // Suppress unused-variable warning from linter while keeping the computed value
+  void stats;
 
   return (
     <aside className={`sidebar-container${isCollapsed ? ' sidebar-collapsed' : ''}`}>
@@ -168,16 +186,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
 
           <div className="sidebar-stats-collapsed">
-            <div className="sidebar-stat-icon critical" title={`${stats.critical} Tinggi`}>
-              <span className="stat-icon-value">{stats.critical}</span>
+            <div className="sidebar-stat-icon critical" title={`${riskStats.critical} Tinggi`}>
+              <span className="stat-icon-value">{riskStats.critical}</span>
               <span className="stat-icon-label">T</span>
             </div>
-            <div className="sidebar-stat-icon warning" title={`${stats.warning} Sedang`}>
-              <span className="stat-icon-value">{stats.warning}</span>
+            <div className="sidebar-stat-icon warning" title={`${riskStats.warning} Sedang`}>
+              <span className="stat-icon-value">{riskStats.warning}</span>
               <span className="stat-icon-label">S</span>
             </div>
-            <div className="sidebar-stat-icon watch" title={`${stats.watch} Rendah`}>
-              <span className="stat-icon-value">{stats.watch}</span>
+            <div className="sidebar-stat-icon watch" title={`${riskStats.watch} Rendah`}>
+              <span className="stat-icon-value">{riskStats.watch}</span>
               <span className="stat-icon-label">R</span>
             </div>
           </div>
@@ -209,20 +227,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ) : (
         /* ── Expanded view ────────────────────────────────────── */
         <>
-          {/* Stats row — each card is clickable */}
+          {/* Stats row — Risiko alert level office counts, each card clickable */}
           <div className="sidebar-header-row">
-            <div className="sidebar-stats-row">
-              {(['critical', 'warning', 'watch'] as AlertSeverity[]).map((sev) => (
-                <button
-                  key={sev}
-                  className={`sidebar-stat-card ${sev}${activeStatPanel === sev ? ' stat-active' : ''}`}
-                  onClick={() => handleStatClick(sev)}
-                  title={`Lihat KPW terdampak — ${SEV_LABEL[sev]}`}
+            <div className="sidebar-stats-container">
+              <div className="sidebar-stats-title-row">
+                <span className="sidebar-stats-title">Tingkat Risiko</span>
+                <div 
+                  className="sidebar-info-tooltip-container"
+                  title="Risiko Bencana: Tingkat Keparahan x Indeks Kerentanan&#10;&#10;Scoring:&#10;• 1 - 3: Rendah&#10;• 4 - 6: Sedang&#10;• 7 - 9: Tinggi"
                 >
-                  <span className="sidebar-stat-value">{stats[sev]}</span>
-                  <span className="sidebar-stat-label">{SEV_LABEL[sev]}</span>
-                </button>
-              ))}
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="info-icon">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </svg>
+                </div>
+              </div>
+              <div className="sidebar-stats-row">
+                {(['critical', 'warning', 'watch'] as AlertSeverity[]).map((sev) => (
+                  <button
+                    key={sev}
+                    className={`sidebar-stat-card ${sev}${activeStatPanel === sev ? ' stat-active' : ''}`}
+                    onClick={() => handleStatClick(sev)}
+                    title={`Lihat KPW — Risiko Bencana ${SEV_LABEL[sev]}`}
+                  >
+                    <span className="sidebar-stat-value">{riskStats[sev]}</span>
+                    <span className="sidebar-stat-label">{SEV_LABEL[sev]}</span>
+                  </button>
+                ))}
+              </div>
             </div>
             <button className="sidebar-toggle-btn sidebar-toggle-collapse" onClick={onToggleCollapse} title="Collapse sidebar">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -231,40 +264,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           </div>
 
-          {/* KPW affected panel — slides in below stats */}
+          {/* KPW panel grouped by Risiko alert level band */}
           {activeStatPanel && (() => {
-            const offices = affectedOfficesBySeverity.get(activeStatPanel) ?? [];
+            const offices = officesByBand.get(activeStatPanel) ?? [];
             return (
               <div className={`stat-panel stat-panel-${activeStatPanel}`}>
                 <div className="stat-panel-header">
                   <span className="stat-panel-title">
-                    KPW Terdampak
+                    Level Risiko Bencana
                     <span className="stat-panel-badge">{SEV_LABEL[activeStatPanel]} · {offices.length} kantor</span>
                   </span>
                   <button className="stat-panel-close" onClick={() => setActiveStatPanel(null)}>✕</button>
                 </div>
                 <div className="stat-panel-body">
                   {offices.length === 0 ? (
-                    <p className="stat-panel-empty">Tidak ada KPW terdampak pada level ini.</p>
+                    <p className="stat-panel-empty">Tidak ada KPW pada level risiko ini.</p>
                   ) : (
-                    offices.map(({ office, alerts }) => {
-                      const uniqueTypes = [...new Set(alerts.map((a) => a.type))];
-                      return (
-                        <button
-                          key={office.id}
-                          className={`stat-panel-item${selectedProvinceId === office.provinceId ? ' selected' : ''}`}
-                          onClick={() => onProvinceSelect(office.provinceId)}
-                        >
-                          <div className="stat-panel-item-info">
-                            <span className="stat-panel-item-name">{office.name}</span>
-                            <span className="stat-panel-item-city">{office.city}</span>
-                          </div>
-                          <span className="stat-panel-item-types">
-                            {uniqueTypes.map((t) => getDisasterEmoji(t)).join(' ')}
-                          </span>
-                        </button>
-                      );
-                    })
+                    offices.map(({ office, topHazards }) => (
+                      <button
+                        key={office.id}
+                        className={`stat-panel-item${selectedProvinceId === office.provinceId ? ' selected' : ''}`}
+                        onClick={() => onProvinceSelect(office.provinceId)}
+                      >
+                        <div className="stat-panel-item-info">
+                          <span className="stat-panel-item-name">{office.name}</span>
+                          <span className="stat-panel-item-city">{office.city}</span>
+                        </div>
+                        {topHazards && (
+                          <span className="stat-panel-item-types">{topHazards}</span>
+                        )}
+                      </button>
+                    ))
                   )}
                 </div>
               </div>
@@ -339,7 +369,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             <label className="filter-label">Jenis Bencana</label>
                             <select className="filter-select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as DisasterType | 'all')}>
                               <option value="all">Semua Jenis</option>
-                              <option value="earthquake">🫨 Gempa Bumi</option>
+                              <option value="earthquake">💢 Gempa Bumi</option>
                               <option value="extreme_weather">⚡ Cuaca Ekstrem</option>
                               <option value="karhutla">🔥 Karhutla</option>
                               <option value="volcanic">🌋 Gunung Api</option>

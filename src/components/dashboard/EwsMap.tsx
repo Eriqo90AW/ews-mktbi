@@ -19,7 +19,7 @@ import './EwsMap.css';
 
 export interface EwsMapProps {
   alerts: DisasterAlert[];
-  riskResults: import('../../types').RiskCalcResult[];
+  riskResults?: import('../../types').RiskCalcResult[];
   selectedProvinceId: string | null;
   selectedAlertId: string | null;
   onProvinceSelect: (provinceId: string) => void;
@@ -41,7 +41,7 @@ function getProvinceRisk(provinceId: string, hazard: 'flood' | 'tsunami' | 'keke
 
 export const EwsMap: React.FC<EwsMapProps> = ({
   alerts,
-  riskResults,
+  riskResults = [],
   selectedProvinceId,
   selectedAlertId,
   onProvinceSelect,
@@ -201,6 +201,7 @@ export const EwsMap: React.FC<EwsMapProps> = ({
 
         <KpwMarkers
           alerts={visibleAlerts}
+          riskResults={riskResults}
           activeTypeFilter={activeTypeFilter}
           selectedProvinceId={selectedProvinceId}
           nearestOffices={nearestOffices}
@@ -210,7 +211,7 @@ export const EwsMap: React.FC<EwsMapProps> = ({
           selectedAlertId={selectedAlertId}
         />
 
-        {mapLayers.drc && <DrcMarkers selectedAlert={selectedAlert} />}
+        {mapLayers.drc && <DrcMarkers selectedAlert={selectedAlert} riskResults={riskResults} />}
       </MapContainer>
 
       <NearestKpwPanel

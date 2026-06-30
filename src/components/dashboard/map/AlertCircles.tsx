@@ -1,8 +1,10 @@
 import React from 'react';
-import { Circle, Tooltip } from 'react-leaflet';
-import type { DisasterAlert } from '../../../types';
+import { Circle, Tooltip, Marker } from 'react-leaflet';
+import L from 'leaflet';
+import type { DisasterAlert, AlertSeverity } from '../../../types';
 import { KPWBI_OFFICES } from '../../../constants/kpwbiOffices';
 import { isValidCoord } from '../../../utils/geo';
+import { getDisasterEmoji } from '../../../utils/alertUtils';
 
 interface AlertCirclesProps {
   alerts: DisasterAlert[];
@@ -19,54 +21,79 @@ interface CircleConfig {
   };
 }
 
-function getCircleConfig(alert: DisasterAlert): CircleConfig {
+function getCircleRadius(alert: DisasterAlert): number {
   switch (alert.type) {
     case 'earthquake':
-      return {
-        radius: (alert.magnitude || 5) * 15000,
-        pathOptions: { color: 'var(--alert-critical)', fillColor: 'var(--alert-critical)', fillOpacity: 0.12, weight: 1.5, dashArray: '4, 4' },
-      };
+      return (alert.magnitude || 5) * 15000;
     case 'tsunami':
-      return {
-        radius: 80000,
-        pathOptions: { color: '#be123c', fillColor: '#be123c', fillOpacity: 0.1, weight: 2, dashArray: '8, 4' },
-      };
+      return 80000;
     case 'flood':
-      return {
-        radius: (alert.waterLevel || 1.5) * 12000,
-        pathOptions: { color: '#2563eb', fillColor: '#3b82f6', fillOpacity: 0.2, weight: 1.5 },
-      };
+      return (alert.waterLevel || 1.5) * 12000;
     case 'volcanic':
-      return {
-        radius: 35000,
-        pathOptions: { color: '#ea580c', fillColor: '#f97316', fillOpacity: 0.25, weight: 1.5 },
-      };
+      return 35000;
     case 'landslide':
-      return {
-        radius: 15000,
-        pathOptions: { color: '#78350f', fillColor: '#b45309', fillOpacity: 0.15, weight: 1.5 },
-      };
+      return 15000;
     case 'extreme_weather':
-      return {
-        radius: 50000,
-        pathOptions: { color: '#0ea5e9', fillColor: '#0ea5e9', fillOpacity: 0.12, weight: 1.5, dashArray: '6, 3' },
-      };
+      return 50000;
     case 'karhutla':
-      return {
-        radius: 30000,
-        pathOptions: { color: '#f97316', fillColor: '#ef4444', fillOpacity: 0.15, weight: 1.5, dashArray: '5, 5' },
-      };
+      return 30000;
     case 'kekeringan':
-      return {
-        radius: 40000,
-        pathOptions: { color: '#d97706', fillColor: '#f59e0b', fillOpacity: 0.15, weight: 1.5, dashArray: '4, 4' },
-      };
+      return 40000;
     default:
-      return {
-        radius: 20000,
-        pathOptions: { color: '#dc2626', fillColor: '#dc2626', fillOpacity: 0.15, weight: 1.5 },
-      };
+      return 20000;
   }
+}
+
+function getCircleConfig(alert: DisasterAlert): CircleConfig {
+  const severityColors: Record<AlertSeverity, string> = {
+    critical: 'var(--alert-critical)',
+    warning: 'var(--alert-warning)',
+    watch: 'var(--alert-watch)',
+  };
+
+  const color = severityColors[alert.severity] || 'var(--alert-critical)';
+  const radius = getCircleRadius(alert);
+
+  return {
+    radius,
+    pathOptions: {
+      color,
+      fillColor: color,
+      fillOpacity: 0.12, // Match earthquake fill opacity
+      weight: 1.5,
+      dashArray: '4, 4', // Match earthquake dashed style
+    },
+  };
+}
+
+/**
+ * Calculates a coordinates offset from the center by a given distance (radius in meters)
+ * at a specific bearing (135 degrees for South-East/Bottom-Right).
+ */
+function getBottomRightCoords(centerLat: number, centerLng: number, radiusMeters: number): [number, number] {
+  const earthRadius = 6378137; // in meters
+  const d = radiusMeters;
+  const bearingRad = (135 * Math.PI) / 180; // 135 degrees is South-East (bottom-right)
+
+  const latRad = (centerLat * Math.PI) / 180;
+  const lngRad = (centerLng * Math.PI) / 180;
+
+  const destLatRad = Math.asin(
+    Math.sin(latRad) * Math.cos(d / earthRadius) +
+      Math.cos(latRad) * Math.sin(d / earthRadius) * Math.cos(bearingRad)
+  );
+
+  const destLngRad =
+    lngRad +
+    Math.atan2(
+      Math.sin(bearingRad) * Math.sin(d / earthRadius) * Math.cos(latRad),
+      Math.cos(d / earthRadius) - Math.sin(latRad) * Math.sin(destLatRad)
+    );
+
+  const destLat = (destLatRad * 180) / Math.PI;
+  const destLng = (destLngRad * 180) / Math.PI;
+
+  return [destLat, destLng];
 }
 
 const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts }) => {
@@ -85,20 +112,45 @@ const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts }) => {
         if (!center) return null;
 
         const { radius, pathOptions } = getCircleConfig(alert);
+        const iconCoords = getBottomRightCoords(center[0], center[1], radius);
+        const emoji = getDisasterEmoji(alert.type);
+
+        // Custom DivIcon for the disaster emoji, fully transparent container
+        const customIcon = L.divIcon({
+          className: 'custom-disaster-radius-icon',
+          html: `<div style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background-color: transparent;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            pointer-events: auto;
+          ">${emoji}</div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+        });
 
         return (
-          <Circle key={`indicator-${alert.id}`} center={center} radius={radius} pathOptions={pathOptions}>
-            <Tooltip sticky>
-              <div>
-                <strong>{alert.title}</strong><br />
-                Radius Dampak: {(radius / 1000).toFixed(0)} km<br />
-                {isValidCoord(alert.latitude, alert.longitude) && (
-                  <>Epicenter: {Number(alert.latitude).toFixed(4)}, {Number(alert.longitude).toFixed(4)}<br /></>
-                )}
-                Area: {alert.affectedArea || 'Sekitar KPW'}
-              </div>
-            </Tooltip>
-          </Circle>
+          <React.Fragment key={`alert-group-${alert.id}`}>
+            <Circle center={center} radius={radius} pathOptions={pathOptions}>
+              <Tooltip sticky>
+                <div>
+                  <strong>{alert.title}</strong><br />
+                  Radius Dampak: {(radius / 1000).toFixed(0)} km<br />
+                  {isValidCoord(alert.latitude, alert.longitude) && (
+                    <>Epicenter: {Number(alert.latitude).toFixed(4)}, {Number(alert.longitude).toFixed(4)}<br /></>
+                  )}
+                  Area: {alert.affectedArea || 'Sekitar KPW'}<br />
+                  Severity: <span style={{ textTransform: 'capitalize', fontWeight: 'bold', color: pathOptions.color }}>{alert.severity}</span>
+                </div>
+              </Tooltip>
+            </Circle>
+            <Marker position={iconCoords} icon={customIcon} interactive={false} />
+          </React.Fragment>
         );
       })}
     </>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Marker, Tooltip, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import type { DisasterAlert, DisasterType, KpwbiOffice, AlertSeverity } from '../../../types';
+import type { DisasterAlert, DisasterType, KpwbiOffice, AlertSeverity, RiskCalcResult } from '../../../types';
 import { KPWBI_OFFICES } from '../../../constants/kpwbiOffices';
 import { PROVINCES } from '../../../constants/provinces';
 import { isOfficeAffectedByAlert } from '../../../utils/disasterImpact';
@@ -11,6 +11,7 @@ import type { NearestKpwResult } from '../../../utils/geo';
 
 interface KpwMarkersProps {
   alerts: DisasterAlert[];
+  riskResults: RiskCalcResult[];
   activeTypeFilter: DisasterType | 'all';
   selectedProvinceId: string | null;
   nearestOffices: NearestKpwResult[];
@@ -29,13 +30,24 @@ interface KpwMarkersProps {
   selectedAlertId?: string | null;
 }
 
-const SEVERITY_WEIGHT = { critical: 3, warning: 2, watch: 1 } as const;
-
-function getHighestSeverityAlert(alerts: DisasterAlert[]): DisasterAlert | null {
-  if (alerts.length === 0) return null;
-  return alerts.reduce((highest, current) =>
-    (SEVERITY_WEIGHT[current.severity] || 0) > (SEVERITY_WEIGHT[highest.severity] || 0) ? current : highest
-  );
+/**
+ * Determine the highest risk-level severity for a given office from riskResults.
+ * Returns 'critical' | 'warning' | 'watch' | null.
+ */
+function getOfficeRiskSeverity(
+  office: KpwbiOffice,
+  riskResults: RiskCalcResult[]
+): AlertSeverity | null {
+  let maxScore = 0;
+  riskResults.forEach((res) => {
+    if (res.affectedLocations.some((loc) => loc.id === office.id)) {
+      if (res.riskScore > maxScore) maxScore = res.riskScore;
+    }
+  });
+  if (maxScore === 0) return null;
+  if (maxScore >= 7) return 'critical';
+  if (maxScore >= 4) return 'warning';
+  return 'watch';
 }
 
 function getProvinceName(provinceId: string): string {
@@ -44,22 +56,12 @@ function getProvinceName(provinceId: string): string {
 
 function createMarkerIcon(
   office: KpwbiOffice,
-  alerts: DisasterAlert[],
-  activeTypeFilter: DisasterType | 'all',
+  riskSeverity: AlertSeverity | null,
   selectedProvinceId: string | null,
   nearestOffices: NearestKpwResult[]
 ): L.DivIcon {
-  const isInariskFilter = ['flood', 'tsunami', 'kekeringan', 'volcanic'].includes(activeTypeFilter);
-
-  let activeSeverity: string | null = null;
-  if (!isInariskFilter) {
-    const officeAlerts = alerts.filter((a) => isOfficeAffectedByAlert(office, a));
-    const top = getHighestSeverityAlert(officeAlerts);
-    if (top) activeSeverity = top.severity;
-  }
-
   const classes: string[] = [];
-  if (activeSeverity) classes.push('has-alert', `alert-${activeSeverity}`);
+  if (riskSeverity) classes.push('has-alert', `alert-${riskSeverity}`);
   if (selectedProvinceId === office.provinceId) {
     classes.push('selected');
   } else if (nearestOffices.some((n) => n.office.id === office.id)) {
@@ -79,7 +81,7 @@ function createMarkerIcon(
   if (office.isKorwil) {
     return L.divIcon({
       className: 'custom-marker korwil-marker-container',
-      html: `<svg class="korwil-star ${classString}" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"/></svg>`,
+      html: `<svg class="korwil-star ${classString}" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" stroke="white" stroke-width="2" d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"/></svg>`,
       iconSize: [24, 24],
       iconAnchor: [12, 12],
     });
@@ -95,6 +97,7 @@ function createMarkerIcon(
 
 const KpwMarkers: React.FC<KpwMarkersProps> = ({
   alerts,
+  riskResults,
   activeTypeFilter,
   selectedProvinceId,
   nearestOffices,
@@ -136,12 +139,13 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
         return mapLayers.normal;
       }).map((office) => {
         const nearestInfo = nearestOffices.find((n) => n.office.id === office.id);
+        const riskSeverity = getOfficeRiskSeverity(office, riskResults);
 
         return (
           <Marker
             key={office.id}
             position={[office.latitude, office.longitude]}
-            icon={createMarkerIcon(office, alerts, activeTypeFilter, selectedProvinceId, nearestOffices)}
+            icon={createMarkerIcon(office, riskSeverity, selectedProvinceId, nearestOffices)}
             zIndexOffset={office.isKantorPusat ? 1000 : office.isKorwil ? 500 : 0}
             ref={(ref) => { markerRefs.current[office.id] = ref; }}
             eventHandlers={{
