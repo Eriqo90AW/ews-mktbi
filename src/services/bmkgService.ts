@@ -3,6 +3,7 @@ import { KPWBI_OFFICES } from '../constants/kpwbiOffices';
 import { findNearestKpwOffice } from '../utils/geo';
 import { mapTextToProvinceId } from '../utils/provinceMap';
 import { PROVINCIAL_CAPITALS_ADM4 } from '../constants/provincialCapitalsAdm4';
+import { fetchHtmlWithCorsProxy } from './proxy';
 
 interface BmkgEarthquake {
   Tanggal: string;
@@ -45,26 +46,7 @@ function parsePolygonCentroid(polygonStr: string): { latitude: number; longitude
   return { latitude: totalLat / count, longitude: totalLon / count };
 }
 
-async function fetchWithProxy(url: string): Promise<string> {
-  try {
-    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
-    if (res.ok) return await res.text();
-  } catch (e) {
-    console.warn('corsproxy.io failed, trying fallback', e);
-  }
-  
-  try {
-    const res = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`);
-    if (res.ok) return await res.text();
-  } catch (e) {
-    console.warn('codetabs proxy failed, trying fallback', e);
-  }
-
-  const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-  if (!res.ok) throw new Error(`All proxies failed for ${url}`);
-  const data = await res.json();
-  return data.contents;
-}
+// Removed local fetchWithProxy in favor of fetchHtmlWithCorsProxy from proxy.ts
 
 export async function fetchLatestEarthquakes(): Promise<DisasterAlert[]> {
   try {
@@ -123,7 +105,7 @@ export async function fetchExtremeWeather(): Promise<DisasterAlert[]> {
       let hasExactCoords = false;
 
       try {
-        const xmlText = await fetchWithProxy(item.link);
+        const xmlText = await fetchHtmlWithCorsProxy(item.link);
         if (xmlText) {
           const parser = new DOMParser();
           const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
@@ -174,7 +156,10 @@ export async function fetchExtremeWeather(): Promise<DisasterAlert[]> {
       };
     });
 
-    return await Promise.all(alertsPromises);
+    const results = await Promise.allSettled(alertsPromises);
+    return results
+      .filter((r): r is PromiseFulfilledResult<DisasterAlert> => r.status === 'fulfilled')
+      .map((r) => r.value);
   } catch (error) {
     console.error('Failed to fetch BMKG extreme weather data:', error);
     return [];
@@ -183,7 +168,7 @@ export async function fetchExtremeWeather(): Promise<DisasterAlert[]> {
 
 export async function fetchThreeDayForecast(): Promise<DisasterAlert[]> {
   try {
-    const html = await fetchWithProxy('https://www.bmkg.go.id/cuaca/potensi-cuaca-ekstrem');
+    const html = await fetchHtmlWithCorsProxy('https://www.bmkg.go.id/cuaca/potensi-cuaca-ekstrem');
     if (!html) throw new Error('No HTML content returned');
 
     const theadMatch = html.match(/<thead[^>]*>([\s\S]*?)<\/thead>/i);
@@ -268,7 +253,7 @@ export async function fetchProvinceWeatherForecast(provinceId: string): Promise<
 
   const url = `https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=${mapping.adm4Code}`;
   try {
-    const jsonText = await fetchWithProxy(url);
+    const jsonText = await fetchHtmlWithCorsProxy(url);
     if (!jsonText) throw new Error('No weather data returned');
     const response = JSON.parse(jsonText);
     
@@ -284,6 +269,67 @@ export async function fetchProvinceWeatherForecast(provinceId: string): Promise<
   } catch (error) {
     console.error(`Failed to fetch weather forecast for province ${provinceId} (${mapping.provinceName}):`, error);
     throw error;
+  }
+}
+
+export async function fetchHighRainfallWarning(): Promise<DisasterAlert[]> {
+  try {
+    const html = await fetchHtmlWithCorsProxy('https://www.bmkg.go.id/iklim/peringatan-dini-hujan-tinggi');
+    if (!html) throw new Error('No HTML content returned');
+
+    const tbodyMatch = html.match(/<tbody[^>]*>([\s\S]*?)<\/tbody>/i);
+    if (!tbodyMatch) return [];
+
+    const tbody = tbodyMatch[1];
+    const alerts: DisasterAlert[] = [];
+    const rxTr = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+    let mTr;
+
+    while ((mTr = rxTr.exec(tbody)) !== null) {
+      const trContent = mTr[1];
+      const rxTd = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+      let mTd;
+      const cells: string[] = [];
+      while ((mTd = rxTd.exec(trContent)) !== null) {
+        cells.push(mTd[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
+      }
+
+      if (cells.length >= 5) {
+        const provinceName = cells[1];
+        const provinceId = mapTextToProvinceId(provinceName);
+        const office = KPWBI_OFFICES.find((o) => o.provinceId === provinceId) || KPWBI_OFFICES[0];
+
+        const levels: Array<{ text: string; severity: AlertSeverity; label: string }> = [
+          { text: cells[2], severity: 'watch', label: 'Waspada' },
+          { text: cells[3], severity: 'warning', label: 'Siaga' },
+          { text: cells[4], severity: 'critical', label: 'Awas' },
+        ];
+
+        levels.forEach(({ text, severity, label }) => {
+          if (!text || text === '-' || text.trim() === '') return;
+
+          alerts.push({
+            id: `bmkg-rainfall-${provinceId}-${label.toLowerCase()}`,
+            type: 'flood',
+            severity,
+            provinceId,
+            title: `Curah Hujan Tinggi - ${label} (${provinceName})`,
+            description: `Peringatan dini curah hujan tinggi di Provinsi ${provinceName}: ${label}. ${text}`,
+            timestamp: new Date().toISOString(),
+            latitude: office.latitude,
+            longitude: office.longitude,
+            affectedArea: provinceName,
+            isForecast: true,
+            forecastDay: 0,
+          });
+        });
+      }
+    }
+
+    return alerts;
+  } catch (error) {
+    console.error('Failed to fetch/parse high rainfall warning data:', error);
+    return [];
   }
 }
 

@@ -22,7 +22,7 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
   onSwitchToKerentanan,
   onSwitchToPerkiraan
 }) => {
-  const { alerts, isLoading } = useAlerts();
+  const { alerts, isLoading, loadingSources } = useAlerts();
   const { activeAlerts, riskResults } = useDisasterAlert();
 
   const [severityFilter, setSeverityFilter] = useState<AlertSeverity | 'all'>('all');
@@ -61,9 +61,10 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
     setToasts((prev) => prev.filter((t) => t.toastId !== toastId));
   }, []);
 
-  // Today-only window — alerts older than today are excluded
-  const todayStart = useMemo(() => {
+  // Last 2 days window — alerts older than yesterday are excluded
+  const minTimestamp = useMemo(() => {
     const d = new Date();
+    d.setDate(d.getDate() - 1);
     d.setHours(0, 0, 0, 0);
     return d.getTime();
   }, []);
@@ -71,17 +72,17 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
   const calculatedCriticalAlerts = useMemo(() => {
     return alerts.filter((a) => {
       if (a.isForecast) return false;
-      if (new Date(a.timestamp).getTime() < todayStart) return false;
+      if (new Date(a.timestamp).getTime() < minTimestamp) return false;
       if (typeFilter !== 'all' && a.type !== typeFilter) return false;
       const riskRes = riskResults.find((r) => r.event.id === a.id);
       return riskRes && riskRes.riskLevel === 'Tinggi';
     });
-  }, [alerts, riskResults, typeFilter, todayStart]);
+  }, [alerts, riskResults, typeFilter, minTimestamp]);
 
   const filteredAlerts = useMemo(() => {
     return alerts.filter((a) => {
       if (a.isForecast) return false;
-      if (new Date(a.timestamp).getTime() < todayStart) return false;
+      if (new Date(a.timestamp).getTime() < minTimestamp) return false;
 
       const riskRes = riskResults.find((r) => r.event.id === a.id);
       if (!riskRes) return false;
@@ -94,14 +95,14 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
       if (typeFilter !== 'all' && a.type !== typeFilter) return false;
       return true;
     });
-  }, [alerts, riskResults, severityFilter, typeFilter, todayStart]);
+  }, [alerts, riskResults, severityFilter, typeFilter, minTimestamp]);
 
   const filteredStats = useMemo(() => {
     const stats = { critical: 0, warning: 0, watch: 0, total: 0 };
 
     alerts.forEach((a) => {
       if (a.isForecast) return;
-      if (new Date(a.timestamp).getTime() < todayStart) return;
+      if (new Date(a.timestamp).getTime() < minTimestamp) return;
       if (typeFilter !== 'all' && a.type !== typeFilter) return;
 
       const riskRes = riskResults.find((r) => r.event.id === a.id);
@@ -121,7 +122,7 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
     }
 
     return stats;
-  }, [alerts, riskResults, severityFilter, typeFilter, todayStart]);
+  }, [alerts, riskResults, severityFilter, typeFilter, minTimestamp]);
 
   const handleProvinceSelect = (provinceId: string) => {
     setSelectedProvinceId(provinceId);
@@ -165,6 +166,7 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
           typeFilter={typeFilter}
           setTypeFilter={setTypeFilter}
           isLoading={isLoading}
+          loadingSources={loadingSources}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed((c) => !c)}
         />

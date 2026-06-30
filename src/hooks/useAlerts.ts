@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { DisasterAlert } from '../types';
-import { fetchLatestEarthquakes, fetchExtremeWeather, fetchThreeDayForecast } from '../services/bmkgService';
-import { BMKGGisService } from '../services/bmkgGisService';
+import { fetchLatestEarthquakes, fetchExtremeWeather, fetchThreeDayForecast, fetchHighRainfallWarning } from '../services/bmkgService';
 import { MagmaService } from '../services/magmaService';
 
 // InaRisk / BNPB data is shown in the Kerentanan screen, not as live alerts.
@@ -34,8 +33,7 @@ const fetchAllSources = async () => {
     { call: fetchLatestEarthquakes, name: 'Gempa BMKG' },
     { call: fetchExtremeWeather, name: 'Cuaca Ekstrem BMKG' },
     { call: fetchThreeDayForecast, name: 'Prakiraan 3 Hari BMKG' },
-    { call: BMKGGisService.fetchSignatureData, name: 'Signature ArcGIS' },
-    { call: BMKGGisService.fetchHotspotData, name: 'Hotspot ArcGIS' },
+    { call: fetchHighRainfallWarning, name: 'Curah Hujan Tinggi BMKG' },
     { call: () => MagmaService.fetchLiveAlerts(false), name: 'Live Gunung Api Magma' }
   ];
 
@@ -144,4 +142,4 @@ export const useAlerts = () => {
       return list.reduce((h, c) => (w[c.severity] || 0) > (w[h.severity] || 0) ? c : h);
     },
   };
-};
+};  

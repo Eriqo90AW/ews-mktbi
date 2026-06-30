@@ -29,4 +29,3 @@ export async function fetchHtmlWithCorsProxy(url: string): Promise<string> {
     return res.text();
   }
 }
-

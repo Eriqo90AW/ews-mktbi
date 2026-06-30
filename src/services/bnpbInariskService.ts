@@ -12,53 +12,6 @@ const SERVICES = {
 
 type InariskHazard = keyof typeof SERVICES;
 
-const MOCK_INARISK_ALERTS: DisasterAlert[] = [
-  {
-    id: 'mock-inarisk-flood-1',
-    type: 'flood',
-    severity: 'warning',
-    provinceId: 'ID-JI',
-    title: 'Indeks Bahaya Banjir (InaRisk) - Surabaya',
-    description: 'Tingkat bahaya banjir terdeteksi Sedang (Indeks: 0.45) di sekitar KPwBI Provinsi Jawa Timur.',
-    timestamp: new Date().toISOString(),
-    latitude: -7.2575,
-    longitude: 112.7521,
-  },
-  {
-    id: 'mock-inarisk-kekeringan-1',
-    type: 'kekeringan',
-    severity: 'critical',
-    provinceId: 'ID-NT',
-    title: 'Indeks Bahaya Kekeringan (InaRisk) - Kupang',
-    description: 'Tingkat bahaya kekeringan terdeteksi Tinggi (Indeks: 0.72) di sekitar KPwBI Provinsi Nusa Tenggara Timur.',
-    timestamp: new Date().toISOString(),
-    latitude: -10.1772,
-    longitude: 123.6078,
-  },
-  {
-    id: 'mock-inarisk-tsunami-1',
-    type: 'tsunami',
-    severity: 'watch',
-    provinceId: 'ID-BA',
-    title: 'Indeks Bahaya Tsunami (InaRisk) - Denpasar',
-    description: 'Tingkat bahaya tsunami terdeteksi Rendah (Indeks: 0.20) di sekitar KPwBI Provinsi Bali.',
-    timestamp: new Date().toISOString(),
-    latitude: -8.6705,
-    longitude: 115.2126,
-  },
-  {
-    id: 'mock-inarisk-volcanic-1',
-    type: 'volcanic',
-    severity: 'warning',
-    provinceId: 'ID-YO',
-    title: 'Indeks Bahaya Gunung Api (InaRisk) - Yogyakarta',
-    description: 'Tingkat bahaya aktivitas gunung api terdeteksi Sedang (Indeks: 0.55) di sekitar KPwBI DI Yogyakarta.',
-    timestamp: new Date().toISOString(),
-    latitude: -7.7956,
-    longitude: 110.3695,
-  },
-];
-
 export class BnpbInariskService {
   static async fetchInaRiskAlerts(offices: KpwbiOffice[]): Promise<DisasterAlert[]> {
     if (offices.length === 0) return [];
@@ -112,16 +65,16 @@ export class BnpbInariskService {
           return alerts;
         } catch (err) {
           console.error(`Failed to fetch InaRisk alerts for hazard: ${hazard}`, err);
-          return MOCK_INARISK_ALERTS.filter((a) => a.type === hazard);
+          return [];
         }
       });
 
       const results = await Promise.all(hazardPromises);
       const combined = results.flat();
-      return combined.length === 0 ? MOCK_INARISK_ALERTS : combined;
+      return combined;
     } catch (error) {
-      console.error('Critical failure fetching InaRisk data, falling back to mock data:', error);
-      return MOCK_INARISK_ALERTS;
+      console.error('Critical failure fetching InaRisk data:', error);
+      return [];
     }
   }
 

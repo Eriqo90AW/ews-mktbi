@@ -56,7 +56,27 @@ export const GunungApiScreen: React.FC<GunungApiScreenProps> = ({ onBack }) => {
         setIsMockData(false);
         setLastCheckedAt(new Date());
       }
-    } catch (err) {
+    } catch (err: any) {
+      const isNotFoundError = err?.name === 'NotFoundError' || err?.message?.includes('404') || err?.message?.includes('not found');
+      if (isNotFoundError && reportDate === todayStr) {
+        const yesterday = new Date(new Date().getTime() - 24 * 3600000);
+        const yesterdayStr = getJakartaDateString(yesterday);
+        console.warn(`Today's report not found (404), trying yesterday's report: ${yesterdayStr}`);
+        try {
+          const yesterdayData = await MagmaService.fetchDailyReport(yesterdayStr, false);
+          if (isMounted.current) {
+            setReportDate(yesterdayStr);
+            setReports(yesterdayData);
+            setSyncStatus('success');
+            setIsMockData(false);
+            setLastCheckedAt(new Date());
+          }
+          return;
+        } catch (yesterdayErr) {
+          console.warn('Yesterday\'s report fetch failed as well:', yesterdayErr);
+        }
+      }
+
       console.warn('Real-time fetch failed, falling back to mock:', err);
       try {
         const fallbackData = await MagmaService.fetchDailyReport(reportDate, true);
