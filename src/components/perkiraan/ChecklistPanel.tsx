@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { PROVINCES } from '../../constants/provinces';
-import { BnpbInariskService } from '../../services/bnpbInariskService';
 import { CHECKLIST_ITEMS } from '../../constants/preparednessChecklist';
 import { usePreparednessChecklist } from '../../hooks/usePreparednessChecklist';
-
-const RISK_THRESHOLD = 0.3;
+import { ENSO_CURRENT, getEnsoElevatedProvinces } from '../../constants/ensoData';
+import { MEGATHRUST_ZONES } from '../../constants/megathrustZones';
+import { RING_OF_FIRE_ARCS, VOLCANO_POINTS } from '../../constants/ringOfFire';
+import { distanceToPolyline, haversineDistance } from '../../utils/geo';
+import { BnpbInariskService } from '../../services/bnpbInariskService';
 
 const ChecklistPanel: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
@@ -14,10 +16,28 @@ const ChecklistPanel: React.FC = () => {
   const provincesMap = useMemo(() => new Map(PROVINCES.map((p) => [p.id, p])), []);
 
   const atRiskOffices = useMemo(() => {
+    const { flood: ensoFlood, drought: ensoDrought } = getEnsoElevatedProvinces(ENSO_CURRENT.phase);
+
     return KPWBI_OFFICES.filter((o) => {
-      const flood = BnpbInariskService.getLocalHazardIndex(o.id, 'flood');
-      const gempa = BnpbInariskService.getLocalPotensiIndex(o.id, 'gempa');
-      return flood > RISK_THRESHOLD || gempa > RISK_THRESHOLD;
+      // Iklim: ENSO elevated flood or drought province
+      if (ensoFlood.includes(o.provinceId) || ensoDrought.includes(o.provinceId)) return true;
+
+      // Gempa: within any megathrust zone radius
+      if (MEGATHRUST_ZONES.some((zone) =>
+        distanceToPolyline(o.latitude, o.longitude, zone.path) <= zone.impactRadiusKm
+      )) return true;
+
+      // Gempa: within any Ring of Fire arc radius
+      if (RING_OF_FIRE_ARCS.some((arc) =>
+        distanceToPolyline(o.latitude, o.longitude, arc.path) <= arc.impactRadiusKm
+      )) return true;
+
+      // Gempa: within any active volcano radius
+      if (VOLCANO_POINTS.some((v) =>
+        haversineDistance(o.latitude, o.longitude, v.lat, v.lng) <= v.impactRadiusKm
+      )) return true;
+
+      return false;
     });
   }, []);
 

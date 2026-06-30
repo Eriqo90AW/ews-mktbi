@@ -3,16 +3,16 @@ import IklimView from './IklimView';
 import GempaView from './GempaView';
 import ChecklistPanel from './ChecklistPanel';
 
-type SubTab = 'iklim' | 'gempa' | 'checklist';
+type SubTab = 'iklim' | 'gempa';
 
 const SUB_TABS: { key: SubTab; emoji: string; label: string }[] = [
-  { key: 'iklim', emoji: '🌡️', label: 'Iklim (ENSO)' },
+  { key: 'iklim', emoji: '🌡️', label: 'Iklim' },
   { key: 'gempa', emoji: '🌋', label: 'Gempa Bumi' },
-  { key: 'checklist', emoji: '✅', label: 'Checklist KPw' },
 ];
 
 const JangkaPanjangTab: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('iklim');
+  const [checklistOpen, setChecklistOpen] = useState<boolean>(true);
 
   return (
     <div className="jangka-panjang-container">
@@ -30,15 +30,36 @@ const JangkaPanjangTab: React.FC = () => {
         ))}
       </div>
 
-      {/* Content */}
-      <div className="jangka-panjang-content">
-        {activeSubTab === 'iklim' && <IklimView />}
-        {activeSubTab === 'gempa' && <GempaView />}
-        {activeSubTab === 'checklist' && (
-          <div className="perkiraan-tab-layout checklist-layout">
-            <ChecklistPanel />
-          </div>
-        )}
+      {/* Body: main content + checklist right sidebar */}
+      <div className="jangka-panjang-body">
+        <div className="jangka-panjang-content">
+          {activeSubTab === 'iklim' && <IklimView />}
+          {activeSubTab === 'gempa' && <GempaView />}
+        </div>
+
+        {/* Collapsible checklist sidebar */}
+        <div className={`checklist-sidebar${checklistOpen ? ' open' : ''}`}>
+          <button
+            className="checklist-sidebar-toggle"
+            onClick={() => setChecklistOpen((o) => !o)}
+            title={checklistOpen ? 'Tutup Checklist' : 'Buka Checklist KPw'}
+          >
+            <svg
+              viewBox="0 0 24 24" width="14" height="14" fill="none"
+              stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              style={{ transform: checklistOpen ? 'none' : 'rotate(180deg)', transition: 'transform 0.2s' }}
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            <span className="checklist-sidebar-label">Checklist KPw</span>
+          </button>
+
+          {checklistOpen && (
+            <div className="checklist-sidebar-content">
+              <ChecklistPanel />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

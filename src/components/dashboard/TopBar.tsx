@@ -45,6 +45,44 @@ function formatRelativeTime(timestamp: string): string {
   }
 }
 
+function buildRiskMailtoUrl(
+  office: typeof KPWBI_OFFICES[0],
+  riskLevel: string,
+  riskScore: number,
+  alerts: DisasterAlert[]
+): string {
+  const DMR_EMAIL = 'satker.dmr@bi.go.id';
+  const officeEmail = `kpwbi.${office.id.replace('kpwbi-', '')}@bi.go.id`;
+  const to = [officeEmail, DMR_EMAIL].join(',');
+
+  const subject = encodeURIComponent(
+    `[BIMA ALERT] Peringatan Risiko ${riskLevel} — ${office.name} — Skor: ${riskScore}`
+  );
+
+  const alertDetails = alerts
+    .map((a) => `  • [${a.severity.toUpperCase()}] ${a.title}: ${a.description}`)
+    .join('\n');
+
+  const body = encodeURIComponent(
+    `Yth. Pimpinan ${office.name} dan Satker DMR,\n\n` +
+    `Sistem BIMA (Bank Indonesia Monitoring & Mitigation Alert) mendeteksi status risiko bencana tingkat [${riskLevel.toUpperCase()}] untuk wilayah kerja Anda dengan rincian berikut:\n\n` +
+    `Kantor: ${office.name} (${office.city})\n` +
+    `Skor Risiko: ${riskScore} / 9 (Tingkat Risiko: ${riskLevel})\n\n` +
+    `Detail Bencana Terdeteksi:\n` +
+    alertDetails + `\n\n` +
+    `Langkah Tindak Lanjut:\n` +
+    `1. Pantau perkembangan situasi melalui aplikasi BIMA atau instansi resmi (BMKG/PVMBG).\n` +
+    `2. Lakukan koordinasi dengan Tim Kesiapsiagaan dan Satker DMR.\n` +
+    `3. Lakukan langkah kontinjensi dan evakuasi mandiri jika situasi memburuk sesuai dengan SOP.\n\n` +
+    `Hormat kami,\n` +
+    `BIMA — Bank Indonesia Monitoring & Mitigation Alert\n` +
+    `(Dikirim via BIMA Dashboard — ${new Date().toLocaleString('id-ID')} WIB)\n` +
+    `http://bima-ews-bi.org\n`
+  );
+
+  return `mailto:${to}?subject=${subject}&body=${body}`;
+}
+
 export const TopBar: React.FC<TopBarProps> = (props) => {
   const {
     allAlerts,
@@ -341,23 +379,56 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
                           <div
                             key={office.id}
                             className="topbar-dropdown-item"
-                            style={{ cursor: 'default' }}
+                            style={{ cursor: 'default', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}
                           >
-                            <div className="dropdown-item-emoji" style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
-                              {alertIcons.map((type) => (
-                                <React.Fragment key={type}>
-                                  {renderDisasterIcon(type, undefined, { width: '16px', height: '16px' })}
-                                </React.Fragment>
-                              ))}
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', flex: 1 }}>
+                              <div className="dropdown-item-emoji" style={{ display: 'flex', gap: '3px', alignItems: 'center', marginTop: '2px' }}>
+                                {alertIcons.map((type) => (
+                                  <React.Fragment key={type}>
+                                    {renderDisasterIcon(type, undefined, { width: '16px', height: '16px' })}
+                                  </React.Fragment>
+                                ))}
+                              </div>
+                              <div className="dropdown-item-info" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                <span className="dropdown-item-type" style={{ fontWeight: 600, fontSize: '12px' }}>{office.name}</span>
+                                <span className="dropdown-item-title" style={{ fontSize: '11px' }}>{office.city}</span>
+                                {sub && <span className="dropdown-item-sub" style={{ fontSize: '10px' }}>{sub}</span>}
+                              </div>
                             </div>
-                            <div className="dropdown-item-info">
-                              <span className="dropdown-item-type">{office.name}</span>
-                              <span className="dropdown-item-title">{office.city}</span>
-                              {sub && <span className="dropdown-item-sub">{sub}</span>}
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
+                              <span className="dropdown-item-time" style={{ fontWeight: 'bold', color: `var(--alert-${levelClass})`, fontSize: '11px' }}>
+                                Skor: {detail.riskScore}
+                              </span>
+                              <a
+                                href={buildRiskMailtoUrl(office, detail.riskLevel, detail.riskScore, detail.alerts)}
+                                className="topbar-risk-notify-btn"
+                                title={`Kirim Notifikasi Email ke ${office.name}`}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  padding: '3px 8px',
+                                  fontSize: '10px',
+                                  fontWeight: '600',
+                                  color: '#ffffff',
+                                  backgroundColor: `var(--alert-${levelClass})`,
+                                  border: 'none',
+                                  borderRadius: '3px',
+                                  cursor: 'pointer',
+                                  textDecoration: 'none',
+                                  transition: 'opacity 0.2s ease',
+                                }}
+                                onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px' }}>
+                                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                  <polyline points="22,6 12,13 2,6" />
+                                </svg>
+                                Notifikasi
+                              </a>
                             </div>
-                            <span className="dropdown-item-time" style={{ fontWeight: 'bold', color: `var(--alert-${levelClass})` }}>
-                              Skor: {detail.riskScore}
-                            </span>
                           </div>
                         );
                       })}

@@ -15,18 +15,31 @@ const INDONESIA_CENTER: [number, number] = [-2.5489, 118.0149];
 const DEFAULT_ZOOM = 5;
 const DETAIL_ZOOM = 9;
 
-const MapController: React.FC<MapControllerProps> = ({ selectedOffice, selectedAlert, resetTrigger, isSidebarCollapsed }) => {
+const MapController: React.FC<MapControllerProps> = ({ selectedOffice, selectedAlert, resetTrigger }) => {
   const map = useMap();
   const prevResetTrigger = useRef(resetTrigger);
 
   useEffect(() => {
-    // Force Leaflet to update its size when sidebar collapse toggles
+    // Force Leaflet to update its size when container bounds change
     map.invalidateSize();
-    const timer = setTimeout(() => {
+
+    const container = map.getContainer();
+    if (!container) return;
+
+    const resizeObserver = new ResizeObserver(() => {
       map.invalidateSize();
-    }, 350); // matches standard sidebar CSS transitions
-    return () => clearTimeout(timer);
-  }, [isSidebarCollapsed, map]);
+    });
+
+    if (container.parentElement) {
+      resizeObserver.observe(container.parentElement);
+    } else {
+      resizeObserver.observe(container);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [map]);
 
   useEffect(() => {
     try {

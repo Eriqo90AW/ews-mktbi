@@ -324,14 +324,74 @@
   font-weight: 600;
 }
 
+.jangka-panjang-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
 .jangka-panjang-content {
   flex: 1;
   overflow: hidden;
   display: flex;
+  min-width: 0;
 }
 
-.checklist-layout {
-  padding: 0;
+/* ── Checklist right sidebar ── */
+.checklist-sidebar {
+  display: flex;
+  flex-direction: row;
+  border-left: 1px solid var(--border-default);
+  background: var(--bg-secondary);
+  flex-shrink: 0;
+  width: 36px;
+  overflow: hidden;
+  transition: width 0.22s ease;
+}
+
+.checklist-sidebar.open {
+  width: 360px;
+}
+
+.checklist-sidebar-toggle {
+  width: 36px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 0;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border-default);
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: background 0.15s, color 0.15s;
+}
+
+.checklist-sidebar-toggle:hover {
+  background: var(--bg-hover, rgba(255,255,255,0.04));
+  color: var(--text-primary);
+}
+
+.checklist-sidebar-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.checklist-sidebar-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 /* ── ENSO / Iklim card ── */
@@ -355,26 +415,36 @@
   margin-bottom: 8px;
 }
 
-.enso-oni-row {
+.enso-oni-container {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
-  margin-bottom: 6px;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
 }
 
 .enso-oni-label {
-  font-size: 11px;
-  color: var(--text-secondary);
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.enso-oni-main {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
 .enso-oni-value {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 800;
   line-height: 1;
 }
 
 .enso-oni-month {
   font-size: 11px;
+  font-weight: 600;
   color: var(--text-secondary);
 }
 
@@ -749,10 +819,9 @@
 .checklist-container {
   display: flex;
   flex-direction: column;
-  width: 420px;
-  flex-shrink: 0;
+  width: 100%;
+  flex: 1;
   background: var(--bg-secondary);
-  border-right: 1px solid var(--border-default);
   overflow-y: auto;
 }
 

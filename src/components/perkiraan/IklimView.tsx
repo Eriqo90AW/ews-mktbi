@@ -27,20 +27,23 @@ const IklimView: React.FC = () => {
       {/* Left panel */}
       <aside className="perkiraan-panel">
         <div className="perkiraan-panel-header">
-          <span className="perkiraan-panel-title">Kondisi Iklim (ENSO)</span>
+          <span className="perkiraan-panel-title">Kondisi Iklim (ENSO — El Niño-Southern Oscillation)</span>
         </div>
 
-        {/* Current ENSO card */}
+        <div className="perkiraan-panel-scroll">
+          {/* Current ENSO card */}
         <div className="enso-current-card" style={{ borderLeft: `4px solid ${phaseColor}` }}>
           <div className="enso-phase-badge" style={{ color: phaseColor, borderColor: phaseColor }}>
             {phaseLabel}
           </div>
-          <div className="enso-oni-row">
-            <span className="enso-oni-label">ONI Terkini</span>
-            <span className="enso-oni-value" style={{ color: phaseColor }}>
-              {ENSO_CURRENT.oni > 0 ? '+' : ''}{ENSO_CURRENT.oni.toFixed(1)}
-            </span>
-            <span className="enso-oni-month">({ENSO_CURRENT.label})</span>
+          <div className="enso-oni-container">
+            <span className="enso-oni-label">ONI (Oceanic Niño Index) Terkini</span>
+            <div className="enso-oni-main">
+              <span className="enso-oni-value" style={{ color: phaseColor }}>
+                {ENSO_CURRENT.oni > 0 ? '+' : ''}{ENSO_CURRENT.oni.toFixed(1)}
+              </span>
+              <span className="enso-oni-month">({ENSO_CURRENT.label})</span>
+            </div>
           </div>
           <p className="enso-description">{ENSO_OUTLOOK.description}</p>
           <div className="enso-confidence-row">
@@ -51,7 +54,7 @@ const IklimView: React.FC = () => {
 
         {/* ONI bar timeline */}
         <div className="enso-timeline">
-          <div className="enso-timeline-title">Riwayat ONI (8 Bulan Terakhir)</div>
+          <div className="enso-timeline-title">Riwayat ONI (Oceanic Niño Index) — 8 Bulan Terakhir</div>
           <div className="enso-bars">
             {timelineData.map((m) => {
               const barH = Math.min(Math.abs(m.oni) * 60, 60);
@@ -94,9 +97,9 @@ const IklimView: React.FC = () => {
           </div>
         )}
 
-        {/* At-risk KPW list */}
-        <div className="perkiraan-panel-scroll" style={{ marginTop: 8 }}>
-          <div className="perkiraan-section-title">KPw Terdampak Iklim</div>
+          {/* At-risk KPW list */}
+          <div className="enso-kpw-list-section" style={{ marginTop: 8 }}>
+            <div className="perkiraan-section-title">KPw Terdampak Iklim</div>
           {atRiskOffices.length === 0 ? (
             <div className="perkiraan-empty"><p>Tidak ada KPw dalam wilayah risiko iklim yang meningkat.</p></div>
           ) : (
@@ -119,7 +122,8 @@ const IklimView: React.FC = () => {
                 </div>
               );
             })
-          )}
+            )}
+          </div>
         </div>
       </aside>
 

@@ -59,7 +59,7 @@ const MingguanTab: React.FC<MingguanTabProps> = () => {
       {/* Left panel */}
       <aside className="perkiraan-panel">
         <div className="perkiraan-panel-header">
-          <span className="perkiraan-panel-title">Prakiraan Mingguan</span>
+          <span className="perkiraan-panel-title">Prakiraan Cuaca</span>
           <span className="perkiraan-panel-count">{rankedOffices.length} wilayah</span>
         </div>
 
