@@ -1,0 +1,151 @@
+import React, { useMemo, useState } from 'react';
+import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
+import { PROVINCES } from '../../constants/provinces';
+import { BnpbInariskService } from '../../services/bnpbInariskService';
+import { useAlerts } from '../../hooks/useAlerts';
+import type { DisasterAlert } from '../../types';
+import PerkiraanMap from './PerkiraanMap';
+import EmailBlastButton from './EmailBlastButton';
+
+interface MingguanTabProps {
+  onEmailBlast?: (officeId: string) => void;
+}
+
+function getSeverityRank(sev: string | null) {
+  return sev === 'critical' ? 3 : sev === 'warning' ? 2 : sev === 'watch' ? 1 : 0;
+}
+
+function getForecastSeverity(officeProvinceId: string, alerts: DisasterAlert[]): 'critical' | 'warning' | 'watch' | null {
+  const matching = alerts.filter((a) => a.isForecast && a.provinceId === officeProvinceId);
+  if (matching.length === 0) return null;
+  if (matching.some((a) => a.severity === 'critical')) return 'critical';
+  if (matching.some((a) => a.severity === 'warning')) return 'warning';
+  return 'watch';
+}
+
+const SEV_LABEL: Record<string, string> = {
+  critical: 'Siaga',
+  warning: 'Waspada',
+  watch: 'Potensi',
+};
+
+const MingguanTab: React.FC<MingguanTabProps> = () => {
+  const { alerts } = useAlerts();
+  const [selectedProvinceId, setSelectedProvinceId] = useState<string | null>(null);
+
+  const forecastAlerts = useMemo(() => alerts.filter((a) => a.isForecast), [alerts]);
+
+  const provincesMap = useMemo(() => new Map(PROVINCES.map((p) => [p.id, p])), []);
+
+  const rankedOffices = useMemo(() => {
+    return KPWBI_OFFICES.map((office) => {
+      const forecastSev = getForecastSeverity(office.provinceId, forecastAlerts);
+      const floodScore = BnpbInariskService.getLocalHazardIndex(office.id, 'flood');
+      const rank = getSeverityRank(forecastSev) * 100 + floodScore * 100;
+      return { office, forecastSev, floodScore, rank };
+    })
+      .filter((item) => item.forecastSev !== null || item.floodScore > 0.3)
+      .sort((a, b) => b.rank - a.rank);
+  }, [forecastAlerts]);
+
+  const hasCritical = rankedOffices.some((r) => r.forecastSev === 'critical');
+
+  const handleProvinceSelect = (id: string) => {
+    setSelectedProvinceId((prev) => (prev === id ? null : id));
+  };
+
+  return (
+    <div className="perkiraan-tab-layout">
+      {/* Left panel */}
+      <aside className="perkiraan-panel">
+        <div className="perkiraan-panel-header">
+          <span className="perkiraan-panel-title">Prakiraan Mingguan</span>
+          <span className="perkiraan-panel-count">{rankedOffices.length} wilayah</span>
+        </div>
+
+        {/* In-app action reminder */}
+        {hasCritical && (
+          <div className="perkiraan-alert-banner critical">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            <span>Terdapat wilayah KPw dengan prakiraan <strong>Siaga</strong>. Segera kirim notifikasi dan pastikan kesiapsiagaan!</span>
+          </div>
+        )}
+
+        <div className="perkiraan-panel-scroll">
+          {rankedOffices.length === 0 ? (
+            <div className="perkiraan-empty">
+              <p>Belum ada data prakiraan cuaca ekstrem 3 hari ke depan.</p>
+              <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 6 }}>Data diambil otomatis dari BMKG setiap 60 detik.</p>
+            </div>
+          ) : (
+            rankedOffices.map(({ office, forecastSev, floodScore }) => {
+              const province = provincesMap.get(office.provinceId);
+              const isSelected = selectedProvinceId === office.provinceId;
+
+              return (
+                <div
+                  key={office.id}
+                  className={`perkiraan-row${isSelected ? ' selected' : ''}`}
+                  onClick={() => handleProvinceSelect(office.provinceId)}
+                >
+                  <div className="perkiraan-row-info">
+                    <span className="perkiraan-office-name">{office.name}</span>
+                    <span className="perkiraan-province-name">{province?.name ?? office.provinceId}</span>
+                    <div className="perkiraan-row-tags">
+                      {forecastSev && (
+                        <span className={`perkiraan-badge sev-${forecastSev}`}>
+                          ⚡ {SEV_LABEL[forecastSev]}
+                        </span>
+                      )}
+                      {floodScore > 0.3 && (
+                        <span className="perkiraan-badge flood">
+                          💧 Banjir {Math.round(floodScore * 100)}
+                        </span>
+                      )}
+                    </div>
+                    {/* Show forecast dates */}
+                    {forecastSev && (() => {
+                      const forecasts = forecastAlerts
+                        .filter((a) => a.provinceId === office.provinceId)
+                        .slice(0, 3);
+                      return (
+                        <div className="perkiraan-forecast-days">
+                          {forecasts.map((a) => (
+                            <span key={a.id} className={`forecast-day-pill sev-${a.severity}`}>
+                              H+{a.forecastDay}: {a.title.split('(')[0].trim()}
+                            </span>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                  <EmailBlastButton
+                    office={office}
+                    alerts={forecastAlerts}
+                    compact
+                  />
+                </div>
+              );
+            })
+          )}
+        </div>
+      </aside>
+
+      {/* Map */}
+      <div className="perkiraan-map-wrap">
+        <PerkiraanMap
+          mode="mingguan"
+          forecastAlerts={forecastAlerts}
+          selectedProvinceId={selectedProvinceId}
+          onProvinceSelect={handleProvinceSelect}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default MingguanTab;

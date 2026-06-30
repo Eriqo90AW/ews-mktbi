@@ -2,6 +2,7 @@ import type { DisasterAlert, AlertSeverity } from '../types';
 import { KPWBI_OFFICES } from '../constants/kpwbiOffices';
 import { findNearestKpwOffice } from '../utils/geo';
 import { mapTextToProvinceId } from '../utils/provinceMap';
+import { PROVINCIAL_CAPITALS_ADM4 } from '../constants/provincialCapitalsAdm4';
 
 interface BmkgEarthquake {
   Tanggal: string;
@@ -258,3 +259,31 @@ export async function fetchThreeDayForecast(): Promise<DisasterAlert[]> {
     return [];
   }
 }
+
+export async function fetchProvinceWeatherForecast(provinceId: string): Promise<any> {
+  const mapping = PROVINCIAL_CAPITALS_ADM4[provinceId];
+  if (!mapping) {
+    throw new Error(`No ADM4 mapping found for province ID: ${provinceId}`);
+  }
+
+  const url = `https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=${mapping.adm4Code}`;
+  try {
+    const jsonText = await fetchWithProxy(url);
+    if (!jsonText) throw new Error('No weather data returned');
+    const response = JSON.parse(jsonText);
+    
+    if (response.statusCode === 404 || !response.data || response.data.length === 0) {
+      throw new Error(response.message || 'Data not found');
+    }
+
+    const dataObj = response.data[0];
+    return {
+      lokasi: response.lokasi || dataObj.lokasi,
+      cuaca: dataObj.cuaca || []
+    };
+  } catch (error) {
+    console.error(`Failed to fetch weather forecast for province ${provinceId} (${mapping.provinceName}):`, error);
+    throw error;
+  }
+}
+

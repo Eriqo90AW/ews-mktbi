@@ -13,12 +13,12 @@ import './DisasterDashboard.css';
 
 interface DisasterDashboardProps {
   onSwitchToKerentanan: () => void;
-  onSwitchToPotensi: () => void;
+  onSwitchToPerkiraan: () => void;
 }
 
-export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({ 
+export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
   onSwitchToKerentanan,
-  onSwitchToPotensi 
+  onSwitchToPerkiraan
 }) => {
   const { alerts, isLoading } = useAlerts();
   const { activeAlerts, riskResults } = useDisasterAlert();
@@ -146,7 +146,7 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
         selectedType={typeFilter}
         onTypeChange={setTypeFilter}
         onSwitchToKerentanan={onSwitchToKerentanan}
-        onSwitchToPotensi={onSwitchToPotensi}
+        onSwitchToPerkiraan={onSwitchToPerkiraan}
       />
 
       <div className="dashboard-content">

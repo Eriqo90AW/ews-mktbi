@@ -2,6 +2,8 @@ import React from 'react';
 import type { DisasterAlert, KpwbiOffice } from '../../../types';
 import { isOfficeAffectedByAlert } from '../../../utils/disasterImpact';
 import type { NearestKpwResult } from '../../../utils/geo';
+import WeatherCard from './WeatherCard';
+
 
 interface NearestKpwPanelProps {
   selectedOffice: KpwbiOffice | null;
@@ -59,6 +61,9 @@ const NearestKpwPanel: React.FC<NearestKpwPanelProps> = ({
           );
         })}
       </div>
+      {selectedOffice && (
+        <WeatherCard provinceId={selectedOffice.provinceId} cityName={selectedOffice.city} />
+      )}
     </div>
   );
 };

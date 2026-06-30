@@ -193,7 +193,7 @@ const MapLegend: React.FC<MapLegendProps> = ({
               title="Toggle Toggle Data Center / DRC"
             >
               <svg viewBox="0 0 24 24" width="14" height="14" style={{ flexShrink: 0 }}>
-                <polygon points="12,2 23,22 1,22" fill="#7c3aed" stroke="white" strokeWidth="1" />
+                <polygon points="12,2 23,22 1,22" fill="var(--accent-primary)" stroke="white" strokeWidth="1" />
               </svg>
               <span>Data Center / DRC (BI)</span>
               <span className="legend-toggle-indicator"></span>

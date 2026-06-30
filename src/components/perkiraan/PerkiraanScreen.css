@@ -1,0 +1,396 @@
+.perkiraan-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--bg-primary);
+}
+
+.perkiraan-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Tab Layouts */
+.perkiraan-tab-layout {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Left Panel */
+.perkiraan-panel {
+  width: 360px;
+  min-width: 360px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border-default);
+  overflow: hidden;
+}
+
+.perkiraan-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+  flex-shrink: 0;
+}
+
+.perkiraan-panel-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.perkiraan-panel-count {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.perkiraan-alert-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  margin: 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.perkiraan-alert-banner.critical {
+  background-color: var(--alert-critical-bg);
+  border: 1px solid var(--alert-critical-border);
+  color: var(--alert-critical);
+}
+
+.perkiraan-panel-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.perkiraan-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-align: center;
+}
+
+.perkiraan-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 10px 4px 4px 4px;
+}
+
+/* Rows */
+.perkiraan-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.perkiraan-row:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+  border-color: var(--text-muted);
+}
+
+.perkiraan-row.selected {
+  border-color: var(--accent-primary);
+  background-color: rgba(14, 165, 233, 0.03);
+}
+
+.perkiraan-row.small {
+  padding: 8px 10px;
+  cursor: default;
+}
+
+.perkiraan-row.small:hover {
+  border-color: var(--border-default);
+  background-color: var(--bg-surface);
+}
+
+.perkiraan-row-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.perkiraan-office-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.perkiraan-province-name {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.perkiraan-row-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.perkiraan-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.perkiraan-badge.sev-critical { background-color: var(--alert-critical-bg); color: var(--alert-critical); }
+.perkiraan-badge.sev-warning  { background-color: var(--alert-warning-bg); color: var(--alert-warning); }
+.perkiraan-badge.sev-watch    { background-color: var(--alert-watch-bg); color: var(--alert-watch); }
+.perkiraan-badge.flood        { background-color: rgba(14, 165, 233, 0.08); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.15); }
+.perkiraan-badge.drought      { background-color: rgba(249, 115, 22, 0.08); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.15); }
+
+.perkiraan-forecast-days {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 6px;
+}
+
+.forecast-day-pill {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+  border-left: 3px solid transparent;
+}
+
+.forecast-day-pill.sev-critical { background-color: rgba(239, 68, 68, 0.06); color: var(--alert-critical); border-left-color: var(--alert-critical); }
+.forecast-day-pill.sev-warning  { background-color: rgba(249, 115, 22, 0.06); color: var(--alert-warning); border-left-color: var(--alert-warning); }
+.forecast-day-pill.sev-watch    { background-color: rgba(14, 165, 233, 0.06); color: var(--alert-watch); border-left-color: var(--alert-watch); }
+
+/* Climate / ENSO Specifics */
+.enso-current-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.enso-phase-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: 1px solid;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  align-self: flex-start;
+  letter-spacing: 0.03em;
+}
+
+.enso-oni-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.enso-oni-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.enso-oni-value {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.enso-oni-month {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.enso-description {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.enso-confidence-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-default);
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+.enso-timeline {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.enso-timeline-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+}
+
+.enso-bars {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 100px;
+  position: relative;
+  padding: 8px 4px;
+  border-bottom: 1px dashed var(--border-default);
+}
+
+.enso-bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.enso-bar-wrap {
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  width: 12px;
+}
+
+.enso-bar {
+  width: 100%;
+  border-radius: 2px;
+  min-height: 2px;
+}
+
+.enso-bar.pos {
+  position: absolute;
+  bottom: 40px;
+}
+
+.enso-bar.neg {
+  position: absolute;
+  top: 40px;
+}
+
+.enso-bar-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.enso-bar-legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 8px;
+  padding: 0 4px;
+}
+
+.enso-hazards {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.enso-hazards-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.enso-hazard-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+}
+
+.enso-hazard-row.banjir {
+  background-color: rgba(14, 165, 233, 0.04);
+  border-left: 3px solid #0ea5e9;
+}
+
+.enso-hazard-row.kekeringan {
+  background-color: rgba(249, 115, 22, 0.04);
+  border-left: 3px solid #f97316;
+}
+
+.enso-hazard-icon {
+  font-size: 16px;
+}
+
+.enso-hazard-type {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.enso-hazard-regions {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+/* Map Wrapper */
+.perkiraan-map-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}

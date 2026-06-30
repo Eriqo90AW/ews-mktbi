@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { MagmaService } from '../../services/magmaService';
+import { MagmaService, getJakartaDateString } from '../../services/magmaService';
 import type { VolcanoReport, VolcanoLevel } from '../../types';
 import '../dashboard/TopBar.css';
 import './GunungApiScreen.css';
@@ -15,36 +15,84 @@ const LEVEL_TABS: { key: VolcanoLevel; emoji: string; label: string; cls: string
 ];
 
 export const GunungApiScreen: React.FC<GunungApiScreenProps> = ({ onBack }) => {
+  const todayStr = getJakartaDateString();
   const [selectedLevel, setSelectedLevel] = useState<VolcanoLevel>('III');
   const [reports, setReports] = useState<VolcanoReport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVolcanoName, setSelectedVolcanoName] = useState<string | null>(null);
-  const [reportDate, setReportDate] = useState('2026-06-28');
+  const [reportDate, setReportDate] = useState(todayStr);
+
+  const [isAutoCheckActive, setIsAutoCheckActive] = useState(true);
+  const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null);
+  const [isCheckingLive, setIsCheckingLive] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<'success' | 'error' | 'idle'>('idle');
+  const [isMockData, setIsMockData] = useState(false);
 
   const volcanoRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const isMounted = useRef(true);
 
   useEffect(() => {
-    let active = true;
-    const loadData = async () => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const loadData = async (isBackground: boolean = false) => {
+    if (!isBackground) {
       setIsLoading(true);
+    }
+    setIsCheckingLive(true);
+    try {
+      const data = await MagmaService.fetchDailyReport(reportDate, false);
+      if (isMounted.current) {
+        setReports(data);
+        setSyncStatus('success');
+        setIsMockData(false);
+        setLastCheckedAt(new Date());
+      }
+    } catch (err) {
+      console.warn('Real-time fetch failed, falling back to mock:', err);
       try {
-        const data = await MagmaService.fetchDailyReport(reportDate);
-        if (active) {
-          setReports(data);
+        const fallbackData = await MagmaService.fetchDailyReport(reportDate, true);
+        if (isMounted.current) {
+          setReports(fallbackData);
+          setSyncStatus('success');
+          setIsMockData(true);
+          setLastCheckedAt(new Date());
         }
-      } catch (err) {
-        console.error('Error fetching volcano data', err);
-      } finally {
-        if (active) {
-          setIsLoading(false);
+      } catch (fallbackErr) {
+        console.error('All fetch attempts failed:', fallbackErr);
+        if (isMounted.current) {
+          setSyncStatus('error');
         }
       }
-    };
-    loadData();
-    return () => {
-      active = false;
-    };
+    } finally {
+      if (isMounted.current) {
+        setIsLoading(false);
+        setIsCheckingLive(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    loadData(false);
   }, [reportDate]);
+
+  // Polling effect: only active when reportDate is today and auto-checking is enabled
+  useEffect(() => {
+    if (reportDate !== todayStr || !isAutoCheckActive) return;
+
+    const intervalId = setInterval(() => {
+      loadData(true);
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(intervalId);
+  }, [reportDate, isAutoCheckActive, todayStr]);
+
+  const handleManualRefresh = () => {
+    loadData(false);
+  };
 
   const filteredReports = useMemo(() => {
     return reports.filter((r) => r.level === selectedLevel);
@@ -116,6 +164,13 @@ export const GunungApiScreen: React.FC<GunungApiScreenProps> = ({ onBack }) => {
 
         {/* Right: Date Picker and Status */}
         <div className="topbar-right">
+          {reportDate === todayStr && (
+            <div className={`realtime-topbar-indicator ${isCheckingLive ? 'checking' : isAutoCheckActive ? 'active' : 'paused'}`} title={lastCheckedAt ? `Terakhir dicek: ${lastCheckedAt.toLocaleTimeString('id-ID')} WIB` : 'Siap dipantau'}>
+              <span className="pulse-dot-mini" />
+              <span>{isCheckingLive ? 'Syncing...' : isAutoCheckActive ? 'Realtime' : 'Paused'}</span>
+            </div>
+          )}
+
           <div className="date-picker-container">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="calendar-icon">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -128,7 +183,7 @@ export const GunungApiScreen: React.FC<GunungApiScreenProps> = ({ onBack }) => {
               className="date-input"
               value={reportDate}
               onChange={handleDateChange}
-              max="2026-06-29"
+              max={todayStr}
             />
           </div>
         </div>
@@ -140,6 +195,70 @@ export const GunungApiScreen: React.FC<GunungApiScreenProps> = ({ onBack }) => {
           <div className="gunungapi-panel-header">
             <span className="gunungapi-panel-title">Daftar Gunung Api</span>
             <span className="gunungapi-panel-count">{filteredReports.length} wilayah</span>
+          </div>
+
+          {/* Real-time Control Card */}
+          <div className="realtime-control-card">
+            <div className="rtc-header">
+              <div className="rtc-title-group">
+                <span className={`rtc-status-dot ${isCheckingLive ? 'checking' : isAutoCheckActive && reportDate === todayStr ? 'active' : 'paused'}`} />
+                <span className="rtc-title">Monitor Real-time</span>
+              </div>
+              {reportDate === todayStr ? (
+                <label className="rtc-switch" title="Aktifkan pemeriksaan otomatis setiap 30 detik">
+                  <input
+                    type="checkbox"
+                    checked={isAutoCheckActive}
+                    onChange={(e) => setIsAutoCheckActive(e.target.checked)}
+                  />
+                  <span className="rtc-slider" />
+                </label>
+              ) : (
+                <span className="rtc-badge-historical">Histori</span>
+              )}
+            </div>
+            
+            <div className="rtc-body">
+              <div className="rtc-info-row">
+                <span className="rtc-label">Status Koneksi:</span>
+                <span className={`rtc-value ${syncStatus === 'success' ? 'status-ok' : syncStatus === 'error' ? 'status-err' : 'status-idle'}`}>
+                  {syncStatus === 'success' ? (isMockData ? 'Luring (Fallback)' : 'Terhubung (Live)') : syncStatus === 'error' ? 'Gagal Terhubung' : 'Siap'}
+                </span>
+              </div>
+              
+              {lastCheckedAt && (
+                <div className="rtc-info-row">
+                  <span className="rtc-label">Terakhir Dicek:</span>
+                  <span className="rtc-value">{lastCheckedAt.toLocaleTimeString('id-ID')} WIB</span>
+                </div>
+              )}
+
+              {reportDate !== todayStr && (
+                <div className="rtc-warning-text historical">
+                  Pemeriksaan otomatis dinonaktifkan karena Anda melihat data historis.
+                </div>
+              )}
+              
+              {isMockData && reportDate === todayStr && (
+                <div className="rtc-warning-text">
+                  ⚠️ Gagal mengambil data live dari MAGMA (CORS/Sibuk). Menggunakan data simulasi.
+                </div>
+              )}
+            </div>
+            
+            <button 
+              className="rtc-action-btn" 
+              onClick={handleManualRefresh}
+              disabled={isCheckingLive}
+            >
+              {isCheckingLive ? (
+                <>
+                  <span className="rtc-spinner-mini" /> Memeriksa...
+                </>
+              ) : (
+                'Periksa Sekarang'
+              )}
+            </button>
           </div>
 
           <div className="gunungapi-panel-scroll">

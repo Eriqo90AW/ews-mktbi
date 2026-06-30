@@ -495,3 +495,255 @@
     grid-column: span 1;
   }
 }
+
+/* Real-time Topbar Indicator (for Gunung Api screen) */
+.realtime-topbar-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background-color: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 12px;
+  height: 24px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #10b981;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 8px;
+  user-select: none;
+}
+
+.realtime-topbar-indicator.paused {
+  background-color: rgba(100, 116, 139, 0.08);
+  border-color: rgba(100, 116, 139, 0.2);
+  color: #64748b;
+}
+
+.realtime-topbar-indicator.checking {
+  background-color: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.2);
+  color: #d97706;
+}
+
+.pulse-dot-mini {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10b981;
+}
+
+.realtime-topbar-indicator.active .pulse-dot-mini {
+  animation: sync-pulse 2s infinite ease-in-out;
+}
+
+.realtime-topbar-indicator.paused .pulse-dot-mini {
+  background-color: #64748b;
+}
+
+.realtime-topbar-indicator.checking .pulse-dot-mini {
+  background-color: #f59e0b;
+  animation: sync-spin 1s infinite linear;
+}
+
+/* Real-time Control Card in Sidebar */
+.realtime-control-card {
+  margin: 12px 12px 6px 12px;
+  padding: 14px 16px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rtc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rtc-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rtc-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.rtc-status-dot.active {
+  background-color: #10b981;
+  box-shadow: 0 0 6px #10b981;
+  animation: sync-pulse 2s infinite ease-in-out;
+}
+
+.rtc-status-dot.paused {
+  background-color: #64748b;
+}
+
+.rtc-status-dot.checking {
+  background-color: #f59e0b;
+  box-shadow: 0 0 6px #f59e0b;
+  animation: sync-spin 1s infinite linear;
+}
+
+.rtc-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Toggle Switch */
+.rtc-switch {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+}
+
+.rtc-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.rtc-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1;
+  transition: .2s;
+  border-radius: 18px;
+}
+
+.rtc-slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .2s;
+  border-radius: 50%;
+}
+
+.rtc-switch input:checked + .rtc-slider {
+  background-color: #10b981;
+}
+
+.rtc-switch input:checked + .rtc-slider:before {
+  transform: translateX(14px);
+}
+
+.rtc-badge-historical {
+  font-size: 10px;
+  font-weight: 700;
+  background-color: var(--bg-primary);
+  color: var(--text-secondary);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+}
+
+/* Card Body */
+.rtc-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background-color: var(--bg-sidebar);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+}
+
+.rtc-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+}
+
+.rtc-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.rtc-value {
+  font-weight: 600;
+}
+
+.rtc-value.status-ok {
+  color: #10b981;
+}
+
+.rtc-value.status-err {
+  color: var(--alert-critical);
+}
+
+.rtc-warning-text {
+  font-size: 10px;
+  line-height: 1.4;
+  color: #b45309;
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  margin-top: 4px;
+}
+
+.rtc-warning-text.historical {
+  color: var(--text-secondary);
+  background-color: var(--bg-primary);
+  border-color: var(--border-default);
+}
+
+/* Action Button */
+.rtc-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.rtc-action-btn:hover:not(:disabled) {
+  background-color: var(--bg-sidebar);
+  border-color: var(--border-active);
+}
+
+.rtc-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rtc-spinner-mini {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--border-default);
+  border-top-color: var(--text-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}

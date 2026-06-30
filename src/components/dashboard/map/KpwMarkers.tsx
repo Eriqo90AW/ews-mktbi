@@ -8,6 +8,8 @@ import { isOfficeAffectedByAlert } from '../../../utils/disasterImpact';
 import { BnpbInariskService } from '../../../services/bnpbInariskService';
 import { renderDisasterIcon } from '../../../utils/alertUtils';
 import type { NearestKpwResult } from '../../../utils/geo';
+import WeatherCard from './WeatherCard';
+
 
 interface KpwMarkersProps {
   alerts: DisasterAlert[];
@@ -177,7 +179,7 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
               </div>
             </Tooltip>
 
-            <Popup offset={[0, -10]}>
+            <Popup offset={[0, -10]} minWidth={280}>
               {isInariskFilter ? (
                 (() => {
                   const hazard = activeTypeFilter as 'flood' | 'tsunami' | 'kekeringan' | 'volcanic';
@@ -209,19 +211,21 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                   );
                 })()
               ) : (
-                <div className="ews-popup-content">
+                <div className="ews-popup-content" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <div className="ews-popup-header" style={{ color: 'var(--accent-primary)' }}>
                     <span>📍</span>
                     <span>KPwBI OFFICE</span>
                   </div>
                   <div className="ews-popup-title" style={{ marginTop: 0 }}>{office.name}</div>
-                  <p className="ews-popup-desc">
+                  <p className="ews-popup-desc" style={{ marginBottom: 0 }}>
                     City: <strong>{office.city}</strong><br />
                     Province: {getProvinceName(office.provinceId)}<br />
-                    Region: {office.region}<br />
-                    Coordinates: {office.latitude.toFixed(4)}, {office.longitude.toFixed(4)}
+                    Region: {office.region}
                   </p>
-                  <div className="ews-popup-footer">
+                  
+                  <WeatherCard provinceId={office.provinceId} cityName={office.city} />
+                  
+                  <div className="ews-popup-footer" style={{ marginTop: '4px' }}>
                     {riskSeverity && (
                       <span className="ews-popup-tag" style={{
                         color: riskSeverity === 'critical' ? 'var(--alert-critical)' : riskSeverity === 'warning' ? 'var(--alert-warning)' : 'var(--alert-watch)',

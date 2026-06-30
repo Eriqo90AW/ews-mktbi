@@ -3,9 +3,9 @@ import './App.css';
 import DisasterDashboard from './components/dashboard/DisasterDashboard';
 import KerentananScreen from './components/kerentanan/KerentananScreen';
 import GunungApiScreen from './components/gunungapi/GunungApiScreen';
-import PotensiScreen from './components/potensi/PotensiScreen';
+import PerkiraanScreen from './components/perkiraan/PerkiraanScreen';
 
-type AppScreen = 'dashboard' | 'kerentanan' | 'gunungapi' | 'potensi';
+type AppScreen = 'dashboard' | 'kerentanan' | 'gunungapi' | 'perkiraan';
 
 function App() {
   const [screen, setScreen] = useState<AppScreen>('dashboard');
@@ -13,9 +13,9 @@ function App() {
   return (
     <div className="app-container">
       {screen === 'dashboard' && (
-        <DisasterDashboard 
-          onSwitchToKerentanan={() => setScreen('kerentanan')} 
-          onSwitchToPotensi={() => setScreen('potensi')}
+        <DisasterDashboard
+          onSwitchToKerentanan={() => setScreen('kerentanan')}
+          onSwitchToPerkiraan={() => setScreen('perkiraan')}
         />
       )}
       {screen === 'kerentanan' && (
@@ -24,8 +24,8 @@ function App() {
       {screen === 'gunungapi' && (
         <GunungApiScreen onBack={() => setScreen('dashboard')} />
       )}
-      {screen === 'potensi' && (
-        <PotensiScreen onBack={() => setScreen('dashboard')} />
+      {screen === 'perkiraan' && (
+        <PerkiraanScreen onBack={() => setScreen('dashboard')} />
       )}
     </div>
   );

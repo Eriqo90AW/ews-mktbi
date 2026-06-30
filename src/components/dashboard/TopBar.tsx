@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import type { DisasterAlert, DisasterType, RiskCalcResult } from '../../types';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { renderDisasterIcon } from '../../utils/alertUtils';
+import { useAlerts } from '../../hooks/useAlerts';
 import './TopBar.css';
 
 interface TopBarProps {
@@ -15,7 +16,7 @@ interface TopBarProps {
   selectedType: DisasterType | 'all';
   onTypeChange: (type: DisasterType | 'all') => void;
   onSwitchToKerentanan: () => void;
-  onSwitchToPotensi: () => void;
+  onSwitchToPerkiraan: () => void;
 }
 
 const FILTER_OPTIONS: Array<{ value: DisasterType | 'all'; emoji: string; label: string }> = [
@@ -34,8 +35,10 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
     selectedType,
     onTypeChange,
     onSwitchToKerentanan,
-    onSwitchToPotensi,
+    onSwitchToPerkiraan,
   } = props;
+  
+  const { isFetching, lastCheckedTime } = useAlerts();
   const [timeStr, setTimeStr] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -155,18 +158,25 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
           </svg>
           Kerentanan
         </button>
-        <button className="topbar-nav-btn" onClick={onSwitchToPotensi}>
+        <button className="topbar-nav-btn" onClick={onSwitchToPerkiraan}>
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <circle cx="12" cy="12" r="6" />
-            <circle cx="12" cy="12" r="2" />
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
           </svg>
-          Potensi
+          Perkiraan
         </button>
       </div>
 
       {/* Right: clock + report + status */}
       <div className="topbar-right">
+        {/* Real-time Sync Indicator */}
+        <div className="topbar-sync-status" title={lastCheckedTime ? `Terakhir sinkronisasi: ${lastCheckedTime.toLocaleTimeString('id-ID')} WIB` : 'Sinkronisasi berjalan...'}>
+          <span className={`sync-dot ${isFetching ? 'syncing' : 'active'}`} />
+          <span className="sync-text">{isFetching ? 'Sinkronisasi...' : 'Live'}</span>
+        </div>
+
         <span className="topbar-clock">{timeStr || '—'}</span>
 
         <button className="topbar-report-btn" onClick={async () => {

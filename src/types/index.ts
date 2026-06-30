@@ -68,6 +68,13 @@ export interface VolcanoReport {
   level: VolcanoLevel;
 }
 
+// === Perkiraan / Preparedness Types ===
+
+export type { MegathrustZone } from '../constants/megathrustZones';
+export type { RingOfFireArc, VolcanoPoint } from '../constants/ringOfFire';
+export type { EnsoPhase, EnsoMonth, EnsoOutlook } from '../constants/ensoData';
+export type { ChecklistItemDef, ChecklistStatus } from '../constants/preparednessChecklist';
+
 // === Disaster Risk Calculator Types ===
 
 export type VulnerabilityLevel = 'Tinggi' | 'Sedang' | 'Rendah';

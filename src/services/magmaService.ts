@@ -241,8 +241,21 @@ function parseVolcanoTable(tableEl: Element, level: VolcanoLevel): VolcanoReport
   return reports;
 }
 
+export function getJakartaDateString(d: Date = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Jakarta',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(d);
+  const year = parts.find(p => p.type === 'year')?.value;
+  const month = parts.find(p => p.type === 'month')?.value;
+  const day = parts.find(p => p.type === 'day')?.value;
+  return `${year}-${month}-${day}`;
+}
+
 export const MagmaService = {
-  async fetchDailyReport(dateStr: string): Promise<VolcanoReport[]> {
+  async fetchDailyReport(dateStr: string, fallbackToMock: boolean = true): Promise<VolcanoReport[]> {
     const url = `https://magma.esdm.go.id/v1/gunung-api/laporan-harian/${dateStr}`;
     try {
       const htmlText = await fetchHtmlWithCorsProxy(url);
@@ -297,41 +310,34 @@ export const MagmaService = {
       }
 
       if (reports.length === 0) {
+        if (!fallbackToMock) {
+          throw new Error('Scraping returned 0 reports');
+        }
         console.warn('Scraping returned 0 reports, falling back to mock data');
         return MOCK_VOLCANO_REPORTS;
       }
 
       return reports;
     } catch (e) {
+      if (!fallbackToMock) {
+        throw e;
+      }
       console.warn('Failed to fetch from MAGMA Indonesia, falling back to mock data:', e);
       return MOCK_VOLCANO_REPORTS;
     }
   },
 
-  async fetchLiveAlerts(): Promise<DisasterAlert[]> {
+  async fetchLiveAlerts(fallbackToMock: boolean = true): Promise<DisasterAlert[]> {
     const today = new Date();
     const yesterday = new Date(today.getTime() - 24 * 3600000);
 
-    const formatDate = (d: Date) => {
-      const parts = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Asia/Jakarta',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      }).formatToParts(d);
-      const year = parts.find(p => p.type === 'year')?.value;
-      const month = parts.find(p => p.type === 'month')?.value;
-      const day = parts.find(p => p.type === 'day')?.value;
-      return `${year}-${month}-${day}`;
-    };
-
-    const todayStr = formatDate(today);
-    const yesterdayStr = formatDate(yesterday);
+    const todayStr = getJakartaDateString(today);
+    const yesterdayStr = getJakartaDateString(yesterday);
 
     try {
       const [todayReports, yesterdayReports] = await Promise.all([
-        this.fetchDailyReport(todayStr),
-        this.fetchDailyReport(yesterdayStr)
+        this.fetchDailyReport(todayStr, fallbackToMock),
+        this.fetchDailyReport(yesterdayStr, fallbackToMock)
       ]);
 
       const mergedMap = new Map<string, VolcanoReport>();
@@ -351,6 +357,9 @@ export const MagmaService = {
         return volcanoReportToAlert(report, isToday ? todayStr : yesterdayStr);
       });
     } catch (e) {
+      if (!fallbackToMock) {
+        throw e;
+      }
       console.warn('Failed to load live volcano alerts, falling back to mock alerts:', e);
       return MOCK_VOLCANO_REPORTS.map((r) => volcanoReportToAlert(r, yesterdayStr));
     }
