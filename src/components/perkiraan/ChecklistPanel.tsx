@@ -5,22 +5,37 @@ import { BnpbInariskService } from '../../services/bnpbInariskService';
 import { CHECKLIST_ITEMS } from '../../constants/preparednessChecklist';
 import { usePreparednessChecklist } from '../../hooks/usePreparednessChecklist';
 
+const RISK_THRESHOLD = 0.3;
+
 const ChecklistPanel: React.FC = () => {
-  const [selectedOfficeId, setSelectedOfficeId] = useState<string>(KPWBI_OFFICES[0].id);
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const { getStatus, toggleItem, getCompletionCount } = usePreparednessChecklist();
 
   const provincesMap = useMemo(() => new Map(PROVINCES.map((p) => [p.id, p])), []);
 
-  const selectedOffice = KPWBI_OFFICES.find((o) => o.id === selectedOfficeId)!;
-  const floodScore = BnpbInariskService.getLocalHazardIndex(selectedOfficeId, 'flood');
+  const atRiskOffices = useMemo(() => {
+    return KPWBI_OFFICES.filter((o) => {
+      const flood = BnpbInariskService.getLocalHazardIndex(o.id, 'flood');
+      const gempa = BnpbInariskService.getLocalPotensiIndex(o.id, 'gempa');
+      return flood > RISK_THRESHOLD || gempa > RISK_THRESHOLD;
+    });
+  }, []);
+
+  const clampedIndex = Math.min(selectedIndex, Math.max(0, atRiskOffices.length - 1));
+  const selectedOffice = atRiskOffices[clampedIndex];
+
+  const floodScore = selectedOffice ? BnpbInariskService.getLocalHazardIndex(selectedOffice.id, 'flood') : 0;
+  const gempaScore = selectedOffice ? BnpbInariskService.getLocalPotensiIndex(selectedOffice.id, 'gempa') : 0;
   const isHighFlood = floodScore > 0.4;
+  const isHighGempa = gempaScore > 0.4;
 
   const visibleItems = CHECKLIST_ITEMS.filter(
     (item) => !item.floodOnly || isHighFlood
   );
 
-  const status = getStatus(selectedOfficeId);
-  const completedCount = getCompletionCount(selectedOfficeId, visibleItems.map((i) => i.id));
+  const officeId = selectedOffice?.id ?? '';
+  const status = getStatus(officeId);
+  const completedCount = getCompletionCount(officeId, visibleItems.map((i) => i.id));
   const totalCount = visibleItems.length;
   const progressPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
   const progressClass = progressPct === 100 ? 'complete' : progressPct >= 60 ? 'good' : progressPct >= 30 ? 'partial' : 'low';
@@ -31,9 +46,22 @@ const ChecklistPanel: React.FC = () => {
     banjir: '🌊',
   };
 
+  const goToPrev = () => setSelectedIndex((i) => Math.max(0, i - 1));
+  const goToNext = () => setSelectedIndex((i) => Math.min(atRiskOffices.length - 1, i + 1));
+
+  if (atRiskOffices.length === 0) {
+    return (
+      <div className="checklist-container">
+        <div className="checklist-header">
+          <span className="perkiraan-panel-title">Checklist Kesiapsiagaan KPw</span>
+        </div>
+        <p className="checklist-flood-note">Tidak ada KPw dengan risiko banjir atau gempa yang terdeteksi.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="checklist-container">
-      {/* Office selector */}
       <div className="checklist-header">
         <div className="checklist-header-top">
           <span className="perkiraan-panel-title">Checklist Kesiapsiagaan KPw</span>
@@ -41,23 +69,24 @@ const ChecklistPanel: React.FC = () => {
             {completedCount}/{totalCount} Lengkap
           </span>
         </div>
-        <select
-          className="checklist-office-select"
-          value={selectedOfficeId}
-          onChange={(e) => setSelectedOfficeId(e.target.value)}
-        >
-          {KPWBI_OFFICES.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.name} — {o.city}
-            </option>
-          ))}
-        </select>
+
+        {/* Current office display */}
+        <div className="checklist-office-display">
+          <span className="checklist-office-name">{selectedOffice.name}</span>
+          <span className="checklist-office-city">{selectedOffice.city}</span>
+        </div>
+
         <div className="checklist-office-meta">
           <span>{provincesMap.get(selectedOffice.provinceId)?.name}</span>
           <span>{selectedOffice.region}</span>
           {isHighFlood && (
             <span className="flood-risk-tag">
-              💧 Risiko Banjir Tinggi ({Math.round(floodScore * 100)}/100)
+              💧 Banjir Tinggi ({Math.round(floodScore * 100)}/100)
+            </span>
+          )}
+          {isHighGempa && (
+            <span className="gempa-risk-tag">
+              🫨 Gempa Tinggi ({Math.round(gempaScore * 100)}/100)
             </span>
           )}
         </div>
@@ -70,6 +99,33 @@ const ChecklistPanel: React.FC = () => {
           />
         </div>
         <span className="checklist-progress-label">{progressPct}% kesiapsiagaan lengkap</span>
+
+        {/* Prev / Next navigator */}
+        <div className="checklist-nav">
+          <button
+            className="checklist-nav-btn"
+            onClick={goToPrev}
+            disabled={clampedIndex === 0}
+            aria-label="KPw sebelumnya"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+          <span className="checklist-nav-count">
+            {clampedIndex + 1} / {atRiskOffices.length} KPw berisiko
+          </span>
+          <button
+            className="checklist-nav-btn"
+            onClick={goToNext}
+            disabled={clampedIndex === atRiskOffices.length - 1}
+            aria-label="KPw berikutnya"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Items */}
@@ -81,7 +137,7 @@ const ChecklistPanel: React.FC = () => {
             <label
               key={item.id}
               className={`checklist-item${checked ? ' checked' : ''}${isFloodItem ? ' flood-only' : ''}`}
-              onClick={() => toggleItem(selectedOfficeId, item.id)}
+              onClick={() => toggleItem(officeId, item.id)}
             >
               <div className={`checklist-checkbox${checked ? ' checked' : ''}`}>
                 {checked && (

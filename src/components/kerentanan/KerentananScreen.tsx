@@ -61,7 +61,7 @@ const KerentananScreen: React.FC<KerentananScreenProps> = ({ onBack }) => {
           </button>
           <div className="topbar-divider-v" />
           <div className="topbar-brand-text">
-            <span className="topbar-brand-sub">BNPB InaRisk</span>
+            <span className="topbar-brand-sub">BIMA — BNPB InaRisk</span>
             <h1 className="topbar-title">Analisis <span>Kerentanan</span></h1>
           </div>
         </div>

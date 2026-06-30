@@ -127,3 +127,77 @@ export function findNearestOfficesByProvince(
   }
   return results;
 }
+
+
+export function distanceToPolyline(
+  lat: number,
+  lng: number,
+  path: [number, number][]
+): number {
+  let minDistance = Infinity;
+
+  for (let i = 0; i < path.length - 1; i++) {
+    const p1 = path[i];
+    const p2 = path[i + 1];
+
+    // Interpolate points along the segment p1-p2
+    const steps = 15; // 15 points per segment is plenty
+    for (let s = 0; s <= steps; s++) {
+      const t = s / steps;
+      const interpLat = p1[0] + t * (p2[0] - p1[0]);
+      const interpLng = p1[1] + t * (p2[1] - p1[1]);
+      const dist = haversineDistance(lat, lng, interpLat, interpLng);
+      if (dist < minDistance) {
+        minDistance = dist;
+      }
+    }
+  }
+
+  return minDistance;
+}
+
+export function getPolylineBufferSegments(
+  path: [number, number][],
+  radiusKm: number
+): [number, number][][] {
+  const segments: [number, number][][] = [];
+  const rDeg = radiusKm / 111.32; // rough estimate: 1 degree = 111.32 km
+
+  for (let i = 0; i < path.length - 1; i++) {
+    const p1 = path[i];
+    const p2 = path[i + 1];
+
+    const lat1 = p1[0];
+    const lng1 = p1[1];
+    const lat2 = p2[0];
+    const lng2 = p2[1];
+
+    const latAvg = ((lat1 + lat2) / 2) * (Math.PI / 180);
+    const cosLat = Math.cos(latAvg);
+
+    // Latitude and longitude delta
+    const dy = lat2 - lat1;
+    const dx = (lng2 - lng1) * cosLat;
+
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len === 0) continue;
+
+    // Normal vector: perpendicular to direction (dx, dy)
+    const ny = dx / len;
+    const nx = -dy / len;
+
+    // Apply radius offset in degrees
+    const offsetLat = ny * rDeg;
+    const offsetLng = (nx * rDeg) / cosLat;
+
+    const pt1: [number, number] = [lat1 + offsetLat, lng1 + offsetLng];
+    const pt2: [number, number] = [lat2 + offsetLat, lng2 + offsetLng];
+    const pt3: [number, number] = [lat2 - offsetLat, lng2 - offsetLng];
+    const pt4: [number, number] = [lat1 - offsetLat, lng1 - offsetLng];
+
+    segments.push([pt1, pt2, pt3, pt4]);
+  }
+
+  return segments;
+}
+

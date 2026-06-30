@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, GeoJSON, Polyline, CircleMarker, Marker, Circle, Tooltip } from 'react-leaflet';
+import { MapContainer, TileLayer, GeoJSON, Polyline, CircleMarker, Marker, Circle, Tooltip, Polygon } from 'react-leaflet';
 import L from 'leaflet';
+import type { GeoJsonObject, Feature } from 'geojson';
 import { PROVINCES } from '../../constants/provinces';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { BnpbInariskService } from '../../services/bnpbInariskService';
 import { mapTextToProvinceId } from '../../utils/provinceMap';
 import { MEGATHRUST_ZONES } from '../../constants/megathrustZones';
+import { getPolylineBufferSegments } from '../../utils/geo';
 import { RING_OF_FIRE_ARCS, VOLCANO_POINTS } from '../../constants/ringOfFire';
 import { getEnsoElevatedProvinces } from '../../constants/ensoData';
+
 import type { EnsoPhase } from '../../constants/ensoData';
 import type { DisasterAlert } from '../../types';
 import MapController from '../dashboard/map/MapController';
@@ -52,7 +55,7 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
   selectedMegathrustId = null,
   onMegathrustSelect,
 }) => {
-  const [geoJsonData, setGeoJsonData] = useState<any>(null);
+  const [geoJsonData, setGeoJsonData] = useState<GeoJsonObject | null>(null);
 
   useEffect(() => {
     fetch('/indonesia-provinces.json')
@@ -61,8 +64,9 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
       .catch(() => {});
   }, []);
 
-  const getGeoJsonStyle = (feature: any) => {
-    const provinceId = mapTextToProvinceId(feature.properties.Propinsi || '');
+  const getGeoJsonStyle = (feature?: Feature) => {
+    if (!feature) return {};
+    const provinceId = mapTextToProvinceId((feature.properties?.['Propinsi'] as string) || '');
 
     if (mode === 'mingguan') {
       const forecastSev = getForecastSeverityForProvince(provinceId, forecastAlerts);
@@ -106,8 +110,8 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
     return { fillColor: 'transparent', fillOpacity: 0, color: 'rgba(255,255,255,0.15)', weight: 0.5 };
   };
 
-  const onEachFeature = (feature: any, layer: L.Layer) => {
-    const propName = feature.properties.Propinsi || '';
+  const onEachFeature = (feature: Feature, layer: L.Layer) => {
+    const propName = (feature.properties?.['Propinsi'] as string) || '';
     const provinceId = mapTextToProvinceId(propName);
 
     if (mode === 'mingguan') {
@@ -265,8 +269,62 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
         {/* Megathrust zones */}
         {mode === 'gempa' && MEGATHRUST_ZONES.map((zone) => {
           const isSelected = zone.id === selectedMegathrustId;
+          const bufferSegments = getPolylineBufferSegments(zone.path, zone.impactRadiusKm);
+
+          const bufferStyle = isSelected
+            ? {
+                color: '#f59e0b',
+                fillColor: '#f59e0b',
+                fillOpacity: 0.08,
+                weight: 1.5,
+                opacity: 0.5,
+                dashArray: '6, 4',
+              }
+            : {
+                color: '#7c3aed',
+                fillColor: '#7c3aed',
+                fillOpacity: 0.02,
+                weight: 0.5,
+                opacity: 0.15,
+                dashArray: '3, 4',
+              };
+
           return (
             <React.Fragment key={zone.id}>
+              {/* Buffer segments along the subduction line */}
+              {bufferSegments.map((pts, idx) => (
+                <Polygon
+                  key={`${zone.id}-buf-seg-${idx}`}
+                  positions={pts}
+                  pathOptions={bufferStyle}
+                  eventHandlers={{ click: () => onMegathrustSelect?.(zone.id) }}
+                >
+                  <Tooltip sticky>
+                    <strong>{zone.name}</strong> (Area Dampak)<br/>
+                    Maks: Mw {zone.maxMagnitude}<br/>
+                    Radius Dampak: {zone.impactRadiusKm} km
+                  </Tooltip>
+                </Polygon>
+              ))}
+
+              {/* Buffer circles around each point of the subduction line to round joint corners */}
+              {zone.path.map((pt, idx) => (
+                <Circle
+                  key={`${zone.id}-buf-circ-${idx}`}
+                  center={pt}
+                  radius={zone.impactRadiusKm * 1000}
+                  pathOptions={bufferStyle}
+                  eventHandlers={{ click: () => onMegathrustSelect?.(zone.id) }}
+                >
+                  <Tooltip sticky>
+                    <strong>{zone.name}</strong> (Area Dampak)<br/>
+                    Maks: Mw {zone.maxMagnitude}<br/>
+                    Radius Dampak: {zone.impactRadiusKm} km
+                  </Tooltip>
+                </Circle>
+              ))}
+
+              {/* Trench Line */}
               <Polyline
                 positions={zone.path}
                 pathOptions={{
@@ -282,19 +340,6 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
                   Radius Dampak: {zone.impactRadiusKm} km
                 </Tooltip>
               </Polyline>
-              {isSelected && (
-                <Circle
-                  center={zone.centroid}
-                  radius={zone.impactRadiusKm * 1000}
-                  pathOptions={{
-                    color: '#f59e0b',
-                    fillColor: '#f59e0b',
-                    fillOpacity: 0.08,
-                    weight: 2,
-                    dashArray: '6, 4',
-                  }}
-                />
-              )}
             </React.Fragment>
           );
         })}

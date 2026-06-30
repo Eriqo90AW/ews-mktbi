@@ -27,7 +27,7 @@ const PerkiraanScreen: React.FC<PerkiraanScreenProps> = ({ onBack }) => {
           </button>
           <div className="topbar-divider-v" />
           <div className="topbar-brand-text">
-            <span className="topbar-brand-sub">Kesiapsiagaan KPw BI</span>
+            <span className="topbar-brand-sub">BIMA — Kesiapsiagaan KPw BI</span>
             <h1 className="topbar-title">Halaman <span>Perkiraan</span></h1>
           </div>
         </div>

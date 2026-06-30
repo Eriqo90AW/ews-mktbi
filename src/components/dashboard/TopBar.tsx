@@ -126,14 +126,12 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
     <header className="topbar-container">
       {/* Left: brand */}
       <div className="topbar-brand">
-        <div className="topbar-logo">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-          </svg>
+        <div className="topbar-logo" style={{ overflow: 'hidden', padding: 0 }}>
+          <img src="/bima-logo.jpg" alt="BIMA Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
         <div className="topbar-brand-text">
-          <span className="topbar-brand-sub">Sistem Peringatan Dini</span>
-          <h1 className="topbar-title">Indonesia <span>EWS</span></h1>
+          <span className="topbar-brand-sub">Bank Indonesia Monitoring & Mitigation Alert</span>
+          <h1 className="topbar-title">BIMA</h1>
         </div>
       </div>
 

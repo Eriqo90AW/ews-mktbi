@@ -3,7 +3,7 @@ import { MEGATHRUST_ZONES } from '../../constants/megathrustZones';
 import { RING_OF_FIRE_ARCS, VOLCANO_POINTS } from '../../constants/ringOfFire';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { PROVINCES } from '../../constants/provinces';
-import { haversineDistance } from '../../utils/geo';
+import { distanceToPolyline } from '../../utils/geo';
 import PerkiraanMap from './PerkiraanMap';
 
 const GempaView: React.FC = () => {
@@ -17,15 +17,15 @@ const GempaView: React.FC = () => {
   const officesAtRisk = useMemo(() => {
     if (!selectedZone) return [];
     return KPWBI_OFFICES.filter((office) => {
-      const dist = haversineDistance(
+      const dist = distanceToPolyline(
         office.latitude,
         office.longitude,
-        selectedZone.centroid[0],
-        selectedZone.centroid[1]
+        selectedZone.path
       );
       return dist <= selectedZone.impactRadiusKm;
     });
   }, [selectedZone]);
+
 
   const handleMegathrustSelect = (id: string) => {
     setSelectedZoneId((prev) => (prev === id ? null : id));
