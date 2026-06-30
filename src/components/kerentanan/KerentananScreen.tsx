@@ -4,6 +4,7 @@ import { PROVINCES } from '../../constants/provinces';
 import { BnpbInariskService } from '../../services/bnpbInariskService';
 import EwsMap from '../dashboard/EwsMap';
 import { renderDisasterIcon } from '../../utils/alertUtils';
+import ScreenshotPreviewModal from '../ui/ScreenshotPreviewModal';
 import '../dashboard/TopBar.css';
 import './KerentananScreen.css';
 
@@ -30,6 +31,7 @@ function riskLevel(score: number): { label: string; cls: string } {
 const KerentananScreen: React.FC<KerentananScreenProps> = ({ onBack }) => {
   const [selectedHazard, setSelectedHazard] = useState<InariskHazard>('flood');
   const [selectedProvinceId, setSelectedProvinceId] = useState<string | null>(null);
+  const [screenshotUrl, setScreenshotUrl] = useState<string | null>(null);
 
   const provincesMap = useMemo(() => new Map(PROVINCES.map((p) => [p.id, p])), []);
 
@@ -44,6 +46,18 @@ const KerentananScreen: React.FC<KerentananScreenProps> = ({ onBack }) => {
 
   const handleProvinceSelect = (provinceId: string) => {
     setSelectedProvinceId((prev) => (prev === provinceId ? null : provinceId));
+  };
+
+  const handleScreenshot = async () => {
+    try {
+      const mapEl = document.querySelector('.kerentanan-map-wrap .map-wrapper');
+      if (!mapEl) return;
+      const domtoimage = (await import('dom-to-image-more')).default;
+      const dataUrl = await domtoimage.toPng(mapEl as HTMLElement);
+      setScreenshotUrl(dataUrl);
+    } catch (e) {
+      console.error('Gagal mengambil screenshot', e);
+    }
   };
 
   const currentHazard = HAZARD_TABS.find((t) => t.key === selectedHazard)!;
@@ -83,8 +97,15 @@ const KerentananScreen: React.FC<KerentananScreenProps> = ({ onBack }) => {
           </div>
         </div>
 
-        {/* Right: count status chip */}
+        {/* Right: count status chip + screenshot */}
         <div className="topbar-right">
+          <button className="topbar-report-btn" onClick={handleScreenshot} title="Screenshot Peta">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            Screenshot
+          </button>
           <div className="topbar-status kerentanan">
             <span className="topbar-status-dot" />
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
@@ -153,6 +174,12 @@ const KerentananScreen: React.FC<KerentananScreenProps> = ({ onBack }) => {
           />
         </div>
       </div>
+
+      <ScreenshotPreviewModal
+        isOpen={!!screenshotUrl}
+        imageDataUrl={screenshotUrl}
+        onClose={() => setScreenshotUrl(null)}
+      />
     </div>
   );
 };

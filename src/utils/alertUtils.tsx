@@ -1,23 +1,38 @@
 import React from 'react';
-import ReactDOMServer from 'react-dom/server';
 import type { DisasterType } from '../types';
-import VolcanoIcon from '@mui/icons-material/Volcano';
-import ThunderstormIcon from '@mui/icons-material/Thunderstorm';
+import earthquakeIcon from '../assets/earthquake.png';
+import floodIcon from '../assets/flood.png';
+import droughtIcon from '../assets/drought.png';
 
-export function getDisasterEmoji(type: DisasterType | string): string {
-  // Retained for compatibility but returning plain text warning/indicators instead of emojis
+export function getDisasterIconValue(type: DisasterType | string): string {
   switch (type) {
     case 'earthquake':
-    case 'gempa': return '[GEMPA]';
-    case 'tsunami': return '[TSUNAMI]';
-    case 'flood': return '[BANJIR]';
-    case 'volcanic': return '🌋';
-    case 'landslide': return '[LONGSOR]';
-    case 'extreme_weather': return '🌧️';
-    case 'karhutla': return '[KARHUTLA]';
-    case 'kekeringan': return '[KEKERINGAN]';
-    default: return '[WARNING]';
+    case 'gempa':
+      return earthquakeIcon;
+    case 'tsunami':
+    case 'pasang':
+      return '🌊';
+    case 'flood':
+    case 'banjir':
+      return floodIcon;
+    case 'cuaca':
+    case 'extreme_weather':
+      return '🌧️';
+    case 'volcanic':
+      return '🌋';
+    case 'landslide':
+      return '⛰️';
+    case 'karhutla':
+      return '🔥';
+    case 'kekeringan':
+      return droughtIcon;
+    default:
+      return '⚠️';
   }
+}
+
+export function getDisasterEmoji(type: DisasterType | string): string {
+  return getDisasterIconValue(type);
 }
 
 export function getDisasterColor(type: DisasterType | string): string {
@@ -48,6 +63,7 @@ export function getDisasterColor(type: DisasterType | string): string {
 }
 
 export function getDisasterIconClass(type: DisasterType | string): string {
+  // Retained as a stub for compatibility
   switch (type) {
     case 'earthquake':
     case 'gempa':
@@ -74,21 +90,12 @@ export function getDisasterIconClass(type: DisasterType | string): string {
   }
 }
 
-export function getDisasterIconHtml(type: DisasterType | string, customColor?: string): string {
-  const color = customColor || getDisasterColor(type);
-  if (type === 'extreme_weather' || type === 'cuaca') {
-    return ReactDOMServer.renderToStaticMarkup(
-      <ThunderstormIcon style={{ color, fontSize: '20px', display: 'inline-block', verticalAlign: 'middle' }} />
-    );
+export function getDisasterIconHtml(type: DisasterType | string, _customColor?: string): string {
+  const icon = getDisasterIconValue(type);
+  if (icon.endsWith('.png') || icon.startsWith('data:') || icon.startsWith('/') || icon.startsWith('static/') || icon.startsWith('src/')) {
+    return `<img src="${icon}" style="width: 20px; height: 20px; display: inline-block; vertical-align: middle; object-fit: contain;" alt="${type}" />`;
   }
-  if (type === 'volcanic') {
-    return ReactDOMServer.renderToStaticMarkup(
-      <VolcanoIcon style={{ color, fontSize: '20px', display: 'inline-block', verticalAlign: 'middle' }} />
-    );
-  }
-  const iconClass = getDisasterIconClass(type);
-  
-  return `<i class="wi ${iconClass}" style="color: ${color}; font-size: 18px; display: inline-block; vertical-align: middle; line-height: 1;"></i>`;
+  return `<span style="font-size: 18px; display: inline-block; vertical-align: middle; line-height: 1;">${icon}</span>`;
 }
 
 export function renderDisasterIcon(
@@ -96,48 +103,31 @@ export function renderDisasterIcon(
   className?: string,
   style?: React.CSSProperties
 ): React.ReactNode {
-  const size = style?.width || style?.height || '1.2em';
-  const defaultColor = getDisasterColor(type);
+  const icon = getDisasterIconValue(type);
+  const size = style?.width || style?.height || '20px';
 
-  if (type === 'extreme_weather' || type === 'cuaca') {
-    return (
-      <ThunderstormIcon
-        className={className}
-        style={{
-          fontSize: size,
-          color: style?.color || defaultColor,
-          display: 'inline-block',
-          verticalAlign: 'middle',
-          ...style
-        }}
-      />
-    );
-  }
-  if (type === 'volcanic') {
-    return (
-      <VolcanoIcon
-        className={className}
-        style={{
-          fontSize: size,
-          color: style?.color || defaultColor,
-          display: 'inline-block',
-          verticalAlign: 'middle',
-          ...style
-        }}
-      />
-    );
+  // Extract size styles for img to prevent them from causing layout issues
+  const { width, height, ...restStyle } = style || {};
+
+  if (icon.endsWith('.png') || icon.startsWith('data:') || icon.startsWith('/') || icon.startsWith('static/') || icon.startsWith('src/')) {
+    const mergedStyle: React.CSSProperties = {
+      width: size,
+      height: size,
+      display: 'inline-block',
+      verticalAlign: 'middle',
+      objectFit: 'contain',
+      ...restStyle
+    };
+    return <img src={icon} className={className} style={mergedStyle} alt={type} />;
   }
 
-  const iconClass = getDisasterIconClass(type);
-  
   const mergedStyle: React.CSSProperties = {
     fontSize: size,
-    color: style?.color || defaultColor,
     display: 'inline-block',
     verticalAlign: 'middle',
     lineHeight: 1,
     ...style
   };
-
-  return <i className={`wi ${iconClass} ${className || ''}`} style={mergedStyle} />;
+  return <span className={className} style={mergedStyle}>{icon}</span>;
 }
+

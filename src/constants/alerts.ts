@@ -7,7 +7,7 @@ export const MOCK_ALERTS: DisasterAlert[] = [
   {
     id: 'alert-1',
     type: 'earthquake',
-    severity: 'critical',
+    severity: 3,
     provinceId: 'ID-SU', // Sumatera Utara (Medan)
     title: 'M 6.4 Earthquake Warning',
     description: 'A major earthquake occurred near the western coast of Nias, Sumatera Utara. Potential localized damage. Residents are advised to stay away from unstable structures.',
@@ -19,7 +19,7 @@ export const MOCK_ALERTS: DisasterAlert[] = [
   {
     id: 'alert-2',
     type: 'tsunami',
-    severity: 'critical',
+    severity: 3,
     provinceId: 'ID-AC', // Aceh (Banda Aceh)
     title: 'Tsunami Threat Assessment',
     description: 'High-energy seismic activity detected offshore. Monitoring sea level gauges. Coastal communities should move to designated high grounds immediately.',
@@ -29,7 +29,7 @@ export const MOCK_ALERTS: DisasterAlert[] = [
   {
     id: 'alert-3',
     type: 'volcanic',
-    severity: 'warning',
+    severity: 2,
     provinceId: 'ID-YO', // DI Yogyakarta (Yogyakarta)
     title: 'Mount Merapi Level III (Siaga)',
     description: 'Increased seismic activity and multiple pyroclastic flows (wedhus gembel) stretching 1.8km southwest. 3km exclusion zone enforced.',
@@ -39,7 +39,7 @@ export const MOCK_ALERTS: DisasterAlert[] = [
   {
     id: 'alert-4',
     type: 'flood',
-    severity: 'warning',
+    severity: 2,
     provinceId: 'ID-JK', // DKI Jakarta (Jakarta)
     title: 'Extreme Flash Flood Alert',
     description: 'Katulampa Dam water level reached Alert Status II. Continuous heavy rainfall in Puncak has triggered flooding in low-lying areas of East and North Jakarta.',
@@ -50,7 +50,7 @@ export const MOCK_ALERTS: DisasterAlert[] = [
   {
     id: 'alert-5',
     type: 'landslide',
-    severity: 'watch',
+    severity: 1,
     provinceId: 'ID-JB', // Jawa Barat (Bandung)
     title: 'Landslide Vulnerability Advisory',
     description: 'Saturated soil conditions due to 3 days of torrential rain. Risk of landslides along the steep slopes of southern Bandung regency.',
@@ -60,7 +60,7 @@ export const MOCK_ALERTS: DisasterAlert[] = [
   {
     id: 'alert-6',
     type: 'volcanic',
-    severity: 'watch',
+    severity: 1,
     provinceId: 'ID-NT', // Nusa Tenggara Timur (Kupang)
     title: 'Mount Lewotobi Activity Watch',
     description: 'Subtle ash emission plumes rising 500m above peak. Alert status remains at Level II (Waspada). Hikers advised against summiting.',

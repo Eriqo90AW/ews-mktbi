@@ -1,6 +1,12 @@
 export type DisasterType = 'earthquake' | 'flood' | 'volcanic' | 'tsunami' | 'landslide' | 'extreme_weather' | 'karhutla' | 'kekeringan';
 
-export type AlertSeverity = 'critical' | 'warning' | 'watch';
+export type AlertSeverity = 3 | 2 | 1;
+
+export function severityToCssClass(s: AlertSeverity): 'critical' | 'warning' | 'watch' {
+  return s === 3 ? 'critical' : s === 2 ? 'warning' : 'watch';
+}
+
+export const SEV_BOX_COUNT: Record<AlertSeverity, number> = { 3: 3, 2: 2, 1: 1 };
 
 export interface Province {
   id: string;

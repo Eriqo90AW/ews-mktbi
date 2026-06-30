@@ -88,7 +88,7 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
       if (!riskRes) return false;
 
       if (severityFilter !== 'all') {
-        const mappedRiskLevel = { critical: 'Tinggi', warning: 'Sedang', watch: 'Rendah' }[severityFilter];
+        const mappedRiskLevel = { 3: 'Tinggi', 2: 'Sedang', 1: 'Rendah' }[severityFilter];
         if (riskRes.riskLevel !== mappedRiskLevel) return false;
       }
 
@@ -98,7 +98,7 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
   }, [alerts, riskResults, severityFilter, typeFilter, minTimestamp]);
 
   const filteredStats = useMemo(() => {
-    const stats = { critical: 0, warning: 0, watch: 0, total: 0 };
+    const stats: Record<AlertSeverity | 'total', number> = { 3: 0, 2: 0, 1: 0, total: 0 };
 
     alerts.forEach((a) => {
       if (a.isForecast) return;
@@ -107,16 +107,16 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
 
       const riskRes = riskResults.find((r) => r.event.id === a.id);
       if (riskRes) {
-        if (riskRes.riskLevel === 'Tinggi') stats.critical++;
-        else if (riskRes.riskLevel === 'Sedang') stats.warning++;
-        else if (riskRes.riskLevel === 'Rendah') stats.watch++;
+        if (riskRes.riskLevel === 'Tinggi') stats[3]++;
+        else if (riskRes.riskLevel === 'Sedang') stats[2]++;
+        else if (riskRes.riskLevel === 'Rendah') stats[1]++;
         stats.total++;
       }
     });
 
     if (severityFilter !== 'all') {
       const activeVal = stats[severityFilter];
-      stats.critical = 0; stats.warning = 0; stats.watch = 0;
+      stats[3] = 0; stats[2] = 0; stats[1] = 0;
       stats.total = activeVal;
       stats[severityFilter] = activeVal;
     }
@@ -139,7 +139,7 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
     <div className="dashboard-container">
       <DisasterAlertBanner activeAlerts={activeAlerts} />
       <TopBar
-        criticalCount={filteredStats.critical}
+        criticalCount={filteredStats[3]}
         totalAlerts={filteredAlerts.length}
         criticalAlerts={calculatedCriticalAlerts}
         allAlerts={filteredAlerts}

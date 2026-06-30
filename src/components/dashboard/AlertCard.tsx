@@ -1,5 +1,6 @@
 import React from 'react';
 import type { DisasterAlert, Province } from '../../types';
+import { severityToCssClass } from '../../types';
 import { renderDisasterIcon } from '../../utils/alertUtils';
 import './AlertCard.css';
 
@@ -9,8 +10,6 @@ interface AlertCardProps {
   isSelected: boolean;
   onClick: () => void;
 }
-
-const SEVERITY_BOXES = { critical: 3, warning: 2, watch: 1 } as const;
 
 const TYPE_LABELS: Record<string, string> = {
   earthquake:      'Gempa Bumi',
@@ -106,21 +105,22 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, province, isSelecte
     } catch { return ''; }
   };
 
-  const sevBoxCount = SEVERITY_BOXES[alert.severity];
+  const sevCss = severityToCssClass(alert.severity);
+  const sevBoxCount = alert.severity;
 
   return (
     <div
-      className={`alertcard-container alertcard-sev-${alert.severity}${isSelected ? ' selected' : ''}`}
+      className={`alertcard-container alertcard-sev-${sevCss}${isSelected ? ' selected' : ''}`}
       onClick={onClick}
     >
-      <div className={`alertcard-stripe ${alert.severity}`} />
+      <div className={`alertcard-stripe ${sevCss}`} />
 
       <div className="alertcard-header">
         <div className="alertcard-type-row">
           <span className="alertcard-icon">{renderDisasterIcon(alert.type)}</span>
           <span className="alertcard-type-label">{TYPE_LABELS[alert.type] ?? alert.type}</span>
         </div>
-        <div className={`alertcard-sev-badge sev-${alert.severity}`}>
+        <div className={`alertcard-sev-badge sev-${sevCss}`}>
           {[1, 2, 3].map((i) => (
             <span key={i} className={`sev-box${i <= sevBoxCount ? ' filled' : ''}`} />
           ))}

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { DisasterAlert, AlertSeverity, DisasterType, RiskCalcResult } from '../../types';
+import { severityToCssClass } from '../../types';
 import { PROVINCES } from '../../constants/provinces';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { renderDisasterIcon } from '../../utils/alertUtils';
@@ -7,15 +8,15 @@ import AlertCard from './AlertCard';
 import './Sidebar.css';
 
 const SEV_LABEL: Record<AlertSeverity, string> = {
-  critical: 'Tinggi',
-  warning: 'Sedang',
-  watch: 'Rendah',
+  3: 'Tinggi',
+  2: 'Sedang',
+  1: 'Rendah',
 };
 
 interface SidebarProps {
   filteredAlerts: DisasterAlert[];
   riskResults: RiskCalcResult[];
-  stats: { critical: number; warning: number; watch: number; total: number };
+  stats: Record<AlertSeverity | 'total', number>;
   selectedProvinceId: string | null;
   onProvinceSelect: (provinceId: string) => void;
   selectedAlertId: string | null;
@@ -38,8 +39,6 @@ const SORT_OPTIONS = [
   { value: 'severity-desc', label: 'Tingkat Tertinggi' },
 ] as const;
 type SortKey = typeof SORT_OPTIONS[number]['value'];
-
-const SEVERITY_WEIGHT = { critical: 3, warning: 2, watch: 1 } as const;
 
 export const Sidebar: React.FC<SidebarProps> = ({
   filteredAlerts,
@@ -101,11 +100,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   // Counts of offices per risk level
   const riskStats = useMemo(() => {
-    const counts: Record<AlertSeverity, number> = { critical: 0, warning: 0, watch: 0 };
+    const counts: Record<number, number> = { 3: 0, 2: 0, 1: 0 };
     officeRiskLevels.forEach(({ riskLevel }) => {
-      if (riskLevel === 'Tinggi') counts.critical++;
-      else if (riskLevel === 'Sedang') counts.warning++;
-      else counts.watch++;
+      if (riskLevel === 'Tinggi') counts[3]++;
+      else if (riskLevel === 'Sedang') counts[2]++;
+      else counts[1]++;
     });
     return counts;
   }, [officeRiskLevels]);
@@ -113,15 +112,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // Group offices per risk level for panel display
   const officesByBand = useMemo(() => {
     const result = new Map<AlertSeverity, Array<{ office: typeof KPWBI_OFFICES[0]; topHazards: string[] }>>([
-      ['critical', []],
-      ['warning', []],
-      ['watch', []],
+      [3, []],
+      [2, []],
+      [1, []],
     ]);
     
     officeRiskLevels.forEach((data, officeId) => {
       const office = KPWBI_OFFICES.find((o) => o.id === officeId);
       if (!office) return;
-      const band: AlertSeverity = data.riskLevel === 'Tinggi' ? 'critical' : data.riskLevel === 'Sedang' ? 'warning' : 'watch';
+      const band: AlertSeverity = data.riskLevel === 'Tinggi' ? 3 : data.riskLevel === 'Sedang' ? 2 : 1;
       const topHazards = Array.from(new Set(data.alerts.map((a) => a.type)));
       result.get(band)?.push({ office, topHazards });
     });
@@ -137,7 +136,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'magnitude-desc': return list.sort((a, b) => (b.magnitude || 0) - (a.magnitude || 0));
       case 'magnitude-asc': return list.sort((a, b) => (a.magnitude || 0) - (b.magnitude || 0));
       case 'severity-desc': return list.sort((a, b) => {
-        const diff = (SEVERITY_WEIGHT[b.severity] || 0) - (SEVERITY_WEIGHT[a.severity] || 0);
+        const diff = (b.severity || 0) - (a.severity || 0);
         return diff !== 0 ? diff : new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
       });
       default: return list;
@@ -189,16 +188,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
 
           <div className="sidebar-stats-collapsed">
-            <div className="sidebar-stat-icon critical" title={`${riskStats.critical} Tinggi`}>
-              <span className="stat-icon-value">{riskStats.critical}</span>
+            <div className="sidebar-stat-icon critical" title={`${riskStats[3]} Tinggi`}>
+              <span className="stat-icon-value">{riskStats[3]}</span>
               <span className="stat-icon-label">T</span>
             </div>
-            <div className="sidebar-stat-icon warning" title={`${riskStats.warning} Sedang`}>
-              <span className="stat-icon-value">{riskStats.warning}</span>
+            <div className="sidebar-stat-icon warning" title={`${riskStats[2]} Sedang`}>
+              <span className="stat-icon-value">{riskStats[2]}</span>
               <span className="stat-icon-label">S</span>
             </div>
-            <div className="sidebar-stat-icon watch" title={`${riskStats.watch} Rendah`}>
-              <span className="stat-icon-value">{riskStats.watch}</span>
+            <div className="sidebar-stat-icon watch" title={`${riskStats[1]} Rendah`}>
+              <span className="stat-icon-value">{riskStats[1]}</span>
               <span className="stat-icon-label">R</span>
             </div>
           </div>
@@ -247,10 +246,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
               <div className="sidebar-stats-row">
-                {(['critical', 'warning', 'watch'] as AlertSeverity[]).map((sev) => (
+                {([3, 2, 1] as AlertSeverity[]).map((sev) => (
                   <button
                     key={sev}
-                    className={`sidebar-stat-card ${sev}${activeStatPanel === sev ? ' stat-active' : ''}`}
+                    className={`sidebar-stat-card ${severityToCssClass(sev)}${activeStatPanel === sev ? ' stat-active' : ''}`}
                     onClick={() => handleStatClick(sev)}
                     title={`Lihat KPW — Risiko Bencana ${SEV_LABEL[sev]}`}
                   >
@@ -271,7 +270,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {activeStatPanel && (() => {
             const offices = officesByBand.get(activeStatPanel) ?? [];
             return (
-              <div className={`stat-panel stat-panel-${activeStatPanel}`}>
+              <div className={`stat-panel stat-panel-${severityToCssClass(activeStatPanel)}`}>
                 <div className="stat-panel-header">
                   <span className="stat-panel-title">
                     Level Risiko Bencana
@@ -368,17 +367,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             <label className="filter-label">Tingkat</label>
                             <div className="severity-pills">
                               <button className={`severity-pill${severityFilter === 'all' ? ' active' : ''}`} onClick={() => setSeverityFilter('all')}>Semua</button>
-                              {(['critical', 'warning', 'watch'] as const).map((sev) => {
-                                const count = { critical: 3, warning: 2, watch: 1 }[sev];
+                              {([3, 2, 1] as AlertSeverity[]).map((sev) => {
+                                const sevCss = severityToCssClass(sev);
                                 return (
                                   <button
                                     key={sev}
-                                    className={`severity-pill sev-${sev}${severityFilter === sev ? ' active' : ''}`}
+                                    className={`severity-pill sev-${sevCss}${severityFilter === sev ? ' active' : ''}`}
                                     onClick={() => setSeverityFilter(sev)}
                                   >
                                     <span className="pill-boxes">
                                       {[1, 2, 3].map((i) => (
-                                        <span key={i} className={`pill-box${i <= count ? ' filled' : ''}`} />
+                                        <span key={i} className={`pill-box${i <= sev ? ' filled' : ''}`} />
                                       ))}
                                     </span>
                                   </button>

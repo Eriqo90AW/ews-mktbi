@@ -1,6 +1,12 @@
 import React from 'react';
 import type { AlertSeverity } from '../../types';
 
+const SEV_STYLE: Record<AlertSeverity, { bg: string; color: string; border: string }> = {
+  3: { bg: 'var(--alert-critical-bg)', color: 'var(--alert-critical)', border: '1px solid var(--alert-critical-border)' },
+  2: { bg: 'var(--alert-warning-bg)', color: 'var(--alert-warning)', border: '1px solid var(--alert-warning-border)' },
+  1: { bg: 'var(--alert-watch-bg)', color: 'var(--alert-watch)', border: '1px solid var(--alert-watch-border)' },
+};
+
 interface BadgeProps {
   variant: AlertSeverity | 'info';
   children: React.ReactNode;
@@ -9,33 +15,18 @@ interface BadgeProps {
 
 export const Badge: React.FC<BadgeProps> = ({ variant, children, className = '' }) => {
   const getBadgeStyle = () => {
-    switch (variant) {
-      case 'critical':
-        return {
-          backgroundColor: 'var(--alert-critical-bg)',
-          color: 'var(--alert-critical)',
-          border: '1px solid var(--alert-critical-border)',
-        };
-      case 'warning':
-        return {
-          backgroundColor: 'var(--alert-warning-bg)',
-          color: 'var(--alert-warning)',
-          border: '1px solid var(--alert-warning-border)',
-        };
-      case 'watch':
-        return {
-          backgroundColor: 'var(--alert-watch-bg)',
-          color: 'var(--alert-watch)',
-          border: '1px solid var(--alert-watch-border)',
-        };
-      case 'info':
-      default:
-        return {
-          backgroundColor: 'var(--alert-info-bg)',
-          color: 'var(--alert-info)',
-          border: '1px solid var(--alert-info-border)',
-        };
+    if (variant === 'info') {
+      return {
+        backgroundColor: 'var(--alert-info-bg)',
+        color: 'var(--alert-info)',
+        border: '1px solid var(--alert-info-border)',
+      };
     }
+    return {
+      backgroundColor: SEV_STYLE[variant].bg,
+      color: SEV_STYLE[variant].color,
+      border: SEV_STYLE[variant].border,
+    };
   };
 
   const style = getBadgeStyle();

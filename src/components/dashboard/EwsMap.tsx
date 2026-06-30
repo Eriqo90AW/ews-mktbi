@@ -146,10 +146,46 @@ export const EwsMap: React.FC<EwsMapProps> = ({
   };
 
   const severityColors: Record<AlertSeverity, string> = {
-    critical: 'var(--alert-critical)',
-    warning: 'var(--alert-warning)',
-    watch: 'var(--alert-watch)',
+    3: 'var(--alert-critical)',
+    2: 'var(--alert-warning)',
+    1: 'var(--alert-watch)',
   };
+
+  // Compute geometric centroids for each province from GeoJSON data
+  const provinceCentroids = useMemo(() => {
+    const map = new Map<string, [number, number]>();
+    if (!geoJsonData) return map;
+    const features = geoJsonData.features || [];
+    for (const feature of features) {
+      const provinceId = mapTextToProvinceId(feature.properties?.Propinsi || '');
+      if (!provinceId) continue;
+      const coords = feature.geometry?.coordinates;
+      if (!coords) continue;
+
+      let sumLat = 0, sumLng = 0, count = 0;
+      const processRing = (ring: number[][]) => {
+        for (const [lng, lat] of ring) {
+          sumLat += lat;
+          sumLng += lng;
+          count++;
+        }
+      };
+      const processPolygon = (poly: any) => {
+        for (const ring of poly) processRing(ring);
+      };
+
+      if (feature.geometry.type === 'Polygon') {
+        processPolygon(coords);
+      } else if (feature.geometry.type === 'MultiPolygon') {
+        for (const poly of coords) processPolygon(poly);
+      }
+
+      if (count > 0) {
+        map.set(provinceId, [sumLat / count, sumLng / count]);
+      }
+    }
+    return map;
+  }, [geoJsonData]);
 
   const getWeatherGeoJsonStyle = (feature: any) => {
     const provinceId = mapTextToProvinceId(feature.properties.Propinsi || '');
@@ -177,13 +213,17 @@ export const EwsMap: React.FC<EwsMapProps> = ({
       (a) => a.type === 'extreme_weather' && a.provinceId === provinceId
     );
 
+    const sevBoxes = '<div style="display:flex;gap:3px">' + [1,2,3].map((i) =>
+      `<span style="width:12px;height:4px;border-radius:1px;background:${i <= severity ? severityColors[severity] : 'rgba(255,255,255,0.2)'};display:inline-block"></span>`
+    ).join('') + '</div>';
+
     layer.bindTooltip(`
       <div style="font-family: var(--font-sans); font-size: 12px; line-height: 1.4; padding: 4px;">
         <strong>Provinsi ${propName}</strong><br/>
         <span>Peringatan Cuaca Ekstrim</span><br/>
         ${weatherAlerts.map((a) => `<div>• ${a.title}</div>`).join('')}
-        <div style="margin-top: 4px;">
-          Severity: <span style="font-weight: 700; color: ${severityColors[severity]}">${severity.toUpperCase()}</span>
+        <div style="margin-top: 4px; display:flex; align-items:center; gap:6px">
+          <span>Severity:</span>${sevBoxes}
         </div>
       </div>
     `, { sticky: true });
@@ -207,24 +247,21 @@ export const EwsMap: React.FC<EwsMapProps> = ({
       return alerts.filter((alert) => alert.id === selectedAlertId);
     }
     return alerts.filter((alert) => {
-      // Filter by computed riskLevel, not raw alert.severity
-      const res = riskResults.find((r) => r.event.id === alert.id);
-      const riskLevel = res?.riskLevel ?? 'Rendah';
-      if (riskLevel === 'Tinggi'  && !mapLayers.critical) return false;
-      if (riskLevel === 'Sedang'  && !mapLayers.warning)  return false;
-      if (riskLevel === 'Rendah'  && !mapLayers.watch)    return false;
+      // Filter by alert severity directly (not risk level)
+      if (alert.severity === 3 && !mapLayers.critical) return false;
+      if (alert.severity === 2 && !mapLayers.warning)  return false;
+      if (alert.severity === 1 && !mapLayers.watch)    return false;
       return true;
     });
-  }, [alerts, riskResults, selectedAlertId, mapLayers.critical, mapLayers.warning, mapLayers.watch]);
+  }, [alerts, selectedAlertId, mapLayers.critical, mapLayers.warning, mapLayers.watch]);
 
   // Compute province highlights for extreme_weather alerts (province-level impact instead of circle radius)
   const weatherAlertProvinces = useMemo(() => {
     const provinceMap = new Map<string, AlertSeverity>();
-    const severityOrder: AlertSeverity[] = ['critical', 'warning', 'watch'];
     for (const alert of visibleAlerts) {
       if (alert.type !== 'extreme_weather' || !alert.provinceId) continue;
       const existing = provinceMap.get(alert.provinceId);
-      if (!existing || severityOrder.indexOf(alert.severity) < severityOrder.indexOf(existing)) {
+      if (!existing || alert.severity > existing) {
         provinceMap.set(alert.provinceId, alert.severity);
       }
     }
@@ -305,7 +342,7 @@ export const EwsMap: React.FC<EwsMapProps> = ({
           />
         ))}
 
-        <AlertCircles alerts={visibleAlerts} onAlertSelect={onAlertSelect} />
+        <AlertCircles alerts={visibleAlerts} onAlertSelect={onAlertSelect} provinceCentroids={provinceCentroids} />
 
         <KpwMarkers
           alerts={visibleAlerts}

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import type { DisasterAlert } from '../types';
+import type { DisasterAlert, AlertSeverity } from '../types';
 import { fetchLatestEarthquakes, fetchExtremeWeather, fetchThreeDayForecast, fetchHighRainfallWarning } from '../services/bmkgService';
 import { MagmaService } from '../services/magmaService';
 
@@ -12,6 +12,7 @@ let cachedIsLoading = true;
 let isFetching = false;
 let lastCheckedTime: Date | null = null;
 let pollingIntervalId: any = null;
+let cachedLoadingSources: string[] = [];
 const listeners = new Set<() => void>();
 
 const notifyListeners = () => {
@@ -27,6 +28,7 @@ const mergeAlerts = (existing: DisasterAlert[], incoming: DisasterAlert[]) => {
 const fetchAllSources = async () => {
   if (isFetching) return;
   isFetching = true;
+  cachedLoadingSources = ['Gempa BMKG', 'Cuaca Ekstrem BMKG', 'Prakiraan 3 Hari BMKG', 'Curah Hujan Tinggi BMKG', 'Live Gunung Api Magma'];
   notifyListeners();
 
   const apis = [
@@ -62,6 +64,7 @@ const fetchAllSources = async () => {
         }
       })
       .finally(() => {
+        cachedLoadingSources = cachedLoadingSources.filter((s) => s !== name);
         pending--;
         if (pending === 0) {
           cachedIsLoading = false;
@@ -93,6 +96,7 @@ export const useAlerts = () => {
   const [isLoading, setIsLoading] = useState(cachedIsLoading);
   const [fetching, setFetching] = useState(isFetching);
   const [lastChecked, setLastChecked] = useState<Date | null>(lastCheckedTime);
+  const [loadingSources, setLoadingSources] = useState<string[]>(cachedLoadingSources);
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -100,6 +104,7 @@ export const useAlerts = () => {
       setIsLoading(cachedIsLoading);
       setFetching(isFetching);
       setLastChecked(lastCheckedTime);
+      setLoadingSources(cachedLoadingSources);
     };
 
     listeners.add(handleUpdate);
@@ -120,7 +125,7 @@ export const useAlerts = () => {
     () =>
       alerts.reduce(
         (acc, alert) => { acc[alert.severity]++; acc.total++; return acc; },
-        { critical: 0, warning: 0, watch: 0, total: 0 }
+        { 3: 0, 2: 0, 1: 0, total: 0 } as Record<AlertSeverity | 'total', number>
       ),
     [alerts]
   );
@@ -130,16 +135,16 @@ export const useAlerts = () => {
     stats,
     isLoading,
     isFetching: fetching,
+    loadingSources,
     lastCheckedTime: lastChecked,
-    criticalAlerts: useMemo(() => alerts.filter((a) => a.severity === 'critical'), [alerts]),
-    warningAlerts: useMemo(() => alerts.filter((a) => a.severity === 'warning'), [alerts]),
-    watchAlerts: useMemo(() => alerts.filter((a) => a.severity === 'watch'), [alerts]),
+    criticalAlerts: useMemo(() => alerts.filter((a) => a.severity === 3), [alerts]),
+    warningAlerts: useMemo(() => alerts.filter((a) => a.severity === 2), [alerts]),
+    watchAlerts: useMemo(() => alerts.filter((a) => a.severity === 1), [alerts]),
     getAlertsByProvince: (provinceId: string) => alerts.filter((a) => a.provinceId === provinceId),
     getActiveAlertForProvince: (provinceId: string): DisasterAlert | undefined => {
       const list = alerts.filter((a) => a.provinceId === provinceId);
       if (list.length === 0) return undefined;
-      const w = { critical: 3, warning: 2, watch: 1 } as const;
-      return list.reduce((h, c) => (w[c.severity] || 0) > (w[h.severity] || 0) ? c : h);
+      return list.reduce((h, c) => (c.severity || 0) > (h.severity || 0) ? c : h);
     },
   };
-};  
+};

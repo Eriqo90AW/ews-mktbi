@@ -247,9 +247,9 @@ export function getVolcanoCoordinates(name: string): [number, number] {
 export function volcanoReportToAlert(report: VolcanoReport, dateStr: string): DisasterAlert {
   const coords = getVolcanoCoordinates(report.name);
   const severityMap: Record<VolcanoLevel, AlertSeverity> = {
-    'III': 'critical',
-    'II': 'warning',
-    'I': 'watch'
+    'III': 3,
+    'II': 2,
+    'I': 1
   };
 
   const statusLabel = {

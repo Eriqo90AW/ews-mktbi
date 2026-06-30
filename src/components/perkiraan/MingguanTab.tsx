@@ -7,7 +7,8 @@ import {
 import { PROVINCES } from '../../constants/provinces';
 import { BnpbInariskService } from '../../services/bnpbInariskService';
 import { useAlerts } from '../../hooks/useAlerts';
-import type { DisasterAlert } from '../../types';
+import type { DisasterAlert, AlertSeverity } from '../../types';
+import { severityToCssClass } from '../../types';
 import PerkiraanMap from './PerkiraanMap';
 import EmailBlastButton from './EmailBlastButton';
 
@@ -15,22 +16,22 @@ interface MingguanTabProps {
   onEmailBlast?: (officeId: string) => void;
 }
 
-function getSeverityRank(sev: string | null) {
-  return sev === 'critical' ? 3 : sev === 'warning' ? 2 : sev === 'watch' ? 1 : 0;
+function getSeverityRank(sev: AlertSeverity | null) {
+  return sev ?? 0;
 }
 
-function getForecastSeverity(officeProvinceId: string, alerts: DisasterAlert[]): 'critical' | 'warning' | 'watch' | null {
+function getForecastSeverity(officeProvinceId: string, alerts: DisasterAlert[]): AlertSeverity | null {
   const matching = alerts.filter((a) => a.isForecast && a.provinceId === officeProvinceId);
   if (matching.length === 0) return null;
-  if (matching.some((a) => a.severity === 'critical')) return 'critical';
-  if (matching.some((a) => a.severity === 'warning')) return 'warning';
-  return 'watch';
+  if (matching.some((a) => a.severity === 3)) return 3;
+  if (matching.some((a) => a.severity === 2)) return 2;
+  return 1;
 }
 
-const SEV_LABEL: Record<string, string> = {
-  critical: 'Siaga',
-  warning: 'Waspada',
-  watch: 'Potensi',
+const SEV_LABEL: Record<AlertSeverity, string> = {
+  3: 'Siaga',
+  2: 'Waspada',
+  1: 'Potensi',
 };
 
 const MingguanTab: React.FC<MingguanTabProps> = () => {
@@ -52,7 +53,7 @@ const MingguanTab: React.FC<MingguanTabProps> = () => {
       .sort((a, b) => b.rank - a.rank);
   }, [forecastAlerts]);
 
-  const hasCritical = rankedOffices.some((r) => r.forecastSev === 'critical');
+  const hasCritical = rankedOffices.some((r) => r.forecastSev === 3);
 
   const handleProvinceSelect = (id: string) => {
     setSelectedProvinceId((prev) => (prev === id ? null : id));
@@ -101,7 +102,7 @@ const MingguanTab: React.FC<MingguanTabProps> = () => {
                     <span className="perkiraan-province-name">{province?.name ?? office.provinceId}</span>
                     <div className="perkiraan-row-tags">
                       {forecastSev && (
-                        <span className={`perkiraan-badge sev-${forecastSev}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                        <span className={`perkiraan-badge sev-${severityToCssClass(forecastSev)}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                           <FlashOnIcon style={{ fontSize: 10 }} /> {SEV_LABEL[forecastSev]}
                         </span>
                       )}
@@ -119,7 +120,7 @@ const MingguanTab: React.FC<MingguanTabProps> = () => {
                       return (
                         <div className="perkiraan-forecast-days">
                           {forecasts.map((a) => (
-                            <span key={a.id} className={`forecast-day-pill sev-${a.severity}`}>
+                            <span key={a.id} className={`forecast-day-pill sev-${severityToCssClass(a.severity)}`}>
                               H+{a.forecastDay}: {a.title.split('(')[0].trim()}
                             </span>
                           ))}

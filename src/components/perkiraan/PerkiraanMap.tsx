@@ -12,7 +12,7 @@ import { RING_OF_FIRE_ARCS, VOLCANO_POINTS } from '../../constants/ringOfFire';
 import { getEnsoElevatedProvinces } from '../../constants/ensoData';
 
 import type { EnsoPhase } from '../../constants/ensoData';
-import type { DisasterAlert } from '../../types';
+import type { DisasterAlert, AlertSeverity } from '../../types';
 import MapController from '../dashboard/map/MapController';
 import MapEventsHandler from '../dashboard/map/MapEventsHandler';
 import 'leaflet/dist/leaflet.css';
@@ -38,12 +38,12 @@ function getProvinceFloodRisk(provinceId: string): number {
   }, 0);
 }
 
-function getForecastSeverityForProvince(provinceId: string, alerts: DisasterAlert[]): 'critical' | 'warning' | 'watch' | null {
+function getForecastSeverityForProvince(provinceId: string, alerts: DisasterAlert[]): AlertSeverity | null {
   const matching = alerts.filter((a) => a.provinceId === provinceId && a.isForecast);
   if (matching.length === 0) return null;
-  if (matching.some((a) => a.severity === 'critical')) return 'critical';
-  if (matching.some((a) => a.severity === 'warning')) return 'warning';
-  return 'watch';
+  if (matching.some((a) => a.severity === 3)) return 3;
+  if (matching.some((a) => a.severity === 2)) return 2;
+  return 1;
 }
 
 const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
@@ -73,13 +73,13 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
       const floodRisk = getProvinceFloodRisk(provinceId);
       const isHighFlood = floodRisk > 0.5;
 
-      if (forecastSev === 'critical') {
+      if (forecastSev === 3) {
         return { fillColor: '#dc2626', fillOpacity: 0.35, color: '#b91c1c', weight: 2.5 };
       }
-      if (forecastSev === 'warning') {
+      if (forecastSev === 2) {
         return { fillColor: '#d97706', fillOpacity: 0.3, color: '#b45309', weight: 2 };
       }
-      if (forecastSev === 'watch') {
+      if (forecastSev === 1) {
         return { fillColor: '#0ea5e9', fillOpacity: 0.2, color: '#0284c7', weight: 1.5 };
       }
       if (isHighFlood) {
@@ -121,7 +121,7 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
       layer.bindTooltip(
         `<div style="font-size:12px;padding:4px">
           <strong>${propName}</strong><br/>
-          ${forecastSev ? `Prakiraan: <strong>${forecastSev === 'critical' ? 'Siaga' : forecastSev === 'warning' ? 'Waspada' : 'Potensi'}</strong><br/>` : ''}
+          ${forecastSev ? `Prakiraan: <strong>${forecastSev === 3 ? 'Siaga' : forecastSev === 2 ? 'Waspada' : 'Potensi'}</strong><br/>` : ''}
           Kerentanan Banjir: <strong>${(floodRisk * 100).toFixed(0)}</strong>/100
         </div>`,
         { sticky: true }
@@ -152,13 +152,13 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
     if (mode === 'mingguan') {
       const sev = getForecastSeverityForProvince(prov.id, forecastAlerts);
       const floodRisk = getProvinceFloodRisk(prov.id);
-      if (sev === 'critical') {
+      if (sev === 3) {
         color = '#dc2626';
         iconHtml = `<svg viewBox="0 0 24 24" width="20" height="20" fill="#dc2626" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6))"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
-      } else if (sev === 'warning') {
+      } else if (sev === 2) {
         color = '#d97706';
         iconHtml = `<svg viewBox="0 0 24 24" width="20" height="20" fill="#d97706" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6))"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
-      } else if (sev === 'watch') {
+      } else if (sev === 1) {
         color = '#0ea5e9';
         iconHtml = `<svg viewBox="0 0 24 24" width="20" height="20" fill="#0ea5e9" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6))"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
       } else if (floodRisk > 0.5) {

@@ -97,9 +97,9 @@ export function mapAlertToDisasterEvent(alert: DisasterAlert): DisasterEvent | n
   }
 
   let disasterScore: 1 | 2 | 3 = 1;
-  if (alert.severity === 'critical') {
+  if (alert.severity === 3) {
     disasterScore = 3;
-  } else if (alert.severity === 'warning') {
+  } else if (alert.severity === 2) {
     disasterScore = 2;
   }
 

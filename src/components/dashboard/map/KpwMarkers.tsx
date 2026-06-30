@@ -2,6 +2,7 @@ import React from 'react';
 import { Marker, Tooltip, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import type { DisasterAlert, DisasterType, KpwbiOffice, AlertSeverity, RiskCalcResult } from '../../../types';
+import { severityToCssClass } from '../../../types';
 import { KPWBI_OFFICES } from '../../../constants/kpwbiOffices';
 import { PROVINCES } from '../../../constants/provinces';
 import { isOfficeAffectedByAlert } from '../../../utils/disasterImpact';
@@ -45,9 +46,9 @@ function getOfficeRiskSeverity(
     }
   });
   if (maxScore === 0) return null;
-  if (maxScore >= 7) return 'critical';
-  if (maxScore >= 4) return 'warning';
-  return 'watch';
+  if (maxScore >= 7) return 3;
+  if (maxScore >= 4) return 2;
+  return 1;
 }
 
 function getProvinceName(provinceId: string): string {
@@ -61,7 +62,7 @@ function createMarkerIcon(
   nearestOffices: NearestKpwResult[]
 ): L.DivIcon {
   const classes: string[] = [];
-  if (riskSeverity) classes.push('has-alert', `alert-${riskSeverity}`);
+  if (riskSeverity) classes.push('has-alert', `alert-${severityToCssClass(riskSeverity)}`);
   if (selectedProvinceId === office.provinceId) {
     classes.push('selected');
   } else if (nearestOffices.some((n) => n.office.id === office.id)) {
@@ -193,12 +194,12 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                   const hazard = activeTypeFilter as 'flood' | 'tsunami' | 'kekeringan' | 'volcanic';
                   const indexVal = BnpbInariskService.getLocalHazardIndex(office.id, hazard);
                   const hazardTitle = { flood: 'Banjir', tsunami: 'Tsunami', kekeringan: 'Kekeringan', volcanic: 'Gunung Api' }[hazard];
-                  let severity: AlertSeverity = 'watch';
-                  if (indexVal > 0.6) severity = 'critical';
-                  else if (indexVal > 0.3) severity = 'warning';
+      let severity: AlertSeverity = 1;
+      if (indexVal > 0.6) severity = 3;
+      else if (indexVal > 0.3) severity = 2;
                   return (
                     <div className="ews-popup-content">
-                      <div className={`ews-popup-header ${severity}`}>
+                      <div className={`ews-popup-header ${severityToCssClass(severity)}`}>
                         <span>{renderDisasterIcon(hazard, undefined, { color: 'inherit' })}</span>
                         <span>Indeks Bahaya {hazardTitle} (InaRisk)</span>
                       </div>
@@ -208,11 +209,11 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                       </p>
                       <div className="ews-popup-footer">
                         <span className="ews-popup-tag" style={{
-                          color: severity === 'critical' ? 'var(--alert-critical)' : severity === 'warning' ? 'var(--alert-warning)' : 'var(--alert-watch)',
-                          backgroundColor: severity === 'critical' ? 'var(--alert-critical-bg)' : severity === 'warning' ? 'var(--alert-warning-bg)' : 'var(--alert-watch-bg)',
-                          borderColor: severity === 'critical' ? 'var(--alert-critical-border)' : severity === 'warning' ? 'var(--alert-warning-border)' : 'var(--alert-watch-border)',
+                          color: `var(--alert-${severityToCssClass(severity)})`,
+                          backgroundColor: `var(--alert-${severityToCssClass(severity)}-bg)`,
+                          borderColor: `var(--alert-${severityToCssClass(severity)}-border)`,
                         }}>
-                          {severity.toUpperCase()} ({indexVal.toFixed(2)})
+                          Level {severity} ({indexVal.toFixed(2)})
                         </span>
                       </div>
                     </div>
@@ -234,11 +235,11 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                   <div className="ews-popup-footer" style={{ marginTop: '4px' }}>
                     {riskSeverity && (
                       <span className="ews-popup-tag" style={{
-                        color: riskSeverity === 'critical' ? 'var(--alert-critical)' : riskSeverity === 'warning' ? 'var(--alert-warning)' : 'var(--alert-watch)',
-                        backgroundColor: riskSeverity === 'critical' ? 'var(--alert-critical-bg)' : riskSeverity === 'warning' ? 'var(--alert-warning-bg)' : 'var(--alert-watch-bg)',
-                        borderColor: riskSeverity === 'critical' ? 'var(--alert-critical-border)' : riskSeverity === 'warning' ? 'var(--alert-warning-border)' : 'var(--alert-watch-border)',
+                        color: `var(--alert-${severityToCssClass(riskSeverity)})`,
+                        backgroundColor: `var(--alert-${severityToCssClass(riskSeverity)}-bg)`,
+                        borderColor: `var(--alert-${severityToCssClass(riskSeverity)}-border)`,
                       }}>
-                        Risiko: {riskSeverity === 'critical' ? 'Tinggi' : riskSeverity === 'warning' ? 'Sedang' : 'Rendah'}
+                        Risiko: {riskSeverity === 3 ? 'Tinggi' : riskSeverity === 2 ? 'Sedang' : 'Rendah'}
                       </span>
                     )}
                   </div>

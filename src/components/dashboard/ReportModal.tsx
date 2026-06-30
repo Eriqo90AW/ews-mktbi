@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import type { DisasterAlert, KpwbiOffice } from '../../types';
+import type { DisasterAlert, KpwbiOffice, AlertSeverity } from '../../types';
 import { renderDisasterIcon } from '../../utils/alertUtils';
 import { CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
@@ -49,7 +49,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
     totalAlerts: number;
     earthquakes: number;
     otherDisasters: number;
-    severityBreakdown: { critical: number; warning: number; watch: number };
+    severityBreakdown: Record<AlertSeverity, number>;
     impactedOffices: ImpactedRecord[];
     allAlertsInRange: DisasterAlert[];
   } | null>(null);
@@ -75,7 +75,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
         acc[curr.severity]++;
         return acc;
       },
-      { critical: 0, warning: 0, watch: 0 }
+      { 3: 0, 2: 0, 1: 0 } as Record<AlertSeverity, number>
     );
 
     // 3. Find impacted KPW offices
@@ -116,9 +116,8 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
     });
 
     // Sort impacted offices by alert severity, then distance
-    const severityOrder = { critical: 3, warning: 2, watch: 1 };
     impactedOffices.sort((a, b) => {
-      const sevDiff = (severityOrder[b.alert.severity] || 0) - (severityOrder[a.alert.severity] || 0);
+      const sevDiff = (b.alert.severity || 0) - (a.alert.severity || 0);
       if (sevDiff !== 0) return sevDiff;
       return (a.distanceKm || 0) - (b.distanceKm || 0);
     });
@@ -159,7 +158,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
   const handleExportExcel = () => {
     if (!report) return;
 
-    const SEVERITY_NUM: Record<string, number> = { critical: 3, warning: 2, watch: 1 };
+    const SEVERITY_NUM: Record<string, number> = { 3: 3, 2: 2, 1: 1 };
 
     // Create a new workbook
     const wb = XLSX.utils.book_new();
@@ -174,9 +173,9 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
       ["Total Alerts", report.totalAlerts],
       ["Gempa Bumi", report.earthquakes],
       ["Bencana Lainnya", report.otherDisasters],
-      ["Gempa Critical", report.severityBreakdown.critical],
-      ["Gempa Warning", report.severityBreakdown.warning],
-      ["Gempa Watch", report.severityBreakdown.watch],
+      ["Gempa Level 3", report.severityBreakdown[3]],
+      ["Gempa Level 2", report.severityBreakdown[2]],
+      ["Gempa Level 1", report.severityBreakdown[1]],
     ];
     const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
     XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
@@ -208,7 +207,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
       new Date(alert.timestamp).toLocaleString('id-ID'),
       alert.title,
       alert.type,
-      SEVERITY_NUM[alert.severity] || alert.severity,
+      alert.severity,
       alert.magnitude !== undefined ? alert.magnitude : '-',
       alert.depth !== undefined ? alert.depth : '-',
       alert.affectedArea || alert.description || ''
@@ -328,7 +327,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
                               </span>
                             </td>
                             <td style={{ textAlign: 'center' }}>
-                              {{ critical: 3, warning: 2, watch: 1 }[alert.severity] || 1}
+                              {alert.severity}
                             </td>
                             <td style={{ textAlign: 'center' }}>{vulnerabilityIndex !== undefined ? vulnerabilityIndex : '-'}</td>
                              <td className='font-semibold' style={{ textAlign: 'center' }}>{riskScore !== undefined ? Math.round(riskScore) : '-'}</td>
@@ -397,7 +396,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
                             <td className="font-semibold">{alert.title}</td>
                             <td style={{ textTransform: 'capitalize' }}>{alert.type}</td>
                             <td className="font-semibold" style={{ textAlign: 'center' }}>
-                              {{ critical: 3, warning: 2, watch: 1 }[alert.severity] || 1}
+                              {alert.severity}
                             </td>
                             <td className="font-semibold" style={{ textAlign: 'center' }}>
                               {alert.magnitude !== undefined ? `${alert.magnitude} M` : '-'}

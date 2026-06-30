@@ -62,9 +62,9 @@ export async function fetchLatestEarthquakes(): Promise<DisasterAlert[]> {
       const magnitude = parseFloat(gempa.Magnitude);
       const depth = parseFloat(gempa.Kedalaman);
 
-      let severity: AlertSeverity = 'watch';
-      if (magnitude >= 5.0) severity = 'critical';
-      else if (magnitude >= 4.0) severity = 'warning';
+      let severity: AlertSeverity = 1;
+      if (magnitude >= 5.0) severity = 3;
+      else if (magnitude >= 4.0) severity = 2;
 
       const nearestOffice = findNearestKpwOffice(latitude, longitude);
 
@@ -101,7 +101,7 @@ export async function fetchExtremeWeather(): Promise<DisasterAlert[]> {
     const alertsPromises = items.map(async (item: { guid: string; link: string; title: string; description: string; pubDate: string }, index: number) => {
       let latitude = -6.2088;
       let longitude = 106.8456;
-      let severity: AlertSeverity = 'watch';
+      let severity: AlertSeverity = 1;
       let hasExactCoords = false;
 
       try {
@@ -111,9 +111,9 @@ export async function fetchExtremeWeather(): Promise<DisasterAlert[]> {
           const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
 
           const capSeverity = xmlDoc.querySelector('severity')?.textContent?.toLowerCase();
-          if (capSeverity === 'extreme' || capSeverity === 'severe') severity = 'critical';
-          else if (capSeverity === 'moderate') severity = 'warning';
-          else severity = 'watch';
+          if (capSeverity === 'extreme' || capSeverity === 'severe') severity = 3;
+          else if (capSeverity === 'moderate') severity = 2;
+          else severity = 1;
 
           const polygonNode = xmlDoc.querySelector('polygon');
           if (polygonNode && polygonNode.textContent) {
@@ -214,10 +214,10 @@ export async function fetchThreeDayForecast(): Promise<DisasterAlert[]> {
           const dayNum = idx + 1;
           const dateStr = dayNum === 1 ? day1Date : dayNum === 2 ? day2Date : day3Date;
 
-          let severity: AlertSeverity = 'watch';
+          let severity: AlertSeverity = 1;
           const lowerStatus = statusText.toLowerCase();
-          if (lowerStatus.includes('siaga')) severity = 'critical';
-          else if (lowerStatus.includes('waspada')) severity = 'warning';
+          if (lowerStatus.includes('siaga')) severity = 3;
+          else if (lowerStatus.includes('waspada')) severity = 2;
 
           alerts.push({
             id: `bmkg-forecast-${provinceId}-${dayNum}`,
@@ -300,9 +300,9 @@ export async function fetchHighRainfallWarning(): Promise<DisasterAlert[]> {
         const office = KPWBI_OFFICES.find((o) => o.provinceId === provinceId) || KPWBI_OFFICES[0];
 
         const levels: Array<{ text: string; severity: AlertSeverity; label: string }> = [
-          { text: cells[2], severity: 'watch', label: 'Waspada' },
-          { text: cells[3], severity: 'warning', label: 'Siaga' },
-          { text: cells[4], severity: 'critical', label: 'Awas' },
+          { text: cells[2], severity: 1, label: 'Waspada' },
+          { text: cells[3], severity: 2, label: 'Siaga' },
+          { text: cells[4], severity: 3, label: 'Awas' },
         ];
 
         levels.forEach(({ text, severity, label }) => {

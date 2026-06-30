@@ -20,7 +20,7 @@ function getOfficeEmail(officeId: string): string {
 function buildMailtoUrl(office: KpwbiOffice, alerts: DisasterAlert[]): string {
   const to = [getOfficeEmail(office.id), DMR_EMAIL].join(',');
   const forecastAlerts = alerts.filter((a) => a.isForecast && a.provinceId === office.provinceId);
-  const criticalAlerts = forecastAlerts.filter((a) => a.severity === 'critical');
+  const criticalAlerts = forecastAlerts.filter((a) => a.severity === 3);
 
   const subject = encodeURIComponent(
     `[EWS ALERT] Peringatan Kesiapsiagaan — ${office.name} — ${new Date().toLocaleDateString('id-ID')}`

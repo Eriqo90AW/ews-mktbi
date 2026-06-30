@@ -15,7 +15,7 @@
     "@microsoft/power-apps": "^1.0.3",
     "@mui/icons-material": "^9.1.1",
     "@mui/material": "^9.1.2",
-    "html2canvas": "^1.4.1",
+    "dom-to-image-more": "^3.10.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.22.0",
     "react": "^19.2.0",

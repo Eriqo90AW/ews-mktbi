@@ -218,11 +218,11 @@ export function rowToAlert(row: BnpbKarhutlaRow, todayStr: string): DisasterAler
   // - critical: if meninggal > 0 or rumahRusak > 5
   // - warning: if terluka > 0 or rumahRusak > 0 or date is today
   // - watch: else
-  let severity: AlertSeverity = 'watch';
+  let severity: AlertSeverity = 1;
   if (row.meninggal > 0 || row.rumahRusak > 5) {
-    severity = 'critical';
+    severity = 3;
   } else if (row.terluka > 0 || row.rumahRusak > 0 || row.date === todayStr) {
-    severity = 'warning';
+    severity = 2;
   }
 
   // Format description

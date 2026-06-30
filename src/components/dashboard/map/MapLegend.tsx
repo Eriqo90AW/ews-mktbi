@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { DisasterAlert } from '../../../types';
+import type { DisasterAlert, AlertSeverity } from '../../../types';
 
 interface MapLegendProps {
   isInariskFilter: boolean;
@@ -12,6 +12,12 @@ interface MapLegendProps {
   selectedAlert?: DisasterAlert | null;
 }
 
+const SEV_CONFIG: Array<{ key: 'critical' | 'warning' | 'watch'; num: AlertSeverity; label: string; color: string }> = [
+  { key: 'critical', num: 3, label: 'Keparahan Tinggi', color: 'var(--alert-critical)' },
+  { key: 'warning',  num: 2, label: 'Keparahan Sedang', color: 'var(--alert-warning)' },
+  { key: 'watch',    num: 1, label: 'Keparahan Rendah', color: 'var(--alert-watch)' },
+];
+
 const MapLegend: React.FC<MapLegendProps> = ({
   isInariskFilter,
   mapLayers,
@@ -20,13 +26,7 @@ const MapLegend: React.FC<MapLegendProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
-  // Use the raw BMKG/magma severity from the alert to determine which
-  // severity indicator rows are visible in the legend.
-  const selectedAlertSeverity = selectedAlert?.severity ?? null;
-
-  const showCritical = !selectedAlert || selectedAlertSeverity === 'critical';
-  const showWarning  = !selectedAlert || selectedAlertSeverity === 'warning';
-  const showWatch    = !selectedAlert || selectedAlertSeverity === 'watch';
+  const selectedSeverity = selectedAlert?.severity ?? null;
 
   return (
     <div className={`map-legend ${isExpanded ? 'expanded' : 'collapsed'}`}>
@@ -56,63 +56,38 @@ const MapLegend: React.FC<MapLegendProps> = ({
 
       {isExpanded && (
         <div className="legend-content">
-          {/* ── Alert severity rows (toggleable) ─────────────────────────── */}
-          {showCritical && (
-            <div
-              className={`legend-item ${(!mapLayers.critical && !isInariskFilter) ? 'disabled' : ''}`}
-              onClick={() => { if (!isInariskFilter) onToggleLayer('critical'); }}
-              title={isInariskFilter ? 'Kerentanan Tinggi' : 'Toggle Risiko Tinggi'}
-              style={{ cursor: isInariskFilter ? 'default' : 'pointer' }}
-            >
-              <span className="legend-shape-icon">
-                <div className="legend-color critical"></div>
-              </span>
-              <span>{isInariskFilter ? 'Kerentanan Tinggi (>0.6)' : 'Risiko Tinggi'}</span>
-              {!isInariskFilter && (
-                <span className={`legend-ios-toggle ${mapLayers.critical ? 'on' : 'off'}`}>
-                  <span className="legend-ios-thumb" />
+          {SEV_CONFIG.map(({ key, num, label, color }) => {
+            const show = !selectedAlert || selectedSeverity === num;
+            if (!show) return null;
+            return (
+              <div
+                key={key}
+                className={`legend-item ${(!mapLayers[key] && !isInariskFilter) ? 'disabled' : ''}`}
+                onClick={() => { if (!isInariskFilter) onToggleLayer(key); }}
+                title={isInariskFilter ? label : `Toggle ${label}`}
+                style={{ cursor: isInariskFilter ? 'default' : 'pointer' }}
+              >
+                <span className="legend-shape-icon" style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
+                  {[1, 2, 3].map((i) => (
+                    <span key={i} style={{
+                      width: '12px', height: '4px', borderRadius: '1px',
+                      backgroundColor: i <= num ? color : 'var(--border-default)',
+                      display: 'inline-block',
+                    }} />
+                  ))}
                 </span>
-              )}
-            </div>
-          )}
-
-          {showWarning && (
-            <div
-              className={`legend-item ${(!mapLayers.warning && !isInariskFilter) ? 'disabled' : ''}`}
-              onClick={() => { if (!isInariskFilter) onToggleLayer('warning'); }}
-              title={isInariskFilter ? 'Kerentanan Sedang' : 'Toggle Risiko Sedang'}
-              style={{ cursor: isInariskFilter ? 'default' : 'pointer' }}
-            >
-              <span className="legend-shape-icon">
-                <div className="legend-color warning"></div>
-              </span>
-              <span>{isInariskFilter ? 'Kerentanan Sedang (0.3-0.6)' : 'Risiko Sedang'}</span>
-              {!isInariskFilter && (
-                <span className={`legend-ios-toggle ${mapLayers.warning ? 'on' : 'off'}`}>
-                  <span className="legend-ios-thumb" />
-                </span>
-              )}
-            </div>
-          )}
-
-          {showWatch && (
-            <div
-              className={`legend-item ${(!mapLayers.watch && !isInariskFilter) ? 'disabled' : ''}`}
-              onClick={() => { if (!isInariskFilter) onToggleLayer('watch'); }}
-              title={isInariskFilter ? 'Kerentanan Rendah' : 'Toggle Risiko Rendah'}
-              style={{ cursor: isInariskFilter ? 'default' : 'pointer' }}
-            >
-              <span className="legend-shape-icon">
-                <div className="legend-color watch"></div>
-              </span>
-              <span>{isInariskFilter ? 'Kerentanan Rendah (>0-0.3)' : 'Risiko Rendah'}</span>
-              {!isInariskFilter && (
-                <span className={`legend-ios-toggle ${mapLayers.watch ? 'on' : 'off'}`}>
-                  <span className="legend-ios-thumb" />
-                </span>
-              )}
-            </div>
-          )}
+                <span>{isInariskFilter ? (() => {
+                  const inariskLabels: Record<number, string> = { 3: 'Kerentanan Tinggi (>0.6)', 2: 'Kerentanan Sedang (0.3-0.6)', 1: 'Kerentanan Rendah (>0-0.3)' };
+                  return inariskLabels[num];
+                })() : label}</span>
+                {!isInariskFilter && (
+                  <span className={`legend-ios-toggle ${mapLayers[key] ? 'on' : 'off'}`}>
+                    <span className="legend-ios-thumb" />
+                  </span>
+                )}
+              </div>
+            );
+          })}
           {!isInariskFilter && (
             <>
               <div className="legend-item legend-item--shape">

@@ -42,9 +42,9 @@ export class BnpbInariskService {
             if (isNaN(val) || val <= 0 || val < -999) return;
 
             let severity: AlertSeverity | null = null;
-            if (val > 0.6 || val === 3) severity = 'critical';
-            else if (val > 0.3 || val === 2) severity = 'warning';
-            else if (val > 0 || val === 1) severity = 'watch';
+            if (val > 0.6 || val === 3) severity = 3;
+            else if (val > 0.3 || val === 2) severity = 2;
+            else if (val > 0 || val === 1) severity = 1;
 
             if (severity) {
               const hazardTitle = BnpbInariskService.getHazardTitle(hazard);
@@ -54,7 +54,7 @@ export class BnpbInariskService {
                 severity,
                 provinceId: office.provinceId,
                 title: `Indeks Bahaya ${hazardTitle} (InaRisk) - ${office.city}`,
-                description: `Berdasarkan data InaRisk BNPB, lokasi sekitar ${office.name} memiliki tingkat bahaya ${hazardTitle} dengan indeks ${val.toFixed(2)} (${severity.toUpperCase()}).`,
+                description: `Berdasarkan data InaRisk BNPB, lokasi sekitar ${office.name} memiliki tingkat bahaya ${hazardTitle} dengan indeks ${val.toFixed(2)} (Level ${severity}).`,
                 timestamp: new Date().toISOString(),
                 latitude: office.latitude,
                 longitude: office.longitude,

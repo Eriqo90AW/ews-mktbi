@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import type { DisasterAlert, DisasterType, RiskCalcResult } from '../../types';
+import { severityToCssClass } from '../../types';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { renderDisasterIcon } from '../../utils/alertUtils';
 import { Public as PublicIcon } from '@mui/icons-material';
 import { useAlerts } from '../../hooks/useAlerts';
+import ScreenshotPreviewModal from '../ui/ScreenshotPreviewModal';
 import './TopBar.css';
 
 interface TopBarProps {
@@ -61,7 +63,7 @@ function buildRiskMailtoUrl(
   );
 
   const alertDetails = alerts
-    .map((a) => `  • [${a.severity.toUpperCase()}] ${a.title}: ${a.description}`)
+    .map((a) => `  • [Level ${a.severity}] ${a.title}: ${a.description}`)
     .join('\n');
 
   const body = encodeURIComponent(
@@ -104,12 +106,12 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
   const [notiOpen, setNotiOpen] = useState(false);
   const notiRef = useRef<HTMLDivElement>(null);
   const [showToast, setShowToast] = useState(false);
+  const [screenshotUrl, setScreenshotUrl] = useState<string | null>(null);
 
   const latestAlert = useMemo(() => {
     if (!allAlerts || allAlerts.length === 0) return null;
     return [...allAlerts].sort((a, b) => {
-      const sevOrder = { critical: 3, warning: 2, watch: 1 };
-      const sevDiff = sevOrder[b.severity] - sevOrder[a.severity];
+      const sevDiff = (b.severity || 0) - (a.severity || 0);
       if (sevDiff !== 0) return sevDiff;
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
     })[0];
@@ -195,27 +197,27 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
 
   // Counts of offices per risk level
   const riskStats = useMemo(() => {
-    const counts = { critical: 0, warning: 0, watch: 0 };
+    const counts: Record<number, number> = { 3: 0, 2: 0, 1: 0 };
     officeRiskLevels.forEach(({ riskLevel }) => {
-      if (riskLevel === 'Tinggi') counts.critical++;
-      else if (riskLevel === 'Sedang') counts.warning++;
-      else counts.watch++;
+      if (riskLevel === 'Tinggi') counts[3]++;
+      else if (riskLevel === 'Sedang') counts[2]++;
+      else counts[1]++;
     });
     return counts;
   }, [officeRiskLevels]);
 
   const totalAffectedOffices = officeRiskLevels.size;
 
-  const statusClass = riskStats.critical > 0
+  const statusClass = riskStats[3] > 0
     ? 'critical'
-    : riskStats.warning > 0
+    : riskStats[2] > 0
     ? 'warning'
     : totalAffectedOffices > 0
     ? 'monitoring'
     : 'clear';
 
-  const statusText = riskStats.critical > 0
-    ? `${riskStats.critical} KPwBI Bahaya`
+  const statusText = riskStats[3] > 0
+    ? `${riskStats[3]} KPwBI Bahaya`
     : totalAffectedOffices > 0
     ? `${totalAffectedOffices} KPwBI Dipantau`
     : 'Sistem Normal';
@@ -288,12 +290,9 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
           try {
             const mapElement = document.querySelector('.map-wrapper');
             if (!mapElement) return;
-            const html2canvas = (await import('html2canvas')).default;
-            const canvas = await html2canvas(mapElement as HTMLElement, { useCORS: true });
-            const link = document.createElement('a');
-            link.download = `Peta_EWS_${new Date().toISOString().slice(0,10)}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+            const domtoimage = (await import('dom-to-image-more')).default;
+            const dataUrl = await domtoimage.toPng(mapElement as HTMLElement);
+            setScreenshotUrl(dataUrl);
           } catch (error) {
             console.error('Gagal mengambil screenshot', error);
           }
@@ -490,13 +489,12 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
                 ) : (
                   [...allAlerts]
                     .sort((a, b) => {
-                      const sevOrder = { critical: 3, warning: 2, watch: 1 };
-                      const sevDiff = sevOrder[b.severity] - sevOrder[a.severity];
+                      const sevDiff = (b.severity || 0) - (a.severity || 0);
                       if (sevDiff !== 0) return sevDiff;
                       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
                     })
                     .map((alert) => {
-                      const levelClass = alert.severity; // 'critical' | 'warning' | 'watch'
+                      const levelClass = severityToCssClass(alert.severity);
                       const sourceName = alert.type === 'volcanic' ? 'MAGMA' : 'BMKG';
                       
                       return (
@@ -523,13 +521,10 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
                               <span>—</span>
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                                 Tingkat:
-                                <span className={`alertcard-sev-badge sev-${alert.severity}`}>
-                                  {[1, 2, 3].map((i) => {
-                                    const sevBoxCount = { critical: 3, warning: 2, watch: 1 }[alert.severity];
-                                    return (
-                                      <span key={i} className={`sev-box${i <= sevBoxCount ? ' filled' : ''}`} />
-                                    );
-                                  })}
+                                <span className={`alertcard-sev-badge sev-${levelClass}`}>
+                                  {[1, 2, 3].map((i) => (
+                                    <span key={i} className={`sev-box${i <= alert.severity ? ' filled' : ''}`} />
+                                  ))}
                                 </span>
                               </span>
                             </span>
@@ -546,7 +541,7 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
 
       {/* Toast Notification */}
       {showToast && latestAlert && (
-        <div className={`bima-toast bima-toast--${latestAlert.severity}`}>
+        <div className={`bima-toast bima-toast--${severityToCssClass(latestAlert.severity)}`}>
           <div className="bima-toast-header">
             <div className="bima-toast-title" style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '8px' }}>
               {renderDisasterIcon(latestAlert.type, undefined, { width: '15px', height: '15px' })}
@@ -574,6 +569,12 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
           </div>
         </div>
       )}
+
+      <ScreenshotPreviewModal
+        isOpen={!!screenshotUrl}
+        imageDataUrl={screenshotUrl}
+        onClose={() => setScreenshotUrl(null)}
+      />
     </header>
   );
 };
