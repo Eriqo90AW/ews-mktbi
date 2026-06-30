@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import type { DisasterAlert, AlertSeverity, DisasterType, RiskCalcResult } from '../../types';
 import { PROVINCES } from '../../constants/provinces';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
-import { getDisasterEmoji } from '../../utils/alertUtils';
+import { renderDisasterIcon } from '../../utils/alertUtils';
 import AlertCard from './AlertCard';
 import './Sidebar.css';
 
@@ -110,7 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   // Group offices per risk level for panel display
   const officesByBand = useMemo(() => {
-    const result = new Map<AlertSeverity, Array<{ office: typeof KPWBI_OFFICES[0]; topHazards: string }>>([
+    const result = new Map<AlertSeverity, Array<{ office: typeof KPWBI_OFFICES[0]; topHazards: string[] }>>([
       ['critical', []],
       ['warning', []],
       ['watch', []],
@@ -120,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       const office = KPWBI_OFFICES.find((o) => o.id === officeId);
       if (!office) return;
       const band: AlertSeverity = data.riskLevel === 'Tinggi' ? 'critical' : data.riskLevel === 'Sedang' ? 'warning' : 'watch';
-      const topHazards = data.alerts.map((a) => getDisasterEmoji(a.type)).join(' ');
+      const topHazards = Array.from(new Set(data.alerts.map((a) => a.type)));
       result.get(band)?.push({ office, topHazards });
     });
     
@@ -291,8 +291,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           <span className="stat-panel-item-name">{office.name}</span>
                           <span className="stat-panel-item-city">{office.city}</span>
                         </div>
-                        {topHazards && (
-                          <span className="stat-panel-item-types">{topHazards}</span>
+                        {topHazards && topHazards.length > 0 && (
+                          <span className="stat-panel-item-types" style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
+                            {topHazards.map((hz) => (
+                              <React.Fragment key={hz}>
+                                {renderDisasterIcon(hz, undefined, { width: '14px', height: '14px' })}
+                              </React.Fragment>
+                            ))}
+                          </span>
                         )}
                       </button>
                     ))

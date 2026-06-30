@@ -3,6 +3,7 @@ import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { PROVINCES } from '../../constants/provinces';
 import { BnpbInariskService } from '../../services/bnpbInariskService';
 import EwsMap from '../dashboard/EwsMap';
+import { renderDisasterIcon } from '../../utils/alertUtils';
 import '../dashboard/TopBar.css';
 import './PotensiScreen.css';
 
@@ -75,7 +76,7 @@ const PotensiScreen: React.FC<PotensiScreenProps> = ({ onBack }) => {
                 className={`topbar-filter-pill${selectedHazard === tab.key ? ' active' : ''}`}
                 onClick={() => setSelectedHazard(tab.key)}
               >
-                <span>{tab.emoji}</span>
+                <span>{renderDisasterIcon(tab.key)}</span>
                 <span>{tab.label}</span>
               </button>
             ))}
@@ -86,7 +87,10 @@ const PotensiScreen: React.FC<PotensiScreenProps> = ({ onBack }) => {
         <div className="topbar-right">
           <div className="topbar-status potensi">
             <span className="topbar-status-dot" />
-            <span>{currentHazard.emoji} {rankedOffices.length} Wilayah — {currentHazard.label}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              {renderDisasterIcon(selectedHazard, undefined, { width: '14px', height: '14px' })}
+              <span>{rankedOffices.length} Wilayah — {currentHazard.label}</span>
+            </span>
           </div>
         </div>
       </header>

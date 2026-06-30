@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import type { DisasterAlert, DisasterType, RiskCalcResult } from '../../types';
-import { PROVINCES } from '../../constants/provinces';
-import { getDisasterEmoji } from '../../utils/alertUtils';
+import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
+import { renderDisasterIcon } from '../../utils/alertUtils';
 import './TopBar.css';
 
 interface TopBarProps {
@@ -26,32 +26,16 @@ const FILTER_OPTIONS: Array<{ value: DisasterType | 'all'; emoji: string; label:
   { value: 'volcanic', emoji: '🌋', label: 'Gunung Api' },
 ];
 
-const TYPE_LABEL: Record<string, string> = {
-  earthquake: 'Gempa Bumi', extreme_weather: 'Cuaca Ekstrem',
-  karhutla: 'Karhutla', flood: 'Banjir', tsunami: 'Tsunami',
-  volcanic: 'Gunung Api', kekeringan: 'Kekeringan', landslide: 'Longsor',
-};
-
-function timeAgo(iso: string): string {
-  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-  if (mins < 1) return 'baru saja';
-  if (mins < 60) return `${mins} mnt lalu`;
-  const hrs = Math.floor(mins / 60);
-  return hrs < 24 ? `${hrs} jam lalu` : `${Math.floor(hrs / 24)} hari lalu`;
-}
-
-export const TopBar: React.FC<TopBarProps> = ({
-  criticalCount,
-  totalAlerts,
-  allAlerts,
-  riskResults,
-  onAlertSelect,
-  onGenerateReport,
-  selectedType,
-  onTypeChange,
-  onSwitchToKerentanan,
-  onSwitchToPotensi,
-}) => {
+export const TopBar: React.FC<TopBarProps> = (props) => {
+  const {
+    allAlerts,
+    riskResults,
+    onGenerateReport,
+    selectedType,
+    onTypeChange,
+    onSwitchToKerentanan,
+    onSwitchToPotensi,
+  } = props;
   const [timeStr, setTimeStr] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -59,9 +43,9 @@ export const TopBar: React.FC<TopBarProps> = ({
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      const time = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now);
-      const date = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).format(now);
-      setTimeStr(`${date} — ${time} WIB`);
+      const time = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now).replace(/\./g, ':');
+      const date = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).format(now).replace(/\./g, ':');;
+      setTimeStr(`${date} - ${time} WIB`);
     };
     updateTime();
     const id = setInterval(updateTime, 1000);
@@ -80,29 +64,59 @@ export const TopBar: React.FC<TopBarProps> = ({
     return () => document.removeEventListener('mousedown', handler);
   }, [dropdownOpen]);
 
-  const provincesMap = useMemo(() => new Map(PROVINCES.map((p) => [p.id, p])), []);
-
-  // Group all monitored (non-forecast) alerts by computed risk level
-  const alertsByRisk = useMemo(() => {
-    const groups: Record<'Tinggi' | 'Sedang' | 'Rendah', DisasterAlert[]> = {
-      Tinggi: [], Sedang: [], Rendah: [],
-    };
-    allAlerts.forEach((alert) => {
-      if (alert.isForecast) return;
-      const res = riskResults.find((r) => r.event.id === alert.id);
-      const level = (res?.riskLevel ?? 'Rendah') as 'Tinggi' | 'Sedang' | 'Rendah';
-      groups[level].push(alert);
+  // Build a map: officeId -> highest riskLevel from riskResults
+  const officeRiskLevels = useMemo(() => {
+    const map = new Map<string, { riskLevel: string; riskScore: number; alerts: DisasterAlert[] }>();
+    
+    riskResults.forEach((res) => {
+      res.affectedLocations.forEach((loc) => {
+        const office = KPWBI_OFFICES.find((o) => o.id === loc.id);
+        if (!office) return;
+        
+        const matchedAlert = allAlerts.find((a) => a.id === res.event.id);
+        const existing = map.get(office.id);
+        if (!existing || res.riskScore > existing.riskScore) {
+          map.set(office.id, {
+            riskLevel: res.riskLevel,
+            riskScore: res.riskScore,
+            alerts: existing ? [...existing.alerts, matchedAlert].filter(Boolean) as DisasterAlert[] : ([matchedAlert].filter(Boolean) as DisasterAlert[]),
+          });
+        } else if (existing && matchedAlert) {
+          if (!existing.alerts.some(a => a.id === matchedAlert.id)) {
+            existing.alerts.push(matchedAlert);
+          }
+        }
+      });
     });
-    return groups;
-  }, [allAlerts, riskResults]);
+    
+    return map;
+  }, [riskResults, allAlerts]);
 
-  const monitoredCount = allAlerts.filter((a) => !a.isForecast).length;
+  // Counts of offices per risk level
+  const riskStats = useMemo(() => {
+    const counts = { critical: 0, warning: 0, watch: 0 };
+    officeRiskLevels.forEach(({ riskLevel }) => {
+      if (riskLevel === 'Tinggi') counts.critical++;
+      else if (riskLevel === 'Sedang') counts.warning++;
+      else counts.watch++;
+    });
+    return counts;
+  }, [officeRiskLevels]);
 
-  const statusClass = criticalCount > 0 ? 'critical' : totalAlerts > 0 ? 'monitoring' : 'clear';
-  const statusText = criticalCount > 0
-    ? `${criticalCount} Tinggi Aktif`
-    : totalAlerts > 0
-    ? `${totalAlerts} Dipantau`
+  const totalAffectedOffices = officeRiskLevels.size;
+
+  const statusClass = riskStats.critical > 0
+    ? 'critical'
+    : riskStats.warning > 0
+    ? 'warning'
+    : totalAffectedOffices > 0
+    ? 'monitoring'
+    : 'clear';
+
+  const statusText = riskStats.critical > 0
+    ? `${riskStats.critical} KPwBI Bahaya`
+    : totalAffectedOffices > 0
+    ? `${totalAffectedOffices} KPwBI Dipantau`
     : 'Sistem Normal';
 
   return (
@@ -129,7 +143,7 @@ export const TopBar: React.FC<TopBarProps> = ({
               className={`topbar-filter-pill${selectedType === opt.value ? ' active' : ''}`}
               onClick={() => onTypeChange(opt.value)}
             >
-              <span>{opt.emoji}</span>
+              <span>{opt.value === 'all' ? opt.emoji : renderDisasterIcon(opt.value)}</span>
               <span>{opt.label}</span>
             </button>
           ))}
@@ -166,7 +180,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 
         {/* Status chip — always a dropdown trigger when there are monitored alerts */}
         <div className="topbar-status-wrapper" ref={dropdownRef}>
-          {monitoredCount > 0 ? (
+          {totalAffectedOffices > 0 ? (
             <button
               className={`topbar-status ${statusClass} topbar-status-btn${dropdownOpen ? ' open' : ''}`}
               onClick={() => setDropdownOpen((o) => !o)}
@@ -194,8 +208,8 @@ export const TopBar: React.FC<TopBarProps> = ({
             <div className={`topbar-dropdown topbar-dropdown--${statusClass}`} role="listbox">
               <div className="topbar-dropdown-header">
                 <span className="topbar-dropdown-title">
-                  Monitoring Aktif
-                  <span className="topbar-dropdown-count">{monitoredCount}</span>
+                  Kantor BI Dipantau
+                  <span className="topbar-dropdown-count">{totalAffectedOffices}</span>
                 </span>
                 <button
                   className="topbar-dropdown-close"
@@ -210,37 +224,50 @@ export const TopBar: React.FC<TopBarProps> = ({
 
               <div className="topbar-dropdown-list">
                 {(['Tinggi', 'Sedang', 'Rendah'] as const).map((level) => {
-                  const items = alertsByRisk[level];
-                  if (items.length === 0) return null;
+                  const levelOffices: Array<{ office: typeof KPWBI_OFFICES[0]; detail: { riskLevel: string; riskScore: number; alerts: DisasterAlert[] } }> = [];
+                  officeRiskLevels.forEach((detail, officeId) => {
+                    if (detail.riskLevel === level) {
+                      const office = KPWBI_OFFICES.find((o) => o.id === officeId);
+                      if (office) {
+                        levelOffices.push({ office, detail });
+                      }
+                    }
+                  });
+
+                  if (levelOffices.length === 0) return null;
                   const levelClass = { Tinggi: 'critical', Sedang: 'warning', Rendah: 'watch' }[level];
                   return (
                     <div key={level}>
                       <div className={`dropdown-risk-group-header dropdown-risk-group-header--${levelClass}`}>
                         <span className="dropdown-risk-group-dot" />
                         {level}
-                        <span className="dropdown-risk-group-count">{items.length}</span>
+                        <span className="dropdown-risk-group-count">{levelOffices.length}</span>
                       </div>
-                      {items.map((alert) => {
-                        const province = provincesMap.get(alert.provinceId);
-                        const sub = [
-                          province?.name,
-                          alert.magnitude ? `M${alert.magnitude}` : null,
-                          alert.depth ? `${alert.depth} km` : null,
-                        ].filter(Boolean).join(' • ');
+                      {levelOffices.map(({ office, detail }) => {
+                        const alertIcons = Array.from(new Set(detail.alerts.map((a) => a.type)));
+                        const sub = detail.alerts.map((a) => a.title).join(', ');
                         return (
-                          <button
-                            key={alert.id}
+                          <div
+                            key={office.id}
                             className="topbar-dropdown-item"
-                            onClick={() => { onAlertSelect(alert.id); setDropdownOpen(false); }}
+                            style={{ cursor: 'default' }}
                           >
-                            <span className="dropdown-item-emoji">{getDisasterEmoji(alert.type)}</span>
+                            <div className="dropdown-item-emoji" style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
+                              {alertIcons.map((type) => (
+                                <React.Fragment key={type}>
+                                  {renderDisasterIcon(type, undefined, { width: '16px', height: '16px' })}
+                                </React.Fragment>
+                              ))}
+                            </div>
                             <div className="dropdown-item-info">
-                              <span className="dropdown-item-type">{TYPE_LABEL[alert.type] ?? alert.type}</span>
-                              <span className="dropdown-item-title">{alert.title}</span>
+                              <span className="dropdown-item-type">{office.name}</span>
+                              <span className="dropdown-item-title">{office.city}</span>
                               {sub && <span className="dropdown-item-sub">{sub}</span>}
                             </div>
-                            <span className="dropdown-item-time">{timeAgo(alert.timestamp)}</span>
-                          </button>
+                            <span className="dropdown-item-time" style={{ fontWeight: 'bold', color: `var(--alert-${levelClass})` }}>
+                              Skor: {detail.riskScore}
+                            </span>
+                          </div>
                         );
                       })}
                     </div>

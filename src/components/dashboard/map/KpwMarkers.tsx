@@ -6,7 +6,7 @@ import { KPWBI_OFFICES } from '../../../constants/kpwbiOffices';
 import { PROVINCES } from '../../../constants/provinces';
 import { isOfficeAffectedByAlert } from '../../../utils/disasterImpact';
 import { BnpbInariskService } from '../../../services/bnpbInariskService';
-import { getDisasterEmoji } from '../../../utils/alertUtils';
+import { renderDisasterIcon } from '../../../utils/alertUtils';
 import type { NearestKpwResult } from '../../../utils/geo';
 
 interface KpwMarkersProps {
@@ -189,7 +189,7 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                   return (
                     <div className="ews-popup-content">
                       <div className={`ews-popup-header ${severity}`}>
-                        <span>{getDisasterEmoji(hazard)}</span>
+                        <span>{renderDisasterIcon(hazard)}</span>
                         <span>Indeks Bahaya {hazardTitle} (InaRisk)</span>
                       </div>
                       <div className="ews-popup-title" style={{ marginTop: 0 }}>{office.name} ({office.city})</div>

@@ -4,7 +4,7 @@ import L from 'leaflet';
 import type { DisasterAlert, AlertSeverity } from '../../../types';
 import { KPWBI_OFFICES } from '../../../constants/kpwbiOffices';
 import { isValidCoord } from '../../../utils/geo';
-import { getDisasterEmoji } from '../../../utils/alertUtils';
+import { getDisasterIconHtml } from '../../../utils/alertUtils';
 
 interface AlertCirclesProps {
   alerts: DisasterAlert[];
@@ -113,7 +113,7 @@ const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts }) => {
 
         const { radius, pathOptions } = getCircleConfig(alert);
         const iconCoords = getBottomRightCoords(center[0], center[1], radius);
-        const emoji = getDisasterEmoji(alert.type);
+        const iconHtml = getDisasterIconHtml(alert.type);
 
         // Custom DivIcon for the disaster emoji, fully transparent container
         const customIcon = L.divIcon({
@@ -129,7 +129,7 @@ const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts }) => {
             font-size: 18px;
             cursor: pointer;
             pointer-events: auto;
-          ">${emoji}</div>`,
+          ">${iconHtml}</div>`,
           iconSize: [24, 24],
           iconAnchor: [12, 12],
         });

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { RiskCalcResult } from '../../types';
-import { getDisasterEmoji } from '../../utils/alertUtils';
+import { renderDisasterIcon } from '../../utils/alertUtils';
 import { haversineDistance } from '../../utils/geo';
 import './DisasterAlertBanner.css';
 
@@ -50,7 +50,7 @@ export const DisasterAlertBanner: React.FC<DisasterAlertBannerProps> = ({ active
             <div className="banner-main">
               <div className="banner-left">
                 <span className="banner-emoji-wrapper">
-                  <span className="banner-emoji">{getDisasterEmoji(alert.event.type)}</span>
+                  <span className="banner-emoji">{renderDisasterIcon(alert.event.type)}</span>
                   <span className="banner-pulse-ring" />
                 </span>
                 <div className="banner-info">

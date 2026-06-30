@@ -1,6 +1,6 @@
 import React from 'react';
 import type { DisasterAlert, Province } from '../../types';
-import { getDisasterEmoji } from '../../utils/alertUtils';
+import { renderDisasterIcon } from '../../utils/alertUtils';
 import './AlertCard.css';
 
 interface AlertCardProps {
@@ -117,7 +117,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, province, isSelecte
 
       <div className="alertcard-header">
         <div className="alertcard-type-row">
-          <span className="alertcard-icon">{getDisasterEmoji(alert.type)}</span>
+          <span className="alertcard-icon">{renderDisasterIcon(alert.type)}</span>
           <span className="alertcard-type-label">{TYPE_LABELS[alert.type] ?? alert.type}</span>
         </div>
         <div className={`alertcard-sev-badge sev-${alert.severity}`}>

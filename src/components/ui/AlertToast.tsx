@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { DisasterAlert } from '../../types';
 import { PROVINCES } from '../../constants/provinces';
-import { getDisasterEmoji } from '../../utils/alertUtils';
+import { renderDisasterIcon } from '../../utils/alertUtils';
 import './AlertToast.css';
 
 export interface ToastItem {
@@ -69,7 +69,7 @@ function SingleToast({ item, onDismiss }: { item: ToastItem; onDismiss: () => vo
       </div>
 
       <div className="toast-body">
-        <span className="toast-emoji">{getDisasterEmoji(alert.type)}</span>
+        <span className="toast-emoji">{renderDisasterIcon(alert.type)}</span>
         <div className="toast-info">
           <span className="toast-type">{TYPE_LABEL[alert.type] ?? alert.type}</span>
           <span className="toast-title">{alert.title}</span>

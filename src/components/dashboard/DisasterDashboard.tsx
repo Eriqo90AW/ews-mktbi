@@ -142,7 +142,6 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
         allAlerts={filteredAlerts}
         riskResults={riskResults}
         onAlertSelect={handleAlertSelect}
-        onProvinceSelect={handleProvinceSelect}
         onGenerateReport={() => setIsReportOpen(true)}
         selectedType={typeFilter}
         onTypeChange={setTypeFilter}
