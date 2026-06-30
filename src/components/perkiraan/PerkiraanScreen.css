@@ -543,9 +543,206 @@
   font-weight: 600;
 }
 
-.gempa-at-risk {
-  border-top: 1px solid var(--border-default);
+/* ── Megathrust Zone Cards ── */
+.mt-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
   flex-shrink: 0;
+}
+
+.mt-count-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.mt-zone-card {
+  border-bottom: 1px solid var(--border-default);
+  transition: background 0.12s;
+}
+
+.mt-zone-card.selected {
+  background: var(--bg-hover, rgba(255,255,255,0.03));
+}
+
+.mt-zone-card-btn {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  gap: 0;
+}
+
+.mt-zone-card-btn:hover {
+  background: var(--bg-hover, rgba(255,255,255,0.04));
+}
+
+.mt-zone-accent {
+  width: 4px;
+  min-height: 100%;
+  align-self: stretch;
+  flex-shrink: 0;
+  border-radius: 0;
+}
+
+.mt-zone-body {
+  flex: 1;
+  padding: 10px 10px 10px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.mt-zone-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mt-zone-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+  flex: 1;
+  min-width: 0;
+}
+
+.mt-zone-mw-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 8px;
+  border: 1px solid;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.mt-mw-bar-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bg-tertiary, rgba(255,255,255,0.08));
+  overflow: hidden;
+}
+
+.mt-mw-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.mt-mw-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.mt-mw-bar-label span:first-child {
+  font-weight: 600;
+}
+
+.mt-province-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.mt-province-pill {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: var(--bg-tertiary, rgba(255,255,255,0.06));
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+}
+
+.mt-zone-chevron {
+  flex-shrink: 0;
+  margin: 12px 12px 0 0;
+  color: var(--text-muted, var(--text-secondary));
+  transition: transform 0.2s ease;
+  opacity: 0.5;
+}
+
+/* Expanded KPW panel inside card */
+.mt-kpw-panel {
+  margin: 0 12px 10px 15px;
+  border-left: 2px solid var(--border-default);
+  padding-left: 10px;
+}
+
+.mt-kpw-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.mt-kpw-empty {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin: 0;
+  padding: 2px 0 4px;
+}
+
+.mt-kpw-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mt-kpw-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+}
+
+.mt-kpw-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.mt-kpw-name {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.mt-kpw-province {
+  display: block;
+  font-size: 10px;
+  color: var(--text-secondary);
 }
 
 /* ── Checklist ── */
@@ -782,6 +979,16 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.checklist-gempa-tag {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: rgba(217,119,6,0.1);
+  color: #d97706;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .checklist-flood-tag {

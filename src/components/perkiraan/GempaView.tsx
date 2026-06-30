@@ -6,6 +6,25 @@ import { PROVINCES } from '../../constants/provinces';
 import { distanceToPolyline } from '../../utils/geo';
 import PerkiraanMap from './PerkiraanMap';
 
+function getMwColor(mw: number): string {
+  if (mw >= 9.0) return '#dc2626';
+  if (mw >= 8.7) return '#ea580c';
+  if (mw >= 8.5) return '#d97706';
+  return '#ca8a04';
+}
+
+function getMwLabel(mw: number): string {
+  if (mw >= 9.0) return 'Sangat Besar';
+  if (mw >= 8.7) return 'Besar';
+  if (mw >= 8.5) return 'Signifikan';
+  return 'Menengah';
+}
+
+// normalize mw 7.0–9.5 → 0–100%
+function getMwBarPct(mw: number): number {
+  return Math.min(100, Math.max(0, ((mw - 7.0) / 2.5) * 100));
+}
+
 const GempaView: React.FC = () => {
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [activeLayer, setActiveLayer] = useState<'megathrust' | 'ringoffire'>('megathrust');
@@ -17,15 +36,10 @@ const GempaView: React.FC = () => {
   const officesAtRisk = useMemo(() => {
     if (!selectedZone) return [];
     return KPWBI_OFFICES.filter((office) => {
-      const dist = distanceToPolyline(
-        office.latitude,
-        office.longitude,
-        selectedZone.path
-      );
+      const dist = distanceToPolyline(office.latitude, office.longitude, selectedZone.path);
       return dist <= selectedZone.impactRadiusKm;
     });
   }, [selectedZone]);
-
 
   const handleMegathrustSelect = (id: string) => {
     setSelectedZoneId((prev) => (prev === id ? null : id));
@@ -56,56 +70,100 @@ const GempaView: React.FC = () => {
         </div>
 
         {activeLayer === 'megathrust' ? (
-          <>
-            <div className="perkiraan-section-title">Segmen Megathrust Indonesia</div>
-            <div className="perkiraan-panel-scroll">
-              {MEGATHRUST_ZONES.map((zone) => {
-                const isSelected = selectedZoneId === zone.id;
-                return (
+          <div className="perkiraan-panel-scroll">
+            <div className="mt-section-header">
+              <span>Segmen Megathrust Indonesia</span>
+              <span className="mt-count-badge">{MEGATHRUST_ZONES.length} segmen</span>
+            </div>
+
+            {MEGATHRUST_ZONES.map((zone) => {
+              const isSelected = selectedZoneId === zone.id;
+              const color = getMwColor(zone.maxMagnitude);
+              const barPct = getMwBarPct(zone.maxMagnitude);
+              const mwLabel = getMwLabel(zone.maxMagnitude);
+
+              return (
+                <div key={zone.id} className={`mt-zone-card${isSelected ? ' selected' : ''}`}>
                   <button
-                    key={zone.id}
-                    className={`perkiraan-row${isSelected ? ' selected' : ''}`}
+                    className="mt-zone-card-btn"
                     onClick={() => handleMegathrustSelect(zone.id)}
+                    aria-expanded={isSelected}
                   >
-                    <div className="perkiraan-row-info">
-                      <span className="perkiraan-office-name">{zone.name}</span>
-                      <div className="perkiraan-row-tags">
-                        <span className="perkiraan-badge sev-critical">Mw {zone.maxMagnitude}</span>
-                        <span className="perkiraan-badge flood">⚡ R={zone.impactRadiusKm} km</span>
+                    {/* Left accent */}
+                    <div className="mt-zone-accent" style={{ background: color }} />
+
+                    <div className="mt-zone-body">
+                      {/* Top row: name + Mw badge */}
+                      <div className="mt-zone-top">
+                        <span className="mt-zone-name">{zone.name}</span>
+                        <span className="mt-zone-mw-badge" style={{ color, borderColor: `${color}40`, background: `${color}15` }}>
+                          Mw {zone.maxMagnitude}
+                        </span>
                       </div>
-                      <span className="perkiraan-province-name">
-                        Provinsi: {zone.affectedProvinces.map((id) => provincesMap.get(id)?.name ?? id).join(', ')}
-                      </span>
+
+                      {/* Magnitude bar */}
+                      <div className="mt-mw-bar-track">
+                        <div
+                          className="mt-mw-bar-fill"
+                          style={{ width: `${barPct}%`, background: color }}
+                        />
+                      </div>
+                      <div className="mt-mw-bar-label">
+                        <span style={{ color }}>{mwLabel}</span>
+                        <span>⚡ Radius {zone.impactRadiusKm} km</span>
+                      </div>
+
+                      {/* Province pills */}
+                      <div className="mt-province-pills">
+                        {zone.affectedProvinces.map((id) => (
+                          <span key={id} className="mt-province-pill">
+                            {provincesMap.get(id)?.name ?? id}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ flexShrink: 0, opacity: 0.5 }}>
+
+                    {/* Chevron */}
+                    <svg
+                      className="mt-zone-chevron"
+                      style={{ transform: isSelected ? 'rotate(90deg)' : 'none' }}
+                      viewBox="0 0 24 24" width="13" height="13" fill="none"
+                      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                    >
                       <polyline points="9 18 15 12 9 6" />
                     </svg>
                   </button>
-                );
-              })}
-            </div>
 
-            {/* At-risk KPW for selected zone */}
-            {selectedZone && (
-              <div className="gempa-at-risk">
-                <div className="perkiraan-section-title" style={{ paddingTop: 8 }}>
-                  KPw dalam Radius Dampak — {selectedZone.name}
-                </div>
-                {officesAtRisk.length === 0 ? (
-                  <p className="perkiraan-empty-small">Tidak ada KPw dalam radius {selectedZone.impactRadiusKm} km.</p>
-                ) : (
-                  officesAtRisk.map((o) => (
-                    <div key={o.id} className="perkiraan-row small">
-                      <div className="perkiraan-row-info">
-                        <span className="perkiraan-office-name">{o.name}</span>
-                        <span className="perkiraan-province-name">{provincesMap.get(o.provinceId)?.name}</span>
+                  {/* Expanded: KPW at risk */}
+                  {isSelected && (
+                    <div className="mt-kpw-panel">
+                      <div className="mt-kpw-panel-header">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        KPw dalam radius {zone.impactRadiusKm} km
                       </div>
+                      {officesAtRisk.length === 0 ? (
+                        <p className="mt-kpw-empty">Tidak ada KPw dalam radius dampak ini.</p>
+                      ) : (
+                        <div className="mt-kpw-list">
+                          {officesAtRisk.map((o) => (
+                            <div key={o.id} className="mt-kpw-item">
+                              <span className="mt-kpw-dot" />
+                              <div>
+                                <span className="mt-kpw-name">{o.name}</span>
+                                <span className="mt-kpw-province">{provincesMap.get(o.provinceId)?.name}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  ))
-                )}
-              </div>
-            )}
-          </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         ) : (
           <>
             <div className="perkiraan-section-title">Busur Vulkanik Aktif</div>

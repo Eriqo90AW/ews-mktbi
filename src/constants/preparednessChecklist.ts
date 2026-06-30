@@ -3,7 +3,8 @@ export interface ChecklistItemDef {
   label: string;
   description: string;
   category: 'umum' | 'gempa' | 'banjir';
-  floodOnly?: boolean; // show emphasis only for high flood-risk offices
+  floodOnly?: boolean;
+  gempaOnly?: boolean;
 }
 
 export const CHECKLIST_ITEMS: ChecklistItemDef[] = [
@@ -20,6 +21,7 @@ export const CHECKLIST_ITEMS: ChecklistItemDef[] = [
     description:
       'Gedung KPw telah dilakukan asesmen struktural dan keandalan bangunan oleh Satker Departemen Pengembangan dan Pengawasan (Dpan) atau konsultan terakreditasi.',
     category: 'gempa',
+    gempaOnly: true,
   },
   {
     id: 'simulasi-gempa',
@@ -27,6 +29,7 @@ export const CHECKLIST_ITEMS: ChecklistItemDef[] = [
     description:
       'KPw telah melakukan simulasi evakuasi gempa bumi minimal sekali dalam setahun bersama seluruh pegawai.',
     category: 'gempa',
+    gempaOnly: true,
   },
   {
     id: 'jalur-evakuasi',

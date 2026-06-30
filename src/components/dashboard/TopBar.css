@@ -27,12 +27,10 @@
   justify-content: center;
   width: 34px;
   height: 34px;
-  background-color: var(--alert-critical-bg);
-  border: 1.5px solid var(--alert-critical-border);
+  background-color: transparent;
+  border: none;
   border-radius: var(--radius-sm);
-  color: var(--alert-critical);
   flex-shrink: 0;
-  animation: topbar-pulse 2.5s ease-in-out infinite;
 }
 
 @keyframes topbar-pulse {
@@ -48,7 +46,7 @@
 }
 
 .topbar-brand-sub {
-  font-size: 10px;
+  font-size: 8px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.07em;
@@ -719,3 +717,268 @@
     opacity: 0.6;
   }
 }
+
+/* ── Notification Button & Dropdown ───────────────────────── */
+.topbar-noti-wrapper {
+  position: relative;
+}
+
+.topbar-noti-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.topbar-noti-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+}
+
+.topbar-noti-btn.open {
+  background-color: var(--bg-hover);
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-light);
+}
+
+.topbar-noti-btn .noti-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background-color: var(--alert-critical);
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+  min-width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  box-shadow: 0 0 0 2px var(--bg-surface);
+}
+
+/* Noti dropdown custom styling */
+.noti-dropdown {
+  width: 400px;
+  border-color: var(--border-default);
+  border-top-color: var(--accent-primary);
+}
+
+.noti-dropdown .topbar-dropdown-header {
+  background-color: rgba(14, 165, 233, 0.05);
+  border-bottom-color: var(--border-default);
+}
+
+.noti-dropdown .topbar-dropdown-title {
+  color: var(--text-primary);
+}
+
+.noti-dropdown .topbar-dropdown-count {
+  background-color: var(--accent-primary);
+}
+
+.noti-dropdown .topbar-dropdown-close {
+  color: var(--text-muted);
+}
+
+.noti-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.noti-empty span {
+  font-size: 32px;
+  opacity: 0.6;
+}
+
+.noti-empty p {
+  font-size: 13px;
+  margin: 0;
+}
+
+/* Notification Item layout */
+.noti-item {
+  position: relative;
+  padding-left: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-light, #f1f5f9);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.noti-item:hover {
+  background-color: var(--bg-hover);
+}
+
+.noti-severity-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+
+.noti-severity-indicator--critical {
+  background-color: var(--alert-critical);
+}
+
+.noti-severity-indicator--warning {
+  background-color: var(--alert-warning);
+}
+
+.noti-severity-indicator--watch {
+  background-color: var(--alert-watch, #0ea5e9);
+}
+
+/* Source badge (BMKG vs MAGMA) */
+.noti-source-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-left: 6px;
+  text-transform: uppercase;
+}
+
+.noti-source-badge--bmkg {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.noti-source-badge--magma {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.bima-toast {
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  z-index: 9999;
+  background-color: var(--bg-surface);
+  border-left: 4px solid var(--alert-critical);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: toast-slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid var(--border-default);
+  border-left-width: 4px;
+}
+
+.bima-toast--critical {
+  border-left-color: var(--alert-critical);
+}
+
+.bima-toast--warning {
+  border-left-color: var(--alert-warning);
+}
+
+.bima-toast--watch {
+  border-left-color: var(--alert-watch, #0ea5e9);
+}
+
+.bima-toast-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bima-toast-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.bima-toast-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.bima-toast-close:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.bima-toast-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bima-toast-alert-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.bima-toast-alert-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+@keyframes toast-slide-in {
+  from {
+    transform: translateY(-20px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Replicated severity badge for notifications */
+.noti-item .alertcard-sev-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.noti-item .sev-box {
+  width: 10px;
+  height: 4px;
+  border-radius: 1px;
+  background-color: var(--border-default);
+}
+
+.noti-item .alertcard-sev-badge.sev-critical .sev-box.filled { background-color: var(--alert-critical); }
+.noti-item .alertcard-sev-badge.sev-warning  .sev-box.filled { background-color: var(--alert-warning); }
+.noti-item .alertcard-sev-badge.sev-watch    .sev-box.filled { background-color: var(--alert-watch, #0ea5e9); }
+
+

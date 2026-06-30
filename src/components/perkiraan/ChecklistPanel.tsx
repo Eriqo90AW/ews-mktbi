@@ -30,7 +30,7 @@ const ChecklistPanel: React.FC = () => {
   const isHighGempa = gempaScore > 0.4;
 
   const visibleItems = CHECKLIST_ITEMS.filter(
-    (item) => !item.floodOnly || isHighFlood
+    (item) => (!item.floodOnly || isHighFlood) && (!item.gempaOnly || isHighGempa)
   );
 
   const officeId = selectedOffice?.id ?? '';
@@ -133,10 +133,11 @@ const ChecklistPanel: React.FC = () => {
         {visibleItems.map((item) => {
           const checked = !!status[item.id];
           const isFloodItem = item.floodOnly;
+          const isGempaItem = item.gempaOnly;
           return (
             <label
               key={item.id}
-              className={`checklist-item${checked ? ' checked' : ''}${isFloodItem ? ' flood-only' : ''}`}
+              className={`checklist-item${checked ? ' checked' : ''}${isFloodItem ? ' flood-only' : ''}${isGempaItem ? ' gempa-only' : ''}`}
               onClick={() => toggleItem(officeId, item.id)}
             >
               <div className={`checklist-checkbox${checked ? ' checked' : ''}`}>
@@ -153,6 +154,9 @@ const ChecklistPanel: React.FC = () => {
                   {isFloodItem && (
                     <span className="checklist-flood-tag">💧 Khusus Banjir</span>
                   )}
+                  {isGempaItem && (
+                    <span className="checklist-gempa-tag">🫨 Khusus Gempa</span>
+                  )}
                 </div>
                 <p className="checklist-item-desc">{item.description}</p>
               </div>
@@ -161,9 +165,10 @@ const ChecklistPanel: React.FC = () => {
         })}
       </div>
 
-      {!isHighFlood && (
+      {(!isHighFlood || !isHighGempa) && (
         <p className="checklist-flood-note">
-          💡 Item "Ketersediaan Perahu Karet" hanya ditampilkan untuk wilayah dengan risiko banjir tinggi.
+          💡 Beberapa item disembunyikan karena tidak relevan dengan profil risiko wilayah ini
+          {!isHighGempa ? ' (gempa)' : ''}{!isHighFlood ? ' (banjir)' : ''}.
         </p>
       )}
     </div>

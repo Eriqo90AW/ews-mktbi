@@ -15,23 +15,16 @@ export interface EnsoOutlook {
   elevatedHazards: Array<{ hazard: 'banjir' | 'kekeringan'; regions: string }>;
 }
 
-// ONI data Apr 2024 – Jun 2025 (source: NOAA/BMKG, Jan 2025 cutoff then extrapolated)
+// ONI data Nov 2025 – Jun 2026 (8 months ending in Jun 2026)
 export const ENSO_HISTORY: EnsoMonth[] = [
-  { month: '2024-04', label: 'Apr 2024', oni: 0.9, phase: 'el_nino', intensity: 'lemah' },
-  { month: '2024-05', label: 'Mei 2024', oni: 0.6, phase: 'el_nino', intensity: 'lemah' },
-  { month: '2024-06', label: 'Jun 2024', oni: 0.2, phase: 'netral', intensity: 'netral' },
-  { month: '2024-07', label: 'Jul 2024', oni: -0.1, phase: 'netral', intensity: 'netral' },
-  { month: '2024-08', label: 'Agu 2024', oni: -0.4, phase: 'la_nina', intensity: 'lemah' },
-  { month: '2024-09', label: 'Sep 2024', oni: -0.7, phase: 'la_nina', intensity: 'lemah' },
-  { month: '2024-10', label: 'Okt 2024', oni: -0.9, phase: 'la_nina', intensity: 'lemah' },
-  { month: '2024-11', label: 'Nov 2024', oni: -0.8, phase: 'la_nina', intensity: 'lemah' },
-  { month: '2024-12', label: 'Des 2024', oni: -0.7, phase: 'la_nina', intensity: 'lemah' },
-  { month: '2025-01', label: 'Jan 2025', oni: -0.5, phase: 'la_nina', intensity: 'lemah' },
-  { month: '2025-02', label: 'Feb 2025', oni: -0.4, phase: 'la_nina', intensity: 'lemah' },
-  { month: '2025-03', label: 'Mar 2025', oni: -0.2, phase: 'netral', intensity: 'netral' },
-  { month: '2025-04', label: 'Apr 2025', oni: 0.0, phase: 'netral', intensity: 'netral' },
-  { month: '2025-05', label: 'Mei 2025', oni: 0.1, phase: 'netral', intensity: 'netral' },
-  { month: '2025-06', label: 'Jun 2025', oni: 0.3, phase: 'netral', intensity: 'netral' },
+  { month: '2025-11', label: 'Nov 2025', oni: -0.8, phase: 'la_nina', intensity: 'lemah' },
+  { month: '2025-12', label: 'Des 2025', oni: -0.7, phase: 'la_nina', intensity: 'lemah' },
+  { month: '2026-01', label: 'Jan 2026', oni: -0.5, phase: 'la_nina', intensity: 'lemah' },
+  { month: '2026-02', label: 'Feb 2026', oni: -0.3, phase: 'netral', intensity: 'netral' },
+  { month: '2026-03', label: 'Mar 2026', oni: -0.1, phase: 'netral', intensity: 'netral' },
+  { month: '2026-04', label: 'Apr 2026', oni: 0.2, phase: 'netral', intensity: 'netral' },
+  { month: '2026-05', label: 'Mei 2026', oni: 0.6, phase: 'el_nino', intensity: 'lemah' },
+  { month: '2026-06', label: 'Jun 2026', oni: 0.9, phase: 'el_nino', intensity: 'lemah' },
 ];
 
 // Current conditions (latest data point)
@@ -39,20 +32,20 @@ export const ENSO_CURRENT: EnsoMonth = ENSO_HISTORY[ENSO_HISTORY.length - 1];
 
 // Strategic outlook for decision-making
 export const ENSO_OUTLOOK: EnsoOutlook = {
-  phase: 'netral',
-  confidence: 'Sedang',
+  phase: 'el_nino',
+  confidence: 'Tinggi',
   description:
-    'Kondisi ENSO saat ini menunjukkan fase Netral setelah La Niña lemah yang berlangsung Sep 2024 – Feb 2025. ' +
-    'Curah hujan di sebagian besar wilayah Indonesia cenderung normal. ' +
-    'Perlu waspada potensi transisi ke El Niño lemah pada semester kedua 2025.',
+    'Kondisi ENSO saat ini menunjukkan fase El Niño lemah/sedang setelah masa transisi Netral di awal tahun 2026. ' +
+    'Indeks ONI mencapai +0.9 (di atas ambang batas El Niño +0.5). ' +
+    'Diprakirakan El Niño moderat hingga kuat akan terus berkembang dan bertahan hingga akhir tahun 2026 dengan keyakinan tinggi.',
   elevatedHazards: [
     {
-      hazard: 'banjir',
-      regions: 'Sumatera (Aceh, Sumatera Barat), Sulawesi Tengah, Maluku',
+      hazard: 'kekeringan',
+      regions: 'Jawa, Bali, Nusa Tenggara Barat, Nusa Tenggara Timur, Sulawesi bagian selatan, dan Papua',
     },
     {
-      hazard: 'kekeringan',
-      regions: 'Nusa Tenggara Timur, Nusa Tenggara Barat, Jawa Timur bagian timur',
+      hazard: 'banjir',
+      regions: 'Sumatera Utara dan Aceh (potensi anomali hujan lokal/hujan ekstrem pendek)',
     },
   ],
 };

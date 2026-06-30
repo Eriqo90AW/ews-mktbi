@@ -27,6 +27,24 @@ const FILTER_OPTIONS: Array<{ value: DisasterType | 'all'; emoji: string; label:
   { value: 'volcanic', emoji: '🌋', label: 'Gunung Api' },
 ];
 
+function formatRelativeTime(timestamp: string): string {
+  const diffMs = new Date().getTime() - new Date(timestamp).getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHr = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHr / 24);
+
+  if (diffSec < 60) {
+    return 'baru saja';
+  } else if (diffMin < 60) {
+    return `${diffMin} menit yang lalu`;
+  } else if (diffHr < 24) {
+    return `${diffHr} jam yang lalu`;
+  } else {
+    return `${diffDay} hari yang lalu`;
+  }
+}
+
 export const TopBar: React.FC<TopBarProps> = (props) => {
   const {
     allAlerts,
@@ -36,12 +54,53 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
     onTypeChange,
     onSwitchToKerentanan,
     onSwitchToPerkiraan,
+    onAlertSelect,
   } = props;
   
   const { isFetching, lastCheckedTime } = useAlerts();
   const [timeStr, setTimeStr] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [notiOpen, setNotiOpen] = useState(false);
+  const notiRef = useRef<HTMLDivElement>(null);
+  const [showToast, setShowToast] = useState(false);
+
+  const latestAlert = useMemo(() => {
+    if (!allAlerts || allAlerts.length === 0) return null;
+    return [...allAlerts].sort((a, b) => {
+      const sevOrder = { critical: 3, warning: 2, watch: 1 };
+      const sevDiff = sevOrder[b.severity] - sevOrder[a.severity];
+      if (sevDiff !== 0) return sevDiff;
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    })[0];
+  }, [allAlerts]);
+
+  useEffect(() => {
+    const isToastDisabled = localStorage.getItem('bima_toast_disabled') === 'true';
+    if (latestAlert && !isToastDisabled) {
+      setShowToast(true);
+    } else {
+      setShowToast(false);
+    }
+  }, [latestAlert]);
+
+  const handleCloseToast = () => {
+    setShowToast(false);
+    localStorage.setItem('bima_toast_disabled', 'true');
+  };
+
+  // Close notification dropdown on outside click
+  useEffect(() => {
+    if (!notiOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (notiRef.current && !notiRef.current.contains(e.target as Node)) {
+        setNotiOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [notiOpen]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -130,8 +189,11 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
           <img src="/bima-logo.jpg" alt="BIMA Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
         <div className="topbar-brand-text">
-          <span className="topbar-brand-sub">Bank Indonesia Monitoring & Mitigation Alert</span>
           <h1 className="topbar-title">BIMA</h1>
+          <span className="topbar-brand-sub" style={{ lineHeight: '1.3' }}>
+            Bank Indonesia<br />
+            Monitoring & Mitigation Alert
+          </span>
         </div>
       </div>
 
@@ -306,7 +368,134 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
             </div>
           )}
         </div>
+
+        {/* Notification Icon & Dropdown */}
+        <div className="topbar-noti-wrapper" ref={notiRef}>
+          <button
+            className={`topbar-noti-btn${notiOpen ? ' open' : ''}`}
+            onClick={() => setNotiOpen((o) => !o)}
+            title="Notifikasi Kebencanaan"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            {allAlerts.length > 0 && (
+              <span className="noti-badge">{allAlerts.length}</span>
+            )}
+          </button>
+
+          {notiOpen && (
+            <div className="topbar-dropdown noti-dropdown" role="listbox">
+              <div className="topbar-dropdown-header">
+                <span className="topbar-dropdown-title">
+                  Peringatan Bencana (BMKG & MAGMA)
+                  <span className="topbar-dropdown-count">{allAlerts.length}</span>
+                </span>
+                <button
+                  className="topbar-dropdown-close"
+                  onClick={() => setNotiOpen(false)}
+                  aria-label="Tutup"
+                >
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="topbar-dropdown-list">
+                {allAlerts.length === 0 ? (
+                  <div className="noti-empty">
+                    <span>🔔</span>
+                    <p>Tidak ada peringatan bencana aktif saat ini.</p>
+                  </div>
+                ) : (
+                  [...allAlerts]
+                    .sort((a, b) => {
+                      const sevOrder = { critical: 3, warning: 2, watch: 1 };
+                      const sevDiff = sevOrder[b.severity] - sevOrder[a.severity];
+                      if (sevDiff !== 0) return sevDiff;
+                      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+                    })
+                    .map((alert) => {
+                      const levelClass = alert.severity; // 'critical' | 'warning' | 'watch'
+                      const sourceName = alert.type === 'volcanic' ? 'MAGMA' : 'BMKG';
+                      
+                      return (
+                        <div
+                          key={alert.id}
+                          className="topbar-dropdown-item noti-item"
+                          onClick={() => {
+                            onAlertSelect(alert.id);
+                            setNotiOpen(false);
+                          }}
+                        >
+                          <div className={`noti-severity-indicator noti-severity-indicator--${levelClass}`} />
+                          <div className="dropdown-item-emoji">
+                            {renderDisasterIcon(alert.type, undefined, { width: '18px', height: '18px' })}
+                          </div>
+                          <div className="dropdown-item-info">
+                            <span className="dropdown-item-type">
+                              {alert.title}
+                              <span className={`noti-source-badge noti-source-badge--${sourceName.toLowerCase()}`}>{sourceName}</span>
+                            </span>
+                            <span className="dropdown-item-title">{alert.description}</span>
+                            <span className="dropdown-item-sub" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span>{new Date(alert.timestamp).toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</span>
+                              <span>—</span>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                Tingkat:
+                                <span className={`alertcard-sev-badge sev-${alert.severity}`}>
+                                  {[1, 2, 3].map((i) => {
+                                    const sevBoxCount = { critical: 3, warning: 2, watch: 1 }[alert.severity];
+                                    return (
+                                      <span key={i} className={`sev-box${i <= sevBoxCount ? ' filled' : ''}`} />
+                                    );
+                                  })}
+                                </span>
+                              </span>
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Toast Notification */}
+      {showToast && latestAlert && (
+        <div className={`bima-toast bima-toast--${latestAlert.severity}`}>
+          <div className="bima-toast-header">
+            <div className="bima-toast-title" style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '8px' }}>
+              {renderDisasterIcon(latestAlert.type, undefined, { width: '15px', height: '15px' })}
+              <span style={{ fontWeight: 'bold' }}>Peringatan Bencana Baru</span>
+              <span className="bima-toast-time" style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'normal', marginLeft: 'auto' }}>
+                {formatRelativeTime(latestAlert.timestamp)}
+              </span>
+            </div>
+            <button className="bima-toast-close" onClick={handleCloseToast} aria-label="Tutup">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+          <div 
+            className="bima-toast-body" 
+            style={{ cursor: 'pointer' }}
+            onClick={() => {
+              onAlertSelect(latestAlert.id);
+              setShowToast(false);
+            }}
+          >
+            <span className="bima-toast-alert-title">{latestAlert.title}</span>
+            <span className="bima-toast-alert-desc">{latestAlert.description}</span>
+          </div>
+        </div>
+      )}
     </header>
   );
 };
