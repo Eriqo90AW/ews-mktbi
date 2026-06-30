@@ -161,6 +161,35 @@ export class BnpbInariskService {
     return val;
   }
 
+  static getLocalPotensiIndex(officeId: string, hazard: 'gempa' | 'karhutla' | 'cuaca' | 'pasang'): number {
+    let hash = 0;
+    const str = officeId + hazard + "potensi";
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const val = Math.abs(hash % 100) / 100;
+
+    if (hazard === 'gempa') {
+      const activeFaultRegions = ['padang', 'medan', 'bandung', 'palu', 'gorontalo', 'ambon', 'jayapura', 'kupang'];
+      if (activeFaultRegions.some((r) => officeId.toLowerCase().includes(r))) return 0.4 + val * 0.55;
+      return val * 0.4;
+    }
+    if (hazard === 'karhutla') {
+      const peatRegions = ['pekanbaru', 'jambi', 'palembang', 'pontianak', 'palangkaraya', 'banjarmasin', 'samarinda'];
+      if (peatRegions.some((r) => officeId.toLowerCase().includes(r))) return 0.5 + val * 0.45;
+      return val * 0.25;
+    }
+    if (hazard === 'cuaca') {
+      return 0.2 + val * 0.7;
+    }
+    if (hazard === 'pasang') {
+      const inlandOffices = ['yogyakarta', 'solo', 'malang', 'bandung', 'purwokerto', 'tasikmalaya', 'kediri', 'bogor'];
+      if (inlandOffices.some((r) => officeId.toLowerCase().includes(r))) return 0;
+      return 0.1 + val * 0.65;
+    }
+    return val;
+  }
+
   private static getHazardTitle(hazard: InariskHazard): string {
     switch (hazard) {
       case 'flood': return 'Banjir';

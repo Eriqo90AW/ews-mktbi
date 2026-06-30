@@ -3,8 +3,9 @@ import './App.css';
 import DisasterDashboard from './components/dashboard/DisasterDashboard';
 import KerentananScreen from './components/kerentanan/KerentananScreen';
 import GunungApiScreen from './components/gunungapi/GunungApiScreen';
+import PotensiScreen from './components/potensi/PotensiScreen';
 
-type AppScreen = 'dashboard' | 'kerentanan' | 'gunungapi';
+type AppScreen = 'dashboard' | 'kerentanan' | 'gunungapi' | 'potensi';
 
 function App() {
   const [screen, setScreen] = useState<AppScreen>('dashboard');
@@ -14,6 +15,7 @@ function App() {
       {screen === 'dashboard' && (
         <DisasterDashboard 
           onSwitchToKerentanan={() => setScreen('kerentanan')} 
+          onSwitchToPotensi={() => setScreen('potensi')}
         />
       )}
       {screen === 'kerentanan' && (
@@ -21,6 +23,9 @@ function App() {
       )}
       {screen === 'gunungapi' && (
         <GunungApiScreen onBack={() => setScreen('dashboard')} />
+      )}
+      {screen === 'potensi' && (
+        <PotensiScreen onBack={() => setScreen('dashboard')} />
       )}
     </div>
   );

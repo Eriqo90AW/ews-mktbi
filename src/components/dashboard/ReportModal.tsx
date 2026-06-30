@@ -3,6 +3,14 @@ import type { DisasterAlert, KpwbiOffice } from '../../types';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { isOfficeAffectedByAlert } from '../../utils/disasterImpact';
 import { haversineDistance } from '../../utils/geo';
+import { BnpbInariskService } from '../../services/bnpbInariskService';
+import {
+  mapAlertToDisasterEvent,
+  mapInariskToVulnerability,
+  mapDisasterTypeToInariskHazard,
+  vulnerabilityToScore,
+  getRiskLevel,
+} from '../../utils/riskCalculator';
 import './ReportModal.css';
 
 interface ReportModalProps {
@@ -15,6 +23,7 @@ interface ImpactedRecord {
   office: KpwbiOffice;
   alert: DisasterAlert;
   distanceKm: number | null;
+  riskLevel: string;
 }
 
 export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alerts }) => {
@@ -74,10 +83,22 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
               ? haversineDistance(office.latitude, office.longitude, alert.latitude, alert.longitude)
               : null;
           
+          let riskLevelStr = '-';
+          const event = mapAlertToDisasterEvent(alert);
+          if (event) {
+            const hazard = mapDisasterTypeToInariskHazard(event.type);
+            const index = BnpbInariskService.getLocalHazardIndex(office.id, hazard);
+            const vulLevel = mapInariskToVulnerability(index);
+            const vulScore = vulnerabilityToScore(vulLevel);
+            const rScore = event.disasterScore * vulScore;
+            riskLevelStr = getRiskLevel(rScore);
+          }
+
           impactedOffices.push({
             office,
             alert,
             distanceKm,
+            riskLevel: riskLevelStr,
           });
         }
       });
@@ -124,36 +145,81 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
     generateReportData(startStr, endStr);
   };
 
-  const handleExportCSV = () => {
+  const handleExportExcel = () => {
     if (!report) return;
 
-    let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += 'REPORTING DISASTER & KPW IMPACT\n';
-    csvContent += `Range Waktu: ${startDate.replace('T', ' ')} s.d ${endDate.replace('T', ' ')}\n\n`;
-    csvContent += 'SUMMARY STATS\n';
-    csvContent += `Total Alerts,${report.totalAlerts}\n`;
-    csvContent += `Gempa Bumi,${report.earthquakes}\n`;
-    csvContent += `Bencana Lainnya,${report.otherDisasters}\n`;
-    csvContent += `Gempa Critical,${report.severityBreakdown.critical}\n`;
-    csvContent += `Gempa Warning,${report.severityBreakdown.warning}\n`;
-    csvContent += `Gempa Watch,${report.severityBreakdown.watch}\n\n`;
+    let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`;
+    html += `<head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Disaster Report</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>`;
+    html += `<body>`;
+    
+    // Title
+    html += `<h2>REPORTING DISASTER & KPW IMPACT</h2>`;
+    html += `<p><b>Range Waktu:</b> ${startDate.replace('T', ' ')} s.d ${endDate.replace('T', ' ')}</p><br/>`;
+    
+    // Summary Stats Table
+    html += `<h3>SUMMARY STATS</h3>`;
+    html += `<table border="1">`;
+    html += `<tr><td><b>Total Alerts</b></td><td>${report.totalAlerts}</td></tr>`;
+    html += `<tr><td><b>Gempa Bumi</b></td><td>${report.earthquakes}</td></tr>`;
+    html += `<tr><td><b>Bencana Lainnya</b></td><td>${report.otherDisasters}</td></tr>`;
+    html += `<tr><td><b>Gempa Critical</b></td><td>${report.severityBreakdown.critical}</td></tr>`;
+    html += `<tr><td><b>Gempa Warning</b></td><td>${report.severityBreakdown.warning}</td></tr>`;
+    html += `<tr><td><b>Gempa Watch</b></td><td>${report.severityBreakdown.watch}</td></tr>`;
+    html += `</table><br/>`;
 
-    csvContent += 'KPW IMPACTED LIST\n';
-    csvContent += 'KPW Office,City,Disaster Title,Type,Severity,Distance (km),Time\n';
-
-    report.impactedOffices.forEach(({ office, alert, distanceKm }) => {
+    // KPW Impacted List Table
+    html += `<h3>KPW IMPACTED LIST</h3>`;
+    html += `<table border="1">`;
+    html += `<thead><tr style="background-color: #f2f2f2;">`;
+    html += `<th>KPW Office</th><th>City</th><th>Disaster Title</th><th>Type</th><th>Severity</th><th>Tingkat Risiko</th><th>Distance (km)</th><th>Time</th>`;
+    html += `</tr></thead><tbody>`;
+    report.impactedOffices.forEach(({ office, alert, distanceKm, riskLevel }) => {
       const distanceStr = distanceKm !== null ? distanceKm.toFixed(1) : '-';
-      const formattedTitle = alert.title.replace(/"/g, '""');
-      csvContent += `"${office.name}","${office.city}","${formattedTitle}","${alert.type}","${alert.severity}",${distanceStr},"${new Date(alert.timestamp).toLocaleString('id-ID')}"\n`;
+      html += `<tr>`;
+      html += `<td>${office.name}</td>`;
+      html += `<td>${office.city}</td>`;
+      html += `<td>${alert.title}</td>`;
+      html += `<td>${alert.type}</td>`;
+      html += `<td>${alert.severity}</td>`;
+      html += `<td>${riskLevel}</td>`;
+      html += `<td>${distanceStr}</td>`;
+      html += `<td>${new Date(alert.timestamp).toLocaleString('id-ID')}</td>`;
+      html += `</tr>`;
     });
+    html += `</tbody></table><br/>`;
 
-    const encodedUri = encodeURI(csvContent);
+    // All Disasters List Table
+    html += `<h3>ALL DISASTERS LIST</h3>`;
+    html += `<table border="1">`;
+    html += `<thead><tr style="background-color: #f2f2f2;">`;
+    html += `<th>Time</th><th>Disaster Title</th><th>Type</th><th>Severity</th><th>Magnitude</th><th>Depth (km)</th><th>Area</th>`;
+    html += `</tr></thead><tbody>`;
+    report.allAlertsInRange.forEach((alert) => {
+      const magStr = alert.magnitude !== undefined ? alert.magnitude : '-';
+      const depthStr = alert.depth !== undefined ? alert.depth : '-';
+      html += `<tr>`;
+      html += `<td>${new Date(alert.timestamp).toLocaleString('id-ID')}</td>`;
+      html += `<td>${alert.title}</td>`;
+      html += `<td>${alert.type}</td>`;
+      html += `<td>${alert.severity}</td>`;
+      html += `<td>${magStr}</td>`;
+      html += `<td>${depthStr}</td>`;
+      html += `<td>${alert.affectedArea || alert.description || ''}</td>`;
+      html += `</tr>`;
+    });
+    html += `</tbody></table>`;
+
+    html += `</body></html>`;
+
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `disaster_report_${startDate.split('T')[0]}_to_${endDate.split('T')[0]}.csv`);
+    link.href = url;
+    link.download = `disaster_report_${startDate.split('T')[0]}_to_${endDate.split('T')[0]}.xls`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -210,8 +276,8 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
               {/* Export Button */}
               <div className="report-export-row">
                 <h3>Hasil Laporan</h3>
-                <button className="export-report-btn" onClick={handleExportCSV}>
-                  📥 Export to CSV
+                <button className="export-report-btn" onClick={handleExportExcel}>
+                  📥 Export to Excel
                 </button>
               </div>
 

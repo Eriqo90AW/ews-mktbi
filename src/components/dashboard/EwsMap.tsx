@@ -24,17 +24,26 @@ export interface EwsMapProps {
   selectedAlertId: string | null;
   onProvinceSelect: (provinceId: string) => void;
   onAlertSelect: (alertId: string) => void;
-  activeTypeFilter?: DisasterType | 'all';
+  activeTypeFilter?: DisasterType | 'all' | any;
   isSidebarCollapsed?: boolean;
   isKerentananView?: boolean;
+  isPotensiView?: boolean;
 }
 
 const INDONESIA_CENTER: [number, number] = [-2.5489, 118.0149];
 const INARISK_TYPES = ['flood', 'tsunami', 'kekeringan', 'volcanic'];
+const POTENSI_TYPES = ['gempa', 'karhutla', 'cuaca', 'pasang'];
 
 function getProvinceRisk(provinceId: string, hazard: 'flood' | 'tsunami' | 'kekeringan' | 'volcanic'): number {
   return KPWBI_OFFICES.filter((o) => o.provinceId === provinceId).reduce((max, o) => {
     const idx = BnpbInariskService.getLocalHazardIndex(o.id, hazard);
+    return idx > max ? idx : max;
+  }, 0);
+}
+
+function getProvincePotensi(provinceId: string, hazard: 'gempa' | 'karhutla' | 'cuaca' | 'pasang'): number {
+  return KPWBI_OFFICES.filter((o) => o.provinceId === provinceId).reduce((max, o) => {
+    const idx = BnpbInariskService.getLocalPotensiIndex(o.id, hazard);
     return idx > max ? idx : max;
   }, 0);
 }
@@ -49,6 +58,7 @@ export const EwsMap: React.FC<EwsMapProps> = ({
   activeTypeFilter = 'all',
   isSidebarCollapsed = false,
   isKerentananView = false,
+  isPotensiView = false,
 }) => {
   const [resetTrigger, setResetTrigger] = useState(0);
   const [geoJsonData, setGeoJsonData] = useState<any>(null);
@@ -77,43 +87,62 @@ export const EwsMap: React.FC<EwsMapProps> = ({
   }, []);
 
   const isInariskFilter = isKerentananView && INARISK_TYPES.includes(activeTypeFilter);
+  const isPotensiFilter = isPotensiView && POTENSI_TYPES.includes(activeTypeFilter);
 
   const getGeoJsonStyle = (feature: any) => {
-    if (!isInariskFilter) {
+    if (!isInariskFilter && !isPotensiFilter) {
       return { fillColor: 'transparent', fillOpacity: 0, color: 'transparent', weight: 0, bubblingMouseEvents: false };
     }
-    const hazard = activeTypeFilter as 'flood' | 'tsunami' | 'kekeringan' | 'volcanic';
     const provinceId = mapTextToProvinceId(feature.properties.Propinsi || '');
-    const risk = getProvinceRisk(provinceId, hazard);
+    
+    let score = 0;
+    if (isInariskFilter) {
+      const hazard = activeTypeFilter as 'flood' | 'tsunami' | 'kekeringan' | 'volcanic';
+      score = getProvinceRisk(provinceId, hazard);
+    } else {
+      const hazard = activeTypeFilter as 'gempa' | 'karhutla' | 'cuaca' | 'pasang';
+      score = getProvincePotensi(provinceId, hazard);
+    }
 
-    if (risk > 0.6) {
-      if (!mapLayers.critical) return { fillColor: 'transparent', fillOpacity: 0, color: 'transparent', weight: 0, bubblingMouseEvents: false };
-      return { fillColor: '#dc2626', fillOpacity: 0.35, color: '#b91c1c', weight: 1.5, bubblingMouseEvents: false };
+    if (score > 0.6) {
+      return { fillColor: isPotensiFilter ? '#f97316' : '#dc2626', fillOpacity: 0.35, color: isPotensiFilter ? '#c2410c' : '#b91c1c', weight: 1.5, bubblingMouseEvents: false };
     }
-    if (risk > 0.3) {
-      if (!mapLayers.warning) return { fillColor: 'transparent', fillOpacity: 0, color: 'transparent', weight: 0, bubblingMouseEvents: false };
-      return { fillColor: '#ea580c', fillOpacity: 0.3, color: '#c2410c', weight: 1.5, bubblingMouseEvents: false };
+    if (score > 0.3) {
+      return { fillColor: isPotensiFilter ? '#fbbf24' : '#ea580c', fillOpacity: 0.3, color: isPotensiFilter ? '#d97706' : '#c2410c', weight: 1.5, bubblingMouseEvents: false };
     }
-    if (risk > 0) {
-      if (!mapLayers.watch) return { fillColor: 'transparent', fillOpacity: 0, color: 'transparent', weight: 0, bubblingMouseEvents: false };
-      return { fillColor: '#0ea5e9', fillOpacity: 0.2, color: '#0284c7', weight: 1.2, bubblingMouseEvents: false };
+    if (score > 0) {
+      return { fillColor: isPotensiFilter ? '#10b981' : '#0ea5e9', fillOpacity: 0.2, color: isPotensiFilter ? '#059669' : '#0284c7', weight: 1.2, bubblingMouseEvents: false };
     }
     return { fillColor: 'transparent', fillOpacity: 0, color: 'rgba(0,0,0,0.12)', weight: 0.8, bubblingMouseEvents: false };
   };
 
   const onEachFeature = (feature: any, layer: L.Layer) => {
-    const hazard = activeTypeFilter as 'flood' | 'tsunami' | 'kekeringan' | 'volcanic';
     const propName = feature.properties.Propinsi || '';
     const provinceId = mapTextToProvinceId(propName);
-    const risk = getProvinceRisk(provinceId, hazard);
-    const hazardTitle = { flood: 'Banjir', tsunami: 'Tsunami', kekeringan: 'Kekeringan', volcanic: 'Gunung Api' }[hazard] ?? hazard;
-    const severity = risk > 0.6 ? 'Tinggi (Critical)' : risk > 0.3 ? 'Sedang (Warning)' : risk > 0 ? 'Rendah (Watch)' : 'Aman';
+    
+    let score = 0;
+    let hazardTitle = '';
+    
+    if (isInariskFilter) {
+      const hazard = activeTypeFilter as 'flood' | 'tsunami' | 'kekeringan' | 'volcanic';
+      score = getProvinceRisk(provinceId, hazard);
+      hazardTitle = { flood: 'Banjir', tsunami: 'Tsunami', kekeringan: 'Kekeringan', volcanic: 'Gunung Api' }[hazard] ?? hazard;
+    } else if (isPotensiFilter) {
+      const hazard = activeTypeFilter as 'gempa' | 'karhutla' | 'cuaca' | 'pasang';
+      score = getProvincePotensi(provinceId, hazard);
+      hazardTitle = { gempa: 'Gempa Bumi', karhutla: 'Kebakaran Hutan', cuaca: 'Cuaca Ekstrim', pasang: 'Gelombang Pasang' }[hazard] ?? hazard;
+    } else {
+      return;
+    }
+
+    const severity = score > 0.6 ? 'Tinggi' : score > 0.3 ? 'Sedang' : score > 0 ? 'Rendah' : 'Aman';
+    const statusColor = score > 0.6 ? 'var(--alert-critical)' : score > 0.3 ? 'var(--alert-warning)' : 'var(--alert-watch)';
 
     layer.bindTooltip(`
       <div style="font-family: var(--font-sans); font-size: 12px; line-height: 1.4; padding: 4px;">
         <strong>Provinsi ${propName}</strong><br/>
-        Indeks Kerentanan ${hazardTitle}: <strong>${risk > 0 ? risk.toFixed(2) : '0.00'}</strong><br/>
-        Status: <span style="font-weight: 700; color: ${risk > 0.6 ? 'var(--alert-critical)' : risk > 0.3 ? 'var(--alert-warning)' : 'var(--alert-watch)'}">${severity}</span>
+        Indeks ${isPotensiView ? 'Potensi' : 'Kerentanan'} ${hazardTitle}: <strong>${score > 0 ? score.toFixed(2) : '0.00'}</strong><br/>
+        Status: <span style="font-weight: 700; color: ${statusColor}">${severity}</span>
       </div>
     `, { sticky: true });
   };

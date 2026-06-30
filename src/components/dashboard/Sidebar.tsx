@@ -174,6 +174,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // Suppress unused-variable warning from linter while keeping the computed value
   void stats;
 
+
   return (
     <aside className={`sidebar-container${isCollapsed ? ' sidebar-collapsed' : ''}`}>
       {isCollapsed ? (

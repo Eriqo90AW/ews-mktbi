@@ -113,7 +113,6 @@
 .topbar-filter-group {
   display: flex;
   align-items: center;
-  gap: 2px;
   background-color: var(--bg-primary);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
@@ -125,7 +124,11 @@
   align-items: center;
   gap: 5px;
   height: 28px;
-  padding: 0 12px;
+  padding: 0;
+  margin-left: 0;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
   border: none;
   border-radius: 4px;
   background: none;
@@ -134,7 +137,17 @@
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: background-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease;
+  transition: max-width 0.3s ease, padding 0.3s ease, margin 0.3s ease, opacity 0.3s ease, background-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.topbar-filter-group:hover .topbar-filter-pill {
+  max-width: 200px;
+  padding: 0 12px;
+  opacity: 1;
+}
+
+.topbar-filter-group:hover .topbar-filter-pill + .topbar-filter-pill {
+  margin-left: 2px;
 }
 
 .topbar-filter-pill:hover {
@@ -143,6 +156,9 @@
 }
 
 .topbar-filter-pill.active {
+  max-width: 200px;
+  padding: 0 12px;
+  opacity: 1;
   background-color: var(--bg-surface);
   color: var(--accent-primary);
   font-weight: 700;
@@ -264,6 +280,12 @@
   color: var(--alert-critical);
 }
 
+.topbar-status.warning {
+  background-color: var(--alert-warning-bg);
+  border-color: var(--alert-warning-border);
+  color: var(--alert-warning);
+}
+
 .topbar-status.kerentanan {
   background-color: #faf5ff;
   border-color: #c4b5fd;
@@ -282,6 +304,10 @@
   animation: dot-pulse 1.5s infinite;
 }
 
+.topbar-status.warning .topbar-status-dot {
+  animation: dot-pulse-warning 2s infinite;
+}
+
 .topbar-status.monitoring .topbar-status-dot {
   animation: dot-pulse-slow 3s infinite;
 }
@@ -290,6 +316,12 @@
   0%   { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5); }
   70%  { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
   100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+
+@keyframes dot-pulse-warning {
+  0%   { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.5); }
+  70%  { box-shadow: 0 0 0 6px rgba(234, 88, 12, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0); }
 }
 
 @keyframes dot-pulse-slow {
@@ -314,12 +346,20 @@
   background-color: var(--alert-critical-border);
 }
 
+.topbar-status-btn.warning:hover {
+  background-color: var(--alert-warning-border);
+}
+
 .topbar-status-btn.monitoring:hover {
   background-color: var(--alert-watch-border, rgba(14,165,233,0.2));
 }
 
 .topbar-status-btn.open.critical {
   box-shadow: 0 0 0 2px var(--alert-critical-border);
+}
+
+.topbar-status-btn.open.warning {
+  box-shadow: 0 0 0 2px var(--alert-warning-border);
 }
 
 .topbar-status-btn.open.monitoring {
@@ -368,6 +408,29 @@
 .topbar-dropdown--monitoring .topbar-dropdown-close,
 .topbar-dropdown--clear .topbar-dropdown-close {
   color: var(--accent-primary);
+}
+
+/* Warning variant */
+.topbar-dropdown--warning {
+  border-color: var(--alert-warning-border);
+  border-top-color: var(--alert-warning);
+}
+
+.topbar-dropdown--warning .topbar-dropdown-header {
+  background-color: var(--alert-warning-bg);
+  border-bottom-color: var(--alert-warning-border);
+}
+
+.topbar-dropdown--warning .topbar-dropdown-title {
+  color: var(--alert-warning);
+}
+
+.topbar-dropdown--warning .topbar-dropdown-count {
+  background-color: var(--alert-warning);
+}
+
+.topbar-dropdown--warning .topbar-dropdown-close {
+  color: var(--alert-warning);
 }
 
 @keyframes dropdown-in {
@@ -506,15 +569,24 @@
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
-  background-color: currentColor;
-  color: var(--bg-surface);
   border-radius: 8px;
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0;
   text-transform: none;
-  /* Invert so text is readable on colored bg */
-  filter: contrast(9999);
+}
+
+.dropdown-risk-group-header--critical .dropdown-risk-group-count {
+  background-color: var(--alert-critical);
+  color: #ffffff;
+}
+.dropdown-risk-group-header--warning .dropdown-risk-group-count {
+  background-color: var(--alert-warning);
+  color: #ffffff;
+}
+.dropdown-risk-group-header--watch .dropdown-risk-group-count {
+  background-color: var(--alert-watch);
+  color: #ffffff;
 }
 
 .dropdown-item-emoji {

@@ -84,9 +84,15 @@ const DrcMarkers: React.FC<DrcMarkersProps> = ({ selectedAlert, riskResults = []
                   Koordinat: {drc.latitude.toFixed(4)}, {drc.longitude.toFixed(4)}
                 </p>
                 <div className="ews-popup-footer">
-                  <span className="ews-popup-tag" style={{ color: 'var(--accent-primary)', backgroundColor: 'var(--accent-light)' }}>
-                    ▲ {drc.type}
-                  </span>
+                  {riskSeverity && (
+                    <span className="ews-popup-tag" style={{
+                      color: riskSeverity === 'critical' ? 'var(--alert-critical)' : riskSeverity === 'warning' ? 'var(--alert-warning)' : 'var(--alert-watch)',
+                      backgroundColor: riskSeverity === 'critical' ? 'var(--alert-critical-bg)' : riskSeverity === 'warning' ? 'var(--alert-warning-bg)' : 'var(--alert-watch-bg)',
+                      borderColor: riskSeverity === 'critical' ? 'var(--alert-critical-border)' : riskSeverity === 'warning' ? 'var(--alert-warning-border)' : 'var(--alert-watch-border)',
+                    }}>
+                      Risiko: {riskSeverity === 'critical' ? 'Tinggi' : riskSeverity === 'warning' ? 'Sedang' : 'Rendah'}
+                    </span>
+                  )}
                 </div>
               </div>
             </Popup>

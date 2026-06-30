@@ -204,7 +204,6 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                         }}>
                           {severity.toUpperCase()} ({indexVal.toFixed(2)})
                         </span>
-                        <span>InaRisk BNPB</span>
                       </div>
                     </div>
                   );

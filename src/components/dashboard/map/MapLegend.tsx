@@ -109,37 +109,40 @@ const MapLegend: React.FC<MapLegendProps> = ({
 
           {showCritical && (
             <div
-              className={`legend-item ${!mapLayers.critical ? 'disabled' : ''}`}
-              onClick={() => onToggleLayer('critical')}
-              title={isInariskFilter ? 'Toggle Kerentanan Tinggi' : 'Toggle Risiko Tinggi'}
+              className={`legend-item ${(!mapLayers.critical && !isInariskFilter) ? 'disabled' : ''}`}
+              onClick={() => { if (!isInariskFilter) onToggleLayer('critical'); }}
+              title={isInariskFilter ? 'Kerentanan Tinggi' : 'Toggle Risiko Tinggi'}
+              style={{ cursor: isInariskFilter ? 'default' : 'pointer' }}
             >
               <div className="legend-color critical"></div>
               <span>{isInariskFilter ? 'Kerentanan Tinggi (>0.6)' : 'Risiko Tinggi'}</span>
-              <span className="legend-toggle-indicator"></span>
+              {!isInariskFilter && <span className="legend-toggle-indicator"></span>}
             </div>
           )}
 
           {showWarning && (
             <div
-              className={`legend-item ${!mapLayers.warning ? 'disabled' : ''}`}
-              onClick={() => onToggleLayer('warning')}
-              title={isInariskFilter ? 'Toggle Kerentanan Sedang' : 'Toggle Risiko Sedang'}
+              className={`legend-item ${(!mapLayers.warning && !isInariskFilter) ? 'disabled' : ''}`}
+              onClick={() => { if (!isInariskFilter) onToggleLayer('warning'); }}
+              title={isInariskFilter ? 'Kerentanan Sedang' : 'Toggle Risiko Sedang'}
+              style={{ cursor: isInariskFilter ? 'default' : 'pointer' }}
             >
               <div className="legend-color warning"></div>
               <span>{isInariskFilter ? 'Kerentanan Sedang (0.3-0.6)' : 'Risiko Sedang'}</span>
-              <span className="legend-toggle-indicator"></span>
+              {!isInariskFilter && <span className="legend-toggle-indicator"></span>}
             </div>
           )}
 
           {showWatch && (
             <div
-              className={`legend-item ${!mapLayers.watch ? 'disabled' : ''}`}
-              onClick={() => onToggleLayer('watch')}
-              title={isInariskFilter ? 'Toggle Kerentanan Rendah' : 'Toggle Risiko Rendah'}
+              className={`legend-item ${(!mapLayers.watch && !isInariskFilter) ? 'disabled' : ''}`}
+              onClick={() => { if (!isInariskFilter) onToggleLayer('watch'); }}
+              title={isInariskFilter ? 'Kerentanan Rendah' : 'Toggle Risiko Rendah'}
+              style={{ cursor: isInariskFilter ? 'default' : 'pointer' }}
             >
               <div className="legend-color watch"></div>
               <span>{isInariskFilter ? 'Kerentanan Rendah (>0-0.3)' : 'Risiko Rendah'}</span>
-              <span className="legend-toggle-indicator"></span>
+              {!isInariskFilter && <span className="legend-toggle-indicator"></span>}
             </div>
           )}
 
