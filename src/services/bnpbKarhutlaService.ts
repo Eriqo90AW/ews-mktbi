@@ -47,168 +47,23 @@ export function getRegencyCoordinates(regency: string, province: string): [numbe
 }
 
 const MOCK_KARHUTLA_ROWS: BnpbKarhutlaRow[] = [
-  {
-    no: 1,
-    kib: '',
-    regencyId: '6474',
-    date: '2026-06-28',
-    event: 'KEBAKARAN HUTAN DAN LAHAN',
-    location: 'Kecamatan:\nKec. Bontang Utara\nKel. Gunung Elai',
-    regency: 'Kota Bontang',
-    province: 'Kalimantan Timur',
-    documentationUrl: '',
-    cause: '',
-    meninggal: 0,
-    hilang: 0,
-    terluka: 0,
-    rumahRusak: 0,
-    rumahTerendam: 0,
-    fasumRusak: 0
-  },
-  {
-    no: 2,
-    kib: '',
-    regencyId: '8208',
-    date: '2026-06-28',
-    event: 'KEBAKARAN HUTAN DAN LAHAN',
-    location: 'Kecamatan:\nKec. Taliabu Barat',
-    regency: 'Pulau Taliabu',
-    province: 'Maluku Utara',
-    documentationUrl: 'https://drive.google.com/drive/folders/1vYs3I6nsmlrvtqnczOxl5wSuD8du8RAF',
-    cause: '',
-    meninggal: 0,
-    hilang: 0,
-    terluka: 0,
-    rumahRusak: 0,
-    rumahTerendam: 0,
-    fasumRusak: 0
-  },
-  {
-    no: 3,
-    kib: '',
-    regencyId: '1402',
-    date: '2026-06-28',
-    event: 'KEBAKARAN HUTAN DAN LAHAN',
-    location: 'Kecamatan:\nDs. Sungai Raya, Kec. Rengat',
-    regency: 'Indragiri Hulu',
-    province: 'Riau',
-    documentationUrl: '',
-    cause: '',
-    meninggal: 0,
-    hilang: 0,
-    terluka: 0,
-    rumahRusak: 0,
-    rumahTerendam: 0,
-    fasumRusak: 0
-  },
-  {
-    no: 4,
-    kib: '',
-    regencyId: '3311',
-    date: '2026-06-27',
-    event: 'KEBAKARAN HUTAN DAN LAHAN',
-    location: 'Kecamatan:\nKec. Bulu\nDs. Gentan',
-    regency: 'Sukoharjo',
-    province: 'Jawa Tengah',
-    documentationUrl: '',
-    cause: '',
-    meninggal: 0,
-    hilang: 0,
-    terluka: 0,
-    rumahRusak: 0,
-    rumahTerendam: 0,
-    fasumRusak: 0
-  },
-  {
-    no: 5,
-    kib: '',
-    regencyId: '6407',
-    date: '2026-06-27',
-    event: 'KEBAKARAN HUTAN DAN LAHAN',
-    location: 'Kecamatan:\nKec. Damai\nKel. Kampung Jengan Danum',
-    regency: 'Kutai Barat',
-    province: 'Kalimantan Timur',
-    documentationUrl: '',
-    cause: '',
-    meninggal: 0,
-    hilang: 0,
-    terluka: 0,
-    rumahRusak: 0,
-    rumahTerendam: 0,
-    fasumRusak: 0
-  },
-  {
-    no: 6,
-    kib: '',
-    regencyId: '1174',
-    date: '2026-06-27',
-    event: 'KEBAKARAN HUTAN DAN LAHAN',
-    location: 'Kecamatan:\nKec. Langsa Baro\nGp Birem Puntong',
-    regency: 'Kota Langsa',
-    province: 'Aceh',
-    documentationUrl: 'https://drive.google.com/drive/folders/18EhhgTaPWhelGEebSDOadqQl5218Z6Pf',
-    cause: '',
-    meninggal: 0,
-    hilang: 0,
-    terluka: 0,
-    rumahRusak: 0,
-    rumahTerendam: 0,
-    fasumRusak: 0
-  },
-  {
-    no: 8,
-    kib: '',
-    regencyId: '1402',
-    date: '2026-06-27',
-    event: 'KEBAKARAN HUTAN DAN LAHAN',
-    location: 'Kecamatan:\nKel. Sekip Hilir, Kec. Rengat',
-    regency: 'Indragiri Hulu',
-    province: 'Riau',
-    documentationUrl: '',
-    cause: '',
-    meninggal: 0,
-    hilang: 0,
-    terluka: 0,
-    rumahRusak: 0,
-    rumahTerendam: 0,
-    fasumRusak: 0
-  },
-  {
-    no: 9,
-    kib: '',
-    regencyId: '3311',
-    date: '2026-06-27',
-    event: 'KEBAKARAN HUTAN DAN LAHAN',
-    location: 'Kecamatan:\nKec. Bulu\nDs. Gentan',
-    regency: 'Sukoharjo',
-    province: 'Jawa Tengah',
-    documentationUrl: '',
-    cause: '',
-    meninggal: 0,
-    hilang: 0,
-    terluka: 0,
-    rumahRusak: 0,
-    rumahTerendam: 0,
-    fasumRusak: 0
-  },
-  {
-    no: 10,
-    kib: '',
-    regencyId: '3211',
-    date: '2026-06-27',
-    event: 'KEBAKARAN HUTAN DAN LAHAN',
-    location: 'Kecamatan:\n',
-    regency: 'Sumedang',
-    province: 'Jawa Barat',
-    documentationUrl: '',
-    cause: '',
-    meninggal: 0,
-    hilang: 0,
-    terluka: 0,
-    rumahRusak: 0,
-    rumahTerendam: 0,
-    fasumRusak: 0
-  }
+  { no: 1, kib: '', regencyId: '1402', date: '2026-06-28', event: 'KEBAKARAN HUTAN DAN LAHAN', location: 'Kecamatan:\nDs. Sungai Raya, Kec. Rengat', regency: 'Indragiri Hulu', province: 'Riau', documentationUrl: '', cause: '', meninggal: 0, hilang: 0, terluka: 0, rumahRusak: 0, rumahTerendam: 0, fasumRusak: 0 },
+  { no: 2, kib: '', regencyId: '6474', date: '2026-06-28', event: 'KEBAKARAN HUTAN DAN LAHAN', location: 'Kecamatan:\nKec. Bontang Utara\nKel. Gunung Elai', regency: 'Kota Bontang', province: 'Kalimantan Timur', documentationUrl: '', cause: '', meninggal: 0, hilang: 0, terluka: 0, rumahRusak: 0, rumahTerendam: 0, fasumRusak: 0 },
+  { no: 3, kib: '', regencyId: '8208', date: '2026-06-28', event: 'KEBAKARAN HUTAN DAN LAHAN', location: 'Kecamatan:\nKec. Taliabu Barat', regency: 'Pulau Taliabu', province: 'Maluku Utara', documentationUrl: 'https://drive.google.com/drive/folders/1vYs3I6nsmlrvtqnczOxl5wSuD8du8RAF', cause: '', meninggal: 0, hilang: 0, terluka: 0, rumahRusak: 0, rumahTerendam: 0, fasumRusak: 0 },
+  { no: 4, kib: '', regencyId: '3311', date: '2026-06-27', event: 'KEBAKARAN HUTAN DAN LAHAN', location: 'Kecamatan:\nKec. Bulu\nDs. Gentan', regency: 'Sukoharjo', province: 'Jawa Tengah', documentationUrl: '', cause: '', meninggal: 0, hilang: 0, terluka: 0, rumahRusak: 0, rumahTerendam: 0, fasumRusak: 0 },
+  { no: 5, kib: '', regencyId: '6407', date: '2026-06-27', event: 'KEBAKARAN HUTAN DAN LAHAN', location: 'Kecamatan:\nKec. Damai\nKel. Kampung Jengan Danum', regency: 'Kutai Barat', province: 'Kalimantan Timur', documentationUrl: '', cause: '', meninggal: 0, hilang: 0, terluka: 0, rumahRusak: 0, rumahTerendam: 0, fasumRusak: 0 },
+  { no: 6, kib: '', regencyId: '1174', date: '2026-06-27', event: 'KEBAKARAN HUTAN DAN LAHAN', location: 'Kecamatan:\nKec. Langsa Baro\nGp Birem Puntong', regency: 'Kota Langsa', province: 'Aceh', documentationUrl: 'https://drive.google.com/drive/folders/18EhhgTaPWhelGEebSDOadqQl5218Z6Pf', cause: '', meninggal: 0, hilang: 0, terluka: 0, rumahRusak: 0, rumahTerendam: 0, fasumRusak: 0 },
+  { no: 7, kib: '', regencyId: '1402', date: '2026-06-27', event: 'KEBAKARAN HUTAN DAN LAHAN', location: 'Kecamatan:\nKel. Sekip Hilir, Kec. Rengat', regency: 'Indragiri Hulu', province: 'Riau', documentationUrl: '', cause: '', meninggal: 0, hilang: 0, terluka: 0, rumahRusak: 0, rumahTerendam: 0, fasumRusak: 0 },
+  { no: 8, kib: '', regencyId: '3311', date: '2026-06-27', event: 'KEBAKARAN HUTAN DAN LAHAN', location: 'Kecamatan:\nKec. Bulu\nDs. Gentan', regency: 'Sukoharjo', province: 'Jawa Tengah', documentationUrl: '', cause: '', meninggal: 0, hilang: 0, terluka: 0, rumahRusak: 0, rumahTerendam: 0, fasumRusak: 0 },
+  { no: 9, kib: '', regencyId: '3211', date: '2026-06-27', event: 'KEBAKARAN HUTAN DAN LAHAN', location: 'Kecamatan:\n', regency: 'Sumedang', province: 'Jawa Barat', documentationUrl: '', cause: '', meninggal: 0, hilang: 0, terluka: 0, rumahRusak: 0, rumahTerendam: 0, fasumRusak: 0 },
+  { no: 11, kib: '', regencyId: '1906', date: '2026-06-26', event: 'KEBAKARAN HUTAN DAN LAHAN', location: 'Kecamatan:\nKec. Manggar\nDs. Padang', regency: 'Belitung Timur', province: 'Kepulauan Bangka Belitung', documentationUrl: 'https://drive.google.com/drive/folders/1-dDvryKm_taqLm5kJG_anJ3VsVIIxTR7?usp=drive_link', cause: '', meninggal: 0, hilang: 0, terluka: 0, rumahRusak: 0, rumahTerendam: 0, fasumRusak: 0 },
+  { no: 14, kib: '', regencyId: '1173', date: '2026-06-25', event: 'KEBAKARAN HUTAN DAN LAHAN', location: 'Kecamatan:\nKec. Muara Satu\nGp.Meuria Paloh', regency: 'Kota Lhokseumawe', province: 'Aceh', documentationUrl: 'https://drive.google.com/drive/u/0/folders/1CxaeQcV_-Eyy4dBMf2HYGdWWL--Vh0y9', cause: '', meninggal: 0, hilang: 0, terluka: 0, rumahRusak: 0, rumahTerendam: 0, fasumRusak: 0 },
+  { no: 17, kib: '', regencyId: '9203', date: '2026-06-24', event: 'KEBAKARAN HUTAN DAN LAHAN', location: 'Kecamatan:\nDistrik Bomberay', regency: 'Fak Fak', province: 'Papua Barat', documentationUrl: 'https://drive.google.com/drive/folders/1tjLJ5PVSH13h5C7O9HZ5z7b0xaCl5J40?usp=drive_link', cause: '', meninggal: 0, hilang: 0, terluka: 0, rumahRusak: 0, rumahTerendam: 0, fasumRusak: 0 },
+  { no: 19, kib: '', regencyId: '3517', date: '2026-06-23', event: 'KEBAKARAN HUTAN DAN LAHAN', location: 'Kecamatan:\nKec. Ngoro', regency: 'Jombang', province: 'Jawa Timur', documentationUrl: '', cause: '', meninggal: 0, hilang: 0, terluka: 0, rumahRusak: 0, rumahTerendam: 0, fasumRusak: 0 },
+  { no: 25, kib: '', regencyId: '3512', date: '2026-06-21', event: 'KEBAKARAN HUTAN DAN LAHAN', location: 'Kecamatan:\nKec. Panji', regency: 'Situbondo', province: 'Jawa Timur', documentationUrl: 'https://drive.google.com/drive/folders/1oRSN4ZSEq3RgNaqfQ0UFgMaZpKKh8PU5', cause: '', meninggal: 0, hilang: 0, terluka: 0, rumahRusak: 0, rumahTerendam: 0, fasumRusak: 0 },
+  { no: 26, kib: '', regencyId: '3309', date: '2026-06-21', event: 'KEBAKARAN HUTAN DAN LAHAN', location: 'Kecamatan:\nKec. Teras\nDs. Randusari', regency: 'Boyolali', province: 'Jawa Tengah', documentationUrl: 'https://drive.google.com/drive/folders/1AOOzKzcqmqH3T-Au8g4oXB2xOtMUh43A', cause: '', meninggal: 0, hilang: 0, terluka: 0, rumahRusak: 0, rumahTerendam: 0, fasumRusak: 0 },
+  { no: 27, kib: '', regencyId: '3310', date: '2026-06-20', event: 'KEBAKARAN HUTAN DAN LAHAN', location: 'Kecamatan:\nKec. Pedan\nDs. Kaligawe', regency: 'Klaten', province: 'Jawa Tengah', documentationUrl: 'https://drive.google.com/drive/folders/1PGQZfVW0YJr8bhRweN5_sXwpHznOCTSv', cause: '', meninggal: 0, hilang: 0, terluka: 0, rumahRusak: 0, rumahTerendam: 0, fasumRusak: 0 },
+  { no: 30, kib: '', regencyId: '6303', date: '2026-06-20', event: 'KEBAKARAN HUTAN DAN LAHAN', location: 'Kecamatan:\nKec. Martapura\nDs. Pesayangan\nKec. Cintapuri Darussalam\nDs. Simpang Lima', regency: 'Banjar', province: 'Kalimantan Selatan', documentationUrl: 'https://drive.google.com/drive/folders/1x-A2qTIECVBH70ybcvv9A2s1BZ-pBiE8', cause: '', meninggal: 0, hilang: 0, terluka: 0, rumahRusak: 0, rumahTerendam: 0, fasumRusak: 0 }
 ];
 
 export function rowToAlert(row: BnpbKarhutlaRow, todayStr: string): DisasterAlert {
@@ -261,27 +116,30 @@ export function rowToAlert(row: BnpbKarhutlaRow, todayStr: string): DisasterAler
 export const BnpbKarhutlaService = {
   async fetchKarhutlaAlerts(fallbackToMock: boolean = true): Promise<DisasterAlert[]> {
     const todayStr = getJakartaDateString();
-    
-    // Attempt dynamic scraping
+    const today = new Date(todayStr + 'T00:00:00Z');
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 7);
+    const cutoffStr = sevenDaysAgo.toISOString().slice(0, 10);
+
     try {
-      const url = 'https://gis.bnpb.go.id/arcgis/apps/sites/?fromEdit=true#/public/pages/data-bencana';
+      const url = 'https://gis.bnpb.go.id/databencana/tabel/pencarian.php';
       const htmlText = await fetchHtmlWithCorsProxy(url);
-      
+
       if (!htmlText) throw new Error('Empty response from proxy');
-      
+
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlText, 'text/html');
-      
-      const rows = doc.querySelectorAll('#DataTables_Table_0 tbody tr');
+
+      const rows = doc.querySelectorAll('table.datatab tbody tr');
       const alerts: DisasterAlert[] = [];
-      
+
       rows.forEach((row) => {
         const cols = row.querySelectorAll('td');
         if (cols.length < 16) return;
-        
+
         const eventType = cols[4].textContent?.trim() || '';
         if (eventType !== 'KEBAKARAN HUTAN DAN LAHAN') return;
-        
+
         const no = parseInt(cols[0].textContent?.trim() || '0');
         const kib = cols[1].textContent?.trim() || '';
         const regencyId = cols[2].textContent?.trim() || '';
@@ -297,9 +155,8 @@ export const BnpbKarhutlaService = {
         const rumahRusak = parseInt(cols[13].textContent?.trim() || '0') || 0;
         const rumahTerendam = parseInt(cols[14].textContent?.trim() || '0') || 0;
         const fasumRusak = parseInt(cols[15].textContent?.trim() || '0') || 0;
-        
-        // Filter: only show today's date, or 2026-06-28 for testing
-        if (date === todayStr || date === '2026-06-28') {
+
+        if (date >= cutoffStr && date <= todayStr) {
           alerts.push(rowToAlert({
             no, kib, regencyId, date, event: eventType, location, regency, province,
             documentationUrl: docLink, cause, meninggal, hilang, terluka, rumahRusak,
@@ -307,21 +164,19 @@ export const BnpbKarhutlaService = {
           }, todayStr));
         }
       });
-      
+
       if (alerts.length > 0) {
         return alerts;
       }
-      
+
       throw new Error('Scraped 0 matches, falling back to mock');
     } catch (e) {
       if (!fallbackToMock) {
         throw e;
       }
-      
-      // Fallback: parse from our mock row storage matching target dates (today & June 28, 2026)
-      const targetDates = [todayStr, '2026-06-28'];
-      const matchedMockRows = MOCK_KARHUTLA_ROWS.filter((row) => targetDates.includes(row.date));
-      
+
+      const matchedMockRows = MOCK_KARHUTLA_ROWS.filter((row) => row.date >= cutoffStr && row.date <= todayStr);
+
       return matchedMockRows.map((row) => rowToAlert(row, todayStr));
     }
   }

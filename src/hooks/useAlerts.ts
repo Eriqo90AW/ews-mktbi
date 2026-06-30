@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import type { DisasterAlert, AlertSeverity } from '../types';
 import { fetchLatestEarthquakes, fetchExtremeWeather, fetchThreeDayForecast, fetchHighRainfallWarning } from '../services/bmkgService';
 import { MagmaService } from '../services/magmaService';
+import { BnpbKarhutlaService } from '../services/bnpbKarhutlaService';
 
 // InaRisk / BNPB data is shown in the Kerentanan screen, not as live alerts.
 // This hook only aggregates real-time BMKG alert streams.
@@ -28,7 +29,7 @@ const mergeAlerts = (existing: DisasterAlert[], incoming: DisasterAlert[]) => {
 const fetchAllSources = async () => {
   if (isFetching) return;
   isFetching = true;
-  cachedLoadingSources = ['Gempa BMKG', 'Cuaca Ekstrem BMKG', 'Prakiraan 3 Hari BMKG', 'Curah Hujan Tinggi BMKG', 'Live Gunung Api Magma'];
+  cachedLoadingSources = ['Gempa BMKG', 'Cuaca Ekstrem BMKG', 'Prakiraan 3 Hari BMKG', 'Curah Hujan Tinggi BMKG', 'Live Gunung Api Magma', 'Karhutla BNPB'];
   notifyListeners();
 
   const apis = [
@@ -36,7 +37,8 @@ const fetchAllSources = async () => {
     { call: fetchExtremeWeather, name: 'Cuaca Ekstrem BMKG' },
     { call: fetchThreeDayForecast, name: 'Prakiraan 3 Hari BMKG' },
     { call: fetchHighRainfallWarning, name: 'Curah Hujan Tinggi BMKG' },
-    { call: () => MagmaService.fetchLiveAlerts(false), name: 'Live Gunung Api Magma' }
+    { call: () => MagmaService.fetchLiveAlerts(false), name: 'Live Gunung Api Magma' },
+    { call: () => BnpbKarhutlaService.fetchKarhutlaAlerts(true), name: 'Karhutla BNPB' }
   ];
 
   let pending = apis.length;
@@ -51,7 +53,6 @@ const fetchAllSources = async () => {
       })
       .catch((e) => {
         console.error(`Failed to fetch ${name}:`, e);
-        // Fallback for Magma live alerts if direct scraping fails
         if (name === 'Live Gunung Api Magma') {
           MagmaService.fetchLiveAlerts(true)
             .then((data) => {
@@ -61,6 +62,16 @@ const fetchAllSources = async () => {
               }
             })
             .catch((err) => console.error('Fallback fetch for Magma failed:', err));
+        }
+        if (name === 'Karhutla BNPB') {
+          BnpbKarhutlaService.fetchKarhutlaAlerts(false)
+            .then((data) => {
+              if (data && data.length > 0) {
+                cachedAlerts = mergeAlerts(cachedAlerts, data);
+                notifyListeners();
+              }
+            })
+            .catch((err) => console.error('Fallback fetch for Karhutla failed:', err));
         }
       })
       .finally(() => {

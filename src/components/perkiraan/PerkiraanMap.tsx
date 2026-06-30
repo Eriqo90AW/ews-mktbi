@@ -27,6 +27,8 @@ interface PerkiraanMapProps {
   onProvinceSelect?: (id: string) => void;
   selectedMegathrustId?: string | null;
   onMegathrustSelect?: (id: string) => void;
+  showMegathrust?: boolean;
+  showRingOfFire?: boolean;
 }
 
 const INDONESIA_CENTER: [number, number] = [-2.5489, 118.0149];
@@ -54,6 +56,8 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
   onProvinceSelect,
   selectedMegathrustId = null,
   onMegathrustSelect,
+  showMegathrust = true,
+  showRingOfFire = true,
 }) => {
   const [geoJsonData, setGeoJsonData] = useState<GeoJsonObject | null>(null);
 
@@ -251,7 +255,7 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
         ))}
 
         {/* Ring of Fire arcs */}
-        {mode === 'gempa' && RING_OF_FIRE_ARCS.map((arc) => (
+        {mode === 'gempa' && showRingOfFire && RING_OF_FIRE_ARCS.map((arc) => (
           <Polyline
             key={arc.id}
             positions={arc.path}
@@ -262,15 +266,13 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
         ))}
 
         {/* Volcano points */}
-        {mode === 'gempa' && VOLCANO_POINTS.map((v) => {
+        {mode === 'gempa' && showRingOfFire && VOLCANO_POINTS.map((v) => {
           const levelColor = v.level === 'III' ? '#dc2626' : v.level === 'II' ? '#d97706' : '#6b7280';
           const icon = L.divIcon({
             className: '',
-            html: `<div style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px;">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="${levelColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8))"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
-            </div>`,
-            iconSize: [18, 18],
-            iconAnchor: [9, 9],
+            html: `<div style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; font-size: 18px; line-height: 1;">🌋</div>`,
+            iconSize: [22, 22],
+            iconAnchor: [11, 11],
           });
           return (
             <Marker key={`vol-${v.name}`} position={[v.lat, v.lng]} icon={icon}>
@@ -283,7 +285,7 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
         })}
 
         {/* Megathrust zones */}
-        {mode === 'gempa' && MEGATHRUST_ZONES.map((zone) => {
+        {mode === 'gempa' && showMegathrust && MEGATHRUST_ZONES.map((zone) => {
           const isSelected = zone.id === selectedMegathrustId;
           const bufferSegments = getPolylineBufferSegments(zone.path, zone.impactRadiusKm);
 

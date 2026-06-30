@@ -91,6 +91,32 @@ function renderMetrics(alert: DisasterAlert) {
 }
 
 export const AlertCard: React.FC<AlertCardProps> = ({ alert, province, isSelected, onClick }) => {
+  const formatWibTime = (isoString: string) => {
+    try {
+      const past = new Date(isoString);
+      const now = new Date();
+      const diffMs = now.getTime() - past.getTime();
+      const diffHours = Math.floor(diffMs / 3600000);
+
+      const timeStr = past.toLocaleTimeString('id-ID', {
+        timeZone: 'Asia/Jakarta',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+
+      if (diffHours < 24) return `${timeStr} WIB`;
+
+      const dateStr = past.toLocaleDateString('id-ID', {
+        timeZone: 'Asia/Jakarta',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+      return `${dateStr}, ${timeStr} WIB`;
+    } catch { return ''; }
+  };
+
   const formatRelativeTime = (isoString: string) => {
     try {
       const past = new Date(isoString);
@@ -137,6 +163,8 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, province, isSelecte
         <span className="alertcard-province">{province?.name ?? 'Unknown Province'}</span>
         <span className="alertcard-dot" />
         <span className="alertcard-time">{formatRelativeTime(alert.timestamp)}</span>
+        <span className="alertcard-dot" />
+        <span className="alertcard-time">{formatWibTime(alert.timestamp)}</span>
         {alert.isForecast && <span className="alertcard-forecast-tag">Prakiraan</span>}
       </div>
     </div>

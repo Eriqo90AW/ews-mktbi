@@ -3,9 +3,9 @@ import { MEGATHRUST_ZONES } from '../../constants/megathrustZones';
 import { RING_OF_FIRE_ARCS, VOLCANO_POINTS } from '../../constants/ringOfFire';
 import {
   FlashOn as FlashOnIcon,
-  Business as BusinessIcon,
-  Volcano as VolcanoIcon
+  Business as BusinessIcon
 } from '@mui/icons-material';
+import GempaMapLegend from './map/GempaMapLegend';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { PROVINCES } from '../../constants/provinces';
 import { distanceToPolyline, haversineDistance } from '../../utils/geo';
@@ -38,6 +38,8 @@ const GempaView: React.FC = () => {
   const [selectedArcId, setSelectedArcId]         = useState<string | null>(null);
   const [selectedVolcanoName, setSelectedVolcanoName] = useState<string | null>(null);
   const [activeLayer, setActiveLayer]             = useState<'megathrust' | 'ringoffire'>('megathrust');
+  const [showMegathrust, setShowMegathrust]       = useState<boolean>(true);
+  const [showRingOfFire, setShowRingOfFire]       = useState<boolean>(true);
 
   const provincesMap = useMemo(() => new Map(PROVINCES.map((p) => [p.id, p])), []);
 
@@ -258,7 +260,7 @@ const GempaView: React.FC = () => {
                     <div className="mt-zone-body">
                       <div className="mt-zone-top">
                         <span className="mt-zone-name" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                          <VolcanoIcon style={{ fontSize: 14, color }} /> G. {v.name}
+                          <span style={{ fontSize: 14 }}>🌋</span> G. {v.name}
                         </span>
                         <span className="mt-zone-mw-badge" style={{ color, borderColor: `${color}40`, background: `${color}15` }}>
                           {getLevelLabel(v.level)}
@@ -313,6 +315,14 @@ const GempaView: React.FC = () => {
           mode="gempa"
           selectedMegathrustId={selectedZoneId}
           onMegathrustSelect={handleMegathrustSelect}
+          showMegathrust={showMegathrust}
+          showRingOfFire={showRingOfFire}
+        />
+        <GempaMapLegend
+          megathrust={showMegathrust}
+          ringOfFire={showRingOfFire}
+          onToggleMegathrust={() => setShowMegathrust((v) => !v)}
+          onToggleRingOfFire={() => setShowRingOfFire((v) => !v)}
         />
       </div>
     </div>
