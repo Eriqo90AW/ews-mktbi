@@ -9,7 +9,9 @@ import ReportModal from './ReportModal';
 import AlertToast from '../ui/AlertToast';
 import type { ToastItem } from '../ui/AlertToast';
 import DisasterAlertBanner from '../ui/DisasterAlertBanner';
+import LaporanSidebar from './LaporanSidebar';
 import './DisasterDashboard.css';
+import './LaporanSidebar.css';
 
 interface DisasterDashboardProps {
   onSwitchToKerentanan: () => void;
@@ -30,6 +32,7 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
   const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isLaporanOpen, setIsLaporanOpen] = useState(false);
 
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const shownAlertIds = useRef<Set<string>>(new Set());
@@ -177,6 +180,25 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
           activeTypeFilter={typeFilter}
           isSidebarCollapsed={isSidebarCollapsed}
         />
+
+        {/* Laporan KPw right sidebar */}
+        <div className={`laporan-sidebar${isLaporanOpen ? ' open' : ''}`}>
+          <button
+            className="laporan-sidebar-toggle"
+            onClick={() => setIsLaporanOpen((o) => !o)}
+            title={isLaporanOpen ? 'Tutup Laporan KPw' : 'Buka Laporan KPw'}
+          >
+            <svg
+              viewBox="0 0 24 24" width="14" height="14" fill="none"
+              stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              style={{ transform: isLaporanOpen ? 'none' : 'rotate(180deg)', transition: 'transform 0.2s' }}
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            <span className="laporan-sidebar-label">Laporan Satgas Satker Terdampak</span>
+          </button>
+          {isLaporanOpen && <LaporanSidebar />}
+        </div>
       </div>
 
       <ReportModal

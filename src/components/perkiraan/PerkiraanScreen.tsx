@@ -15,9 +15,7 @@ const PerkiraanScreen: React.FC<PerkiraanScreenProps> = ({ onBack }) => {
 
   return (
     <div className="perkiraan-container">
-      {/* Header — matches topbar-container pattern */}
       <header className="topbar-container">
-        {/* Left: back + brand */}
         <div className="topbar-brand">
           <button className="topbar-back-btn" onClick={onBack}>
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -32,18 +30,18 @@ const PerkiraanScreen: React.FC<PerkiraanScreenProps> = ({ onBack }) => {
           </div>
         </div>
 
-        {/* Center: main tabs */}
+        {/* Center: tab switcher — pills always expanded */}
         <div className="topbar-center">
           <div className="topbar-filter-group perkiraan">
             <button
-              className={`topbar-filter-pill${activeTab === 'mingguan' ? ' active' : ''}`}
+              className={`topbar-filter-pill perkiraan-pill${activeTab === 'mingguan' ? ' active' : ''}`}
               onClick={() => setActiveTab('mingguan')}
             >
               <span>📅</span>
               <span>Mingguan</span>
             </button>
             <button
-              className={`topbar-filter-pill${activeTab === 'jangka_panjang' ? ' active' : ''}`}
+              className={`topbar-filter-pill perkiraan-pill${activeTab === 'jangka_panjang' ? ' active' : ''}`}
               onClick={() => setActiveTab('jangka_panjang')}
             >
               <span>📊</span>
@@ -52,20 +50,29 @@ const PerkiraanScreen: React.FC<PerkiraanScreenProps> = ({ onBack }) => {
           </div>
         </div>
 
-        {/* Right: status chip */}
         <div className="topbar-right">
           <div className={`topbar-status ${activeTab === 'mingguan' ? 'monitoring' : 'clear'}`}>
             <span className="topbar-status-dot" />
-            <span>
-              {activeTab === 'mingguan' ? '📅 Prakiraan 3 Hari' : '📊 Analisis Strategis'}
-            </span>
+            <span>{activeTab === 'mingguan' ? '📅 Prakiraan 3 Hari' : '📊 Analisis Strategis'}</span>
           </div>
         </div>
       </header>
 
       {/* Main content area */}
       <div className="perkiraan-body">
-        {activeTab === 'mingguan' && <MingguanTab />}
+        {activeTab === 'mingguan' && (
+          <div className="mingguan-container" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+            <div className="perkiraan-subtabs">
+              <button className="perkiraan-subtab-btn active">
+                <span>🌦️</span>
+                <span>Cuaca</span>
+              </button>
+            </div>
+            <div className="mingguan-body" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+              <MingguanTab />
+            </div>
+          </div>
+        )}
         {activeTab === 'jangka_panjang' && <JangkaPanjangTab />}
       </div>
     </div>
