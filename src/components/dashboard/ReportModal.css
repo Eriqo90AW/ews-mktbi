@@ -307,7 +307,7 @@
 }
 
 .severity-segment.watch {
-  background-color: var(--alert-watch, #eab308);
+  background-color: var(--alert-watch, #16a34a);
 }
 
 /* Impacted KPW Offices List & All Disasters List */

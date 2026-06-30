@@ -349,7 +349,7 @@
 }
 
 .topbar-status-btn.monitoring:hover {
-  background-color: var(--alert-watch-border, rgba(14,165,233,0.2));
+  background-color: var(--alert-watch-border, rgba(22,163,74,0.2));
 }
 
 .topbar-status-btn.open.critical {
@@ -361,7 +361,7 @@
 }
 
 .topbar-status-btn.open.monitoring {
-  box-shadow: 0 0 0 2px var(--alert-watch-border, rgba(14,165,233,0.3));
+  box-shadow: 0 0 0 2px var(--alert-watch-border, rgba(22,163,74,0.3));
 }
 
 /* ── Dropdown ────────────────────────────────────────────── */
@@ -847,7 +847,7 @@
 }
 
 .noti-severity-indicator--watch {
-  background-color: var(--alert-watch, #0ea5e9);
+  background-color: var(--alert-watch, #16a34a);
 }
 
 /* Source badge (BMKG vs MAGMA) */
@@ -898,7 +898,7 @@
 }
 
 .bima-toast--watch {
-  border-left-color: var(--alert-watch, #0ea5e9);
+  border-left-color: var(--alert-watch, #16a34a);
 }
 
 .bima-toast-header {
@@ -979,6 +979,6 @@
 
 .noti-item .alertcard-sev-badge.sev-critical .sev-box.filled { background-color: var(--alert-critical); }
 .noti-item .alertcard-sev-badge.sev-warning  .sev-box.filled { background-color: var(--alert-warning); }
-.noti-item .alertcard-sev-badge.sev-watch    .sev-box.filled { background-color: var(--alert-watch, #0ea5e9); }
+.noti-item .alertcard-sev-badge.sev-watch    .sev-box.filled { background-color: var(--alert-watch, #16a34a); }
 
 

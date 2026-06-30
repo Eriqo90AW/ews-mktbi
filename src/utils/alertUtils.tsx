@@ -74,8 +74,8 @@ export function getDisasterIconClass(type: DisasterType | string): string {
   }
 }
 
-export function getDisasterIconHtml(type: DisasterType | string): string {
-  const color = getDisasterColor(type);
+export function getDisasterIconHtml(type: DisasterType | string, customColor?: string): string {
+  const color = customColor || getDisasterColor(type);
   if (type === 'extreme_weather' || type === 'cuaca') {
     return ReactDOMServer.renderToStaticMarkup(
       <ThunderstormIcon style={{ color, fontSize: '20px', display: 'inline-block', verticalAlign: 'middle' }} />

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { MapContainer, TileLayer, GeoJSON, Polyline } from 'react-leaflet';
 import L from 'leaflet';
-import type { DisasterAlert, DisasterType } from '../../types';
+import type { DisasterAlert, DisasterType, AlertSeverity } from '../../types';
 import { PROVINCES } from '../../constants/provinces';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { findNearestOfficesByProvince } from '../../utils/geo';
@@ -11,7 +11,6 @@ import MapController from './map/MapController';
 import MapEventsHandler from './map/MapEventsHandler';
 import AlertCircles from './map/AlertCircles';
 import KpwMarkers from './map/KpwMarkers';
-import DrcMarkers from './map/DrcMarkers';
 import NearestKpwPanel from './map/NearestKpwPanel';
 import MapLegend from './map/MapLegend';
 import 'leaflet/dist/leaflet.css';
@@ -69,7 +68,6 @@ export const EwsMap: React.FC<EwsMapProps> = ({
     korwil: true,
     normal: true,
     nearest: true,
-    drc: true,
     critical: true,
     warning: true,
     watch: true,
@@ -111,7 +109,7 @@ export const EwsMap: React.FC<EwsMapProps> = ({
       return { fillColor: isPotensiFilter ? '#fbbf24' : '#ea580c', fillOpacity: 0.3, color: isPotensiFilter ? '#d97706' : '#c2410c', weight: 1.5, bubblingMouseEvents: false };
     }
     if (score > 0) {
-      return { fillColor: isPotensiFilter ? '#10b981' : '#0ea5e9', fillOpacity: 0.2, color: isPotensiFilter ? '#059669' : '#0284c7', weight: 1.2, bubblingMouseEvents: false };
+      return { fillColor: '#22c55e', fillOpacity: 0.2, color: '#16a34a', weight: 1.2, bubblingMouseEvents: false };
     }
     return { fillColor: 'transparent', fillOpacity: 0, color: 'rgba(0,0,0,0.12)', weight: 0.8, bubblingMouseEvents: false };
   };
@@ -147,6 +145,60 @@ export const EwsMap: React.FC<EwsMapProps> = ({
     `, { sticky: true });
   };
 
+  const severityColors: Record<AlertSeverity, string> = {
+    critical: 'var(--alert-critical)',
+    warning: 'var(--alert-warning)',
+    watch: 'var(--alert-watch)',
+  };
+
+  const getWeatherGeoJsonStyle = (feature: any) => {
+    const provinceId = mapTextToProvinceId(feature.properties.Propinsi || '');
+    const severity = weatherAlertProvinces.get(provinceId);
+    if (!severity) {
+      return { fillColor: 'transparent', fillOpacity: 0, color: 'transparent', weight: 0, bubblingMouseEvents: false };
+    }
+    const color = severityColors[severity];
+    return {
+      fillColor: color,
+      fillOpacity: 0.2,
+      color,
+      weight: 2,
+      bubblingMouseEvents: false,
+    };
+  };
+
+  const onEachWeatherFeature = (feature: any, layer: L.Layer) => {
+    const propName = feature.properties.Propinsi || '';
+    const provinceId = mapTextToProvinceId(propName);
+    const severity = weatherAlertProvinces.get(provinceId);
+    if (!severity) return;
+
+    const weatherAlerts = visibleAlerts.filter(
+      (a) => a.type === 'extreme_weather' && a.provinceId === provinceId
+    );
+
+    layer.bindTooltip(`
+      <div style="font-family: var(--font-sans); font-size: 12px; line-height: 1.4; padding: 4px;">
+        <strong>Provinsi ${propName}</strong><br/>
+        <span>Peringatan Cuaca Ekstrim</span><br/>
+        ${weatherAlerts.map((a) => `<div>• ${a.title}</div>`).join('')}
+        <div style="margin-top: 4px;">
+          Severity: <span style="font-weight: 700; color: ${severityColors[severity]}">${severity.toUpperCase()}</span>
+        </div>
+      </div>
+    `, { sticky: true });
+
+    layer.on({
+      click: () => {
+        const firstAlert = weatherAlerts[0];
+        if (firstAlert) {
+          onAlertSelect(firstAlert.id);
+          onProvinceSelect(provinceId);
+        }
+      },
+    });
+  };
+
   const selectedOffice = KPWBI_OFFICES.find((o) => o.provinceId === selectedProvinceId) ?? null;
   const selectedAlert = alerts.find((a) => a.id === selectedAlertId) ?? null;
 
@@ -164,6 +216,24 @@ export const EwsMap: React.FC<EwsMapProps> = ({
       return true;
     });
   }, [alerts, riskResults, selectedAlertId, mapLayers.critical, mapLayers.warning, mapLayers.watch]);
+
+  // Compute province highlights for extreme_weather alerts (province-level impact instead of circle radius)
+  const weatherAlertProvinces = useMemo(() => {
+    const provinceMap = new Map<string, AlertSeverity>();
+    const severityOrder: AlertSeverity[] = ['critical', 'warning', 'watch'];
+    for (const alert of visibleAlerts) {
+      if (alert.type !== 'extreme_weather' || !alert.provinceId) continue;
+      const existing = provinceMap.get(alert.provinceId);
+      if (!existing || severityOrder.indexOf(alert.severity) < severityOrder.indexOf(existing)) {
+        provinceMap.set(alert.provinceId, alert.severity);
+      }
+    }
+    return provinceMap;
+  }, [visibleAlerts]);
+
+  const weatherAlertKey = useMemo(() => {
+    return Array.from(weatherAlertProvinces.entries()).map(([k, v]) => `${k}-${v}`).join(',');
+  }, [weatherAlertProvinces]);
 
   const nearestOffices = useMemo(() => {
     if (!selectedOffice || !mapLayers.nearest) return [];
@@ -210,6 +280,15 @@ export const EwsMap: React.FC<EwsMapProps> = ({
           />
         )}
 
+        {!isInariskFilter && !isPotensiFilter && weatherAlertProvinces.size > 0 && geoJsonData && (
+          <GeoJSON
+            key={`weather-${weatherAlertKey}`}
+            data={geoJsonData}
+            style={getWeatherGeoJsonStyle}
+            onEachFeature={onEachWeatherFeature}
+          />
+        )}
+
         <MapController
           selectedOffice={selectedOffice}
           selectedAlert={selectedAlert}
@@ -240,7 +319,6 @@ export const EwsMap: React.FC<EwsMapProps> = ({
           selectedAlertId={selectedAlertId}
         />
 
-        {mapLayers.drc && <DrcMarkers selectedAlert={selectedAlert} riskResults={riskResults} />}
       </MapContainer>
 
       <NearestKpwPanel
@@ -256,7 +334,6 @@ export const EwsMap: React.FC<EwsMapProps> = ({
         mapLayers={mapLayers}
         onToggleLayer={toggleLayer}
         selectedAlert={selectedAlert}
-        riskResults={riskResults}
       />
     </div>
   );

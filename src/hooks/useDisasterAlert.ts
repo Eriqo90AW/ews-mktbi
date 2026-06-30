@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { useAlerts } from './useAlerts';
 import { KPWBI_OFFICES } from '../constants/kpwbiOffices';
-import { DRC_LOCATIONS } from '../constants/drcLocations';
 import { BnpbInariskService } from '../services/bnpbInariskService';
 import type { MarkedLocation, RiskCalcResult, VulnerabilityLevel } from '../types';
 import {
@@ -16,23 +15,14 @@ import {
 export const useDisasterAlert = () => {
   const { alerts, isLoading } = useAlerts();
 
-  // Memetakan lokasi kantor KPWBI dan DRC menjadi MarkedLocation[]
+  // Map all BI office locations (KPWBI + DC/DRC) into MarkedLocation[]
   const markedLocations = useMemo<MarkedLocation[]>(() => {
-    const offices: MarkedLocation[] = KPWBI_OFFICES.map((office) => ({
+    return KPWBI_OFFICES.map((office) => ({
       id: office.id,
       name: office.name,
       latitude: office.latitude,
       longitude: office.longitude,
     }));
-
-    const drcs: MarkedLocation[] = DRC_LOCATIONS.map((drc) => ({
-      id: drc.id,
-      name: drc.fullName,
-      latitude: drc.latitude,
-      longitude: drc.longitude,
-    }));
-
-    return [...offices, ...drcs];
   }, []);
 
   const riskResults = useMemo<RiskCalcResult[]>(() => {

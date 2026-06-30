@@ -14,6 +14,7 @@ export interface KpwbiOffice {
   region: string;
   isKorwil: boolean;
   isKantorPusat?: boolean;
+  category: 'kpw' | 'korwil' | 'kantor_pusat' | 'dc' | 'drc';
 }
 
 export const KPWBI_OFFICES: KpwbiOffice[] = [
@@ -29,6 +30,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 95.3184,
     region: 'Sumatera',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-lhokseumawe',
@@ -39,6 +41,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 97.1432,
     region: 'Sumatera',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-medan',
@@ -49,6 +52,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 98.6775,
     region: 'Sumatera',
     isKorwil: true,
+    category: 'korwil',
   },
   {
     id: 'kpwbi-pematangsiantar',
@@ -59,6 +63,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 99.0621,
     region: 'Sumatera',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-sibolga',
@@ -69,6 +74,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 98.7845,
     region: 'Sumatera',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-padang',
@@ -79,6 +85,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 100.3608,
     region: 'Sumatera',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-pekanbaru',
@@ -89,6 +96,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 101.4468,
     region: 'Sumatera',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-batam',
@@ -99,6 +107,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 104.0559,
     region: 'Sumatera',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-jambi',
@@ -109,6 +118,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 103.6143,
     region: 'Sumatera',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-bengkulu',
@@ -119,6 +129,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 102.2690,
     region: 'Sumatera',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-palembang',
@@ -129,6 +140,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 104.7460,
     region: 'Sumatera',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-pangkalpinang',
@@ -139,6 +151,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 106.1087,
     region: 'Sumatera',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-bandar-lampung',
@@ -149,6 +162,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 105.2638,
     region: 'Sumatera',
     isKorwil: false,
+    category: 'kpw',
   },
 
   // ═══════════════════════════════════════════════════════
@@ -164,6 +178,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     region: 'Jawa',
     isKorwil: false,
     isKantorPusat: true,
+    category: 'kantor_pusat',
   },
   {
     id: 'kpwbi-jakarta-kpw',
@@ -174,6 +189,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 106.8373,
     region: 'Jawa',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-bandung',
@@ -184,6 +200,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 107.6105,
     region: 'Jawa',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-cirebon',
@@ -194,6 +211,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 108.5670,
     region: 'Jawa',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-tasikmalaya',
@@ -204,6 +222,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 108.2227,
     region: 'Jawa',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-serang',
@@ -214,6 +233,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 106.1557,
     region: 'Jawa',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-semarang',
@@ -224,6 +244,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 110.4208,
     region: 'Jawa',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-solo',
@@ -234,6 +255,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 110.8291,
     region: 'Jawa',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-purwokerto',
@@ -244,6 +266,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 109.2315,
     region: 'Jawa',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-tegal',
@@ -254,6 +277,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 109.1352,
     region: 'Jawa',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-yogyakarta',
@@ -264,6 +288,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 110.3663,
     region: 'Jawa',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-surabaya',
@@ -274,6 +299,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 112.7380,
     region: 'Jawa',
     isKorwil: true,
+    category: 'korwil',
   },
   {
     id: 'kpwbi-malang',
@@ -284,6 +310,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 112.6306,
     region: 'Jawa',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-kediri',
@@ -294,6 +321,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 112.0125,
     region: 'Jawa',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-jember',
@@ -304,6 +332,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 113.6934,
     region: 'Jawa',
     isKorwil: false,
+    category: 'kpw',
   },
 
   // ═══════════════════════════════════════════════════════
@@ -318,6 +347,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 109.3424,
     region: 'Kalimantan',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-palangka-raya',
@@ -328,6 +358,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 113.9160,
     region: 'Kalimantan',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-banjarmasin',
@@ -338,6 +369,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 114.5916,
     region: 'Kalimantan',
     isKorwil: true,
+    category: 'korwil',
   },
   {
     id: 'kpwbi-samarinda',
@@ -348,6 +380,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 117.1471,
     region: 'Kalimantan',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-balikpapan',
@@ -358,6 +391,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 116.8293,
     region: 'Kalimantan',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-tarakan',
@@ -368,6 +402,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 117.5913,
     region: 'Kalimantan',
     isKorwil: false,
+    category: 'kpw',
   },
 
   // ═══════════════════════════════════════════════════════
@@ -382,6 +417,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 115.2285,
     region: 'Bali & Nusa Tenggara',
     isKorwil: true,
+    category: 'korwil',
   },
   {
     id: 'kpwbi-mataram',
@@ -392,6 +428,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 116.1026,
     region: 'Bali & Nusa Tenggara',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-kupang',
@@ -402,6 +439,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 123.5855,
     region: 'Bali & Nusa Tenggara',
     isKorwil: false,
+    category: 'kpw',
   },
 
   // ═══════════════════════════════════════════════════════
@@ -416,6 +454,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 124.8499,
     region: 'Sulawesi, Maluku, & Papua',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-gorontalo',
@@ -426,6 +465,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 123.0583,
     region: 'Sulawesi, Maluku, & Papua',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-palu',
@@ -436,6 +476,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 119.8519,
     region: 'Sulawesi, Maluku, & Papua',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-mamuju',
@@ -446,6 +487,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 118.8770,
     region: 'Sulawesi, Maluku, & Papua',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-kendari',
@@ -456,6 +498,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 122.5834,
     region: 'Sulawesi, Maluku, & Papua',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-makassar',
@@ -466,6 +509,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 119.4109,
     region: 'Sulawesi, Maluku, & Papua',
     isKorwil: true,
+    category: 'korwil',
   },
   {
     id: 'kpwbi-ternate',
@@ -476,6 +520,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 127.3855,
     region: 'Sulawesi, Maluku, & Papua',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-ambon',
@@ -486,6 +531,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 128.1832,
     region: 'Sulawesi, Maluku, & Papua',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-manokwari',
@@ -496,6 +542,7 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 134.0760,
     region: 'Sulawesi, Maluku, & Papua',
     isKorwil: false,
+    category: 'kpw',
   },
   {
     id: 'kpwbi-jayapura',
@@ -506,6 +553,18 @@ export const KPWBI_OFFICES: KpwbiOffice[] = [
     longitude: 140.7107,
     region: 'Sulawesi, Maluku, & Papua',
     isKorwil: false,
+    category: 'kpw',
+  },
+  {
+    id: 'drc-sinergi-karawang',
+    name: 'Gedung Sinergi — Data Center Bank Indonesia',
+    city: 'Karawang',
+    provinceId: 'ID-JB',
+    latitude: -6.3215,
+    longitude: 107.3381,
+    region: 'Jawa',
+    isKorwil: false,
+    category: 'dc',
   },
 ];
 

@@ -13,7 +13,7 @@ export function getAlertImpactRadiusKm(alert: DisasterAlert): number {
     case 'flood':
       return (alert.waterLevel || 1.5) * 12;
     case 'volcanic':
-      return 35;
+      return 80;
     case 'landslide':
       return 15;
     case 'extreme_weather':

@@ -8,7 +8,6 @@ import { isOfficeAffectedByAlert } from '../../../utils/disasterImpact';
 import { BnpbInariskService } from '../../../services/bnpbInariskService';
 import { renderDisasterIcon } from '../../../utils/alertUtils';
 import type { NearestKpwResult } from '../../../utils/geo';
-import WeatherCard from './WeatherCard';
 
 
 interface KpwMarkersProps {
@@ -24,7 +23,6 @@ interface KpwMarkersProps {
     korwil: boolean;
     normal: boolean;
     nearest: boolean;
-    drc: boolean;
     critical: boolean;
     warning: boolean;
     watch: boolean;
@@ -89,11 +87,20 @@ function createMarkerIcon(
     });
   }
 
+  if (office.category === 'dc') {
+    return L.divIcon({
+      className: 'custom-marker bi-triangle-container',
+      html: `<svg class="bi-triangle ${classString}" viewBox="0 0 24 24" width="24" height="24"><polygon points="12,2 23,22 1,22" fill="currentColor" stroke="white" stroke-width="2"/></svg>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    });
+  }
+
   return L.divIcon({
     className: 'custom-marker',
     html: `<div class="${['marker-dot', ...classes].join(' ')}"></div>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
   });
 }
 
@@ -161,6 +168,7 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                 <strong>{office.city}</strong> — {office.name}
                 {office.isKantorPusat && ' 🏛️ (Kantor Pusat)'}
                 {office.isKorwil && !office.isKantorPusat && ' ★ Korwil'}
+                {office.category === 'dc' && ' ▲ Data Center'}
                 {nearestInfo && (
                   <div style={{ marginTop: '4px', fontSize: '11px', color: '#10b981', fontWeight: 600 }}>
                     ↔️ Terdekat ({nearestInfo.distanceKm.toFixed(1)} km)
@@ -191,7 +199,7 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                   return (
                     <div className="ews-popup-content">
                       <div className={`ews-popup-header ${severity}`}>
-                        <span>{renderDisasterIcon(hazard)}</span>
+                        <span>{renderDisasterIcon(hazard, undefined, { color: 'inherit' })}</span>
                         <span>Indeks Bahaya {hazardTitle} (InaRisk)</span>
                       </div>
                       <div className="ews-popup-title" style={{ marginTop: 0 }}>{office.name} ({office.city})</div>
@@ -211,20 +219,18 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                   );
                 })()
               ) : (
-                <div className="ews-popup-content" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div className="ews-popup-header" style={{ color: 'var(--accent-primary)' }}>
-                    <span>📍</span>
-                    <span>KPwBI OFFICE</span>
-                  </div>
+                  <div className="ews-popup-content" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div className="ews-popup-header" style={{ color: 'var(--accent-primary)' }}>
+                      <span>📍</span>
+                      <span>{office.category === 'dc' ? 'DATA CENTER — BI' : office.category === 'drc' ? 'DISASTER RECOVERY CENTER — BI' : 'KPwBI OFFICE'}</span>
+                    </div>
                   <div className="ews-popup-title" style={{ marginTop: 0 }}>{office.name}</div>
                   <p className="ews-popup-desc" style={{ marginBottom: 0 }}>
                     City: <strong>{office.city}</strong><br />
                     Province: {getProvinceName(office.provinceId)}<br />
                     Region: {office.region}
                   </p>
-                  
-                  <WeatherCard provinceId={office.provinceId} cityName={office.city} />
-                  
+                                    
                   <div className="ews-popup-footer" style={{ marginTop: '4px' }}>
                     {riskSeverity && (
                       <span className="ews-popup-tag" style={{

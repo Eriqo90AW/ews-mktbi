@@ -61,10 +61,9 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
     setToasts((prev) => prev.filter((t) => t.toastId !== toastId));
   }, []);
 
-  // Rolling 3-day window — alerts older than this are excluded
-  const threeDaysAgo = useMemo(() => {
+  // Today-only window — alerts older than today are excluded
+  const todayStart = useMemo(() => {
     const d = new Date();
-    d.setDate(d.getDate() - 3);
     d.setHours(0, 0, 0, 0);
     return d.getTime();
   }, []);
@@ -72,17 +71,17 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
   const calculatedCriticalAlerts = useMemo(() => {
     return alerts.filter((a) => {
       if (a.isForecast) return false;
-      if (new Date(a.timestamp).getTime() < threeDaysAgo) return false;
+      if (new Date(a.timestamp).getTime() < todayStart) return false;
       if (typeFilter !== 'all' && a.type !== typeFilter) return false;
       const riskRes = riskResults.find((r) => r.event.id === a.id);
       return riskRes && riskRes.riskLevel === 'Tinggi';
     });
-  }, [alerts, riskResults, typeFilter, threeDaysAgo]);
+  }, [alerts, riskResults, typeFilter, todayStart]);
 
   const filteredAlerts = useMemo(() => {
     return alerts.filter((a) => {
       if (a.isForecast) return false;
-      if (new Date(a.timestamp).getTime() < threeDaysAgo) return false;
+      if (new Date(a.timestamp).getTime() < todayStart) return false;
 
       const riskRes = riskResults.find((r) => r.event.id === a.id);
       if (!riskRes) return false;
@@ -95,14 +94,14 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
       if (typeFilter !== 'all' && a.type !== typeFilter) return false;
       return true;
     });
-  }, [alerts, riskResults, severityFilter, typeFilter, threeDaysAgo]);
+  }, [alerts, riskResults, severityFilter, typeFilter, todayStart]);
 
   const filteredStats = useMemo(() => {
     const stats = { critical: 0, warning: 0, watch: 0, total: 0 };
 
     alerts.forEach((a) => {
       if (a.isForecast) return;
-      if (new Date(a.timestamp).getTime() < threeDaysAgo) return;
+      if (new Date(a.timestamp).getTime() < todayStart) return;
       if (typeFilter !== 'all' && a.type !== typeFilter) return;
 
       const riskRes = riskResults.find((r) => r.event.id === a.id);
@@ -122,7 +121,7 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
     }
 
     return stats;
-  }, [alerts, riskResults, severityFilter, typeFilter, threeDaysAgo]);
+  }, [alerts, riskResults, severityFilter, typeFilter, todayStart]);
 
   const handleProvinceSelect = (provinceId: string) => {
     setSelectedProvinceId(provinceId);

@@ -21,6 +21,7 @@ export interface KpwbiOffice {
   region: string;
   isKorwil: boolean;
   isKantorPusat?: boolean;
+  category: 'kpw' | 'korwil' | 'kantor_pusat' | 'dc' | 'drc';
 }
 
 export interface DisasterAlert {
@@ -40,16 +41,6 @@ export interface DisasterAlert {
   isForecast?: boolean;
   forecastDay?: number; // 1, 2, or 3
   forecastDateStr?: string; // e.g. "25 Jun 2026"
-}
-
-export interface DrcLocation {
-  id: string;
-  name: string;       // e.g. "Sinergi"
-  fullName: string;   // e.g. "Gedung Sinergi — Data Center BI"
-  city: string;
-  latitude: number;
-  longitude: number;
-  type: 'DC' | 'DRC'; // Data Center or Disaster Recovery Center
 }
 
 export type VolcanoLevel = 'III' | 'II' | 'I';

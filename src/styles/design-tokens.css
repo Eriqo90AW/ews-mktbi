@@ -24,9 +24,9 @@
   --alert-warning-bg: #fffbeb;   /* amber-50 */
   --alert-warning-border: #fde68a; /* amber-200 */
   
-  --alert-watch: #0284c7;        /* sky-600 */
-  --alert-watch-bg: #f0f9ff;     /* sky-50 */
-  --alert-watch-border: #bae6fd;  /* sky-200 */
+  --alert-watch: #16a34a;        /* green-600 */
+  --alert-watch-bg: #f0fdf4;     /* green-50 */
+  --alert-watch-border: #bbf7d0;  /* green-200 */
   
   --alert-info: #0f766e;         /* teal-700 */
   --alert-info-bg: #f0fdfa;      /* teal-50 */

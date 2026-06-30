@@ -3,6 +3,7 @@ import { Circle, Tooltip, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import type { DisasterAlert, AlertSeverity } from '../../../types';
 import { KPWBI_OFFICES } from '../../../constants/kpwbiOffices';
+import { PROVINCES } from '../../../constants/provinces';
 import { isValidCoord } from '../../../utils/geo';
 import { getDisasterIconHtml, renderDisasterIcon } from '../../../utils/alertUtils';
 
@@ -116,7 +117,7 @@ const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts, onAlertSelect }) =>
 
         const { radius, pathOptions } = getCircleConfig(alert);
         const iconCoords = getBottomRightCoords(center[0], center[1], radius);
-        const iconHtml = getDisasterIconHtml(alert.type);
+        const iconHtml = getDisasterIconHtml(alert.type, pathOptions.color);
 
         // Custom DivIcon for the disaster emoji, fully transparent container
         const customIcon = L.divIcon({
@@ -141,7 +142,7 @@ const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts, onAlertSelect }) =>
           <div className="ews-popup-content">
             <div className={`ews-popup-header ${alert.severity}`}>
               <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                {renderDisasterIcon(alert.type)}
+                {renderDisasterIcon(alert.type, undefined, { color: 'inherit' })}
               </span>
               <span>{alert.title}</span>
             </div>
@@ -188,57 +189,97 @@ const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts, onAlertSelect }) =>
           </div>
         );
 
+        const isWeatherAlert = alert.type === 'extreme_weather';
+
+        const weatherPopupContent = isWeatherAlert ? (
+          <div className="ews-popup-content">
+            <div className={`ews-popup-header ${alert.severity}`}>
+              <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                {renderDisasterIcon(alert.type, undefined, { color: 'inherit' })}
+              </span>
+              <span>{alert.title}</span>
+            </div>
+            <div className="ews-popup-title" style={{ marginTop: 0 }}>
+              {alert.affectedArea || 'Area Terdampak'}
+            </div>
+            <p className="ews-popup-desc">
+              {alert.description}
+            </p>
+            <div className="ews-popup-footer">
+              <span>Provinsi terdampak cuaca ekstrim</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Severity:</span>
+                <span className="ews-popup-tag" style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  padding: '2px 4px',
+                  borderColor: alert.severity === 'critical' ? 'var(--alert-critical-border)' : alert.severity === 'warning' ? 'var(--alert-warning-border)' : 'var(--alert-watch-border)',
+                  backgroundColor: alert.severity === 'critical' ? 'var(--alert-critical-bg)' : alert.severity === 'warning' ? 'var(--alert-warning-bg)' : 'var(--alert-watch-bg)',
+                }}>
+                  {[1, 2, 3].map((i) => {
+                    const sevBoxCount = { critical: 3, warning: 2, watch: 1 }[alert.severity] || 1;
+                    const filled = i <= sevBoxCount;
+                    const fillColor = filled
+                      ? { critical: 'var(--alert-critical)', warning: 'var(--alert-warning)', watch: 'var(--alert-watch)' }[alert.severity]
+                      : 'var(--border-default)';
+                    return (
+                      <span key={i} style={{ width: '12px', height: '4px', borderRadius: '1px', backgroundColor: fillColor, display: 'inline-block' }} />
+                    );
+                  })}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : null;
+
         return (
           <React.Fragment key={`alert-group-${alert.id}`}>
-            <Circle 
-              center={center} 
-              radius={radius} 
-              pathOptions={pathOptions}
-              eventHandlers={{
-                click: () => {
-                  onAlertSelect?.(alert.id);
-                }
-              }}
-            >
-              <Tooltip sticky>
-                <div>
-                  <strong>{alert.title}</strong><br />
-                  Radius Dampak: {(radius / 1000).toFixed(0)} km<br />
-                  {isValidCoord(alert.latitude, alert.longitude) && (
-                    <>Epicenter: {Number(alert.latitude).toFixed(4)}, {Number(alert.longitude).toFixed(4)}<br /></>
-                  )}
-                  Area: {alert.affectedArea || 'Sekitar KPW'}<br />
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
-                    <span>Severity:</span>
-                    <div style={{ display: 'flex', gap: '3px' }}>
-                      {[1, 2, 3].map((i) => {
-                        const sevBoxCount = { critical: 3, warning: 2, watch: 1 }[alert.severity] || 1;
-                        const filled = i <= sevBoxCount;
-                        const fillColor = filled 
-                          ? { critical: 'var(--alert-critical)', warning: 'var(--alert-warning)', watch: 'var(--alert-watch)' }[alert.severity]
-                          : 'rgba(255, 255, 255, 0.2)'; // semi-transparent fallback if border-default isn't visible in dark tooltip
-                        return (
-                          <span
-                            key={i}
-                            style={{
-                              width: '12px',
-                              height: '4px',
-                              borderRadius: '1px',
-                              backgroundColor: fillColor,
-                              display: 'inline-block'
-                            }}
-                          />
-                        );
-                      })}
+            {!isWeatherAlert && (
+              <Circle
+                center={center}
+                radius={radius}
+                pathOptions={pathOptions}
+                eventHandlers={{
+                  click: () => {
+                    onAlertSelect?.(alert.id);
+                  }
+                }}
+              >
+                <Tooltip sticky>
+                  <div>
+                    <strong>{alert.title}</strong><br />
+                    Radius Dampak: {(radius / 1000).toFixed(0)} km<br />
+                    {isValidCoord(alert.latitude, alert.longitude) && (
+                      <>Epicenter: {Number(alert.latitude).toFixed(4)}, {Number(alert.longitude).toFixed(4)}<br /></>
+                    )}
+                    Area: {alert.affectedArea || 'Sekitar KPW'}<br />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                      <span>Severity:</span>
+                      <div style={{ display: 'flex', gap: '3px' }}>
+                        {[1, 2, 3].map((i) => {
+                          const sevBoxCount = { critical: 3, warning: 2, watch: 1 }[alert.severity] || 1;
+                          const filled = i <= sevBoxCount;
+                          const fillColor = filled
+                            ? { critical: 'var(--alert-critical)', warning: 'var(--alert-warning)', watch: 'var(--alert-watch)' }[alert.severity]
+                            : 'rgba(255, 255, 255, 0.2)';
+                          return (
+                            <span key={i} style={{ width: '12px', height: '4px', borderRadius: '1px', backgroundColor: fillColor, display: 'inline-block' }} />
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Tooltip>
-              <Popup>{popupContent}</Popup>
-            </Circle>
-            <Marker 
-              position={iconCoords} 
-              icon={customIcon} 
+                </Tooltip>
+                <Popup>{popupContent}</Popup>
+              </Circle>
+            )}
+            <Marker
+              position={isWeatherAlert ? (() => {
+                const province = PROVINCES.find((p) => p.id === alert.provinceId);
+                return province ? [province.latitude, province.longitude] as [number, number] : center!;
+              })() : iconCoords}
+              icon={customIcon}
               interactive={true}
               eventHandlers={{
                 click: () => {
@@ -246,7 +287,7 @@ const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts, onAlertSelect }) =>
                 }
               }}
             >
-              <Popup>{popupContent}</Popup>
+              <Popup>{isWeatherAlert ? weatherPopupContent! : popupContent}</Popup>
             </Marker>
           </React.Fragment>
         );
