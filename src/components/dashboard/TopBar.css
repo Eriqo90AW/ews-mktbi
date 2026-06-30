@@ -137,7 +137,7 @@
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: max-width 0.3s ease, padding 0.3s ease, margin 0.3s ease, opacity 0.3s ease, background-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease;
+  transition: max-width 0.4s ease, padding 0.4s ease, margin 0.4s ease, opacity 0.4s ease, background-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease;
 }
 
 .topbar-filter-group:hover .topbar-filter-pill {

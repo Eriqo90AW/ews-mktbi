@@ -226,7 +226,7 @@ export const EwsMap: React.FC<EwsMapProps> = ({
           />
         ))}
 
-        <AlertCircles alerts={visibleAlerts} />
+        <AlertCircles alerts={visibleAlerts} onAlertSelect={onAlertSelect} />
 
         <KpwMarkers
           alerts={visibleAlerts}

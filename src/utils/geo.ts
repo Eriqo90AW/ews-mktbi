@@ -24,7 +24,18 @@ export function isValidCoord(lat?: unknown, lng?: unknown): boolean {
   if (lat == null || lng == null) return false;
   if (typeof lat === 'string' && lat.trim() === '') return false;
   if (typeof lng === 'string' && lng.trim() === '') return false;
-  return !isNaN(Number(lat)) && !isNaN(Number(lng));
+  
+  const numLat = Number(lat);
+  const numLng = Number(lng);
+  
+  if (isNaN(numLat) || isNaN(numLng)) return false;
+  if (numLat === 0 && numLng === 0) return false;
+  
+  // Basic bounds check
+  if (numLat < -90 || numLat > 90) return false;
+  if (numLng < -180 || numLng > 180) return false;
+
+  return true;
 }
 
 export interface NearestKpwResult {

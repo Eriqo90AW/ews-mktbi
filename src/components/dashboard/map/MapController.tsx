@@ -37,15 +37,17 @@ const MapController: React.FC<MapControllerProps> = ({ selectedOffice, selectedA
       }
 
       if (selectedAlert) {
-        const office = KPWBI_OFFICES.find((o) => o.provinceId === selectedAlert.provinceId);
-        if (office && isValidCoord(office.latitude, office.longitude)) {
-          map.flyTo([office.latitude, office.longitude], DETAIL_ZOOM, { duration: 1.5, animate: true });
-        } else if (isValidCoord(selectedAlert.latitude, selectedAlert.longitude)) {
+        if (isValidCoord(selectedAlert.latitude, selectedAlert.longitude)) {
           map.flyTo(
             [Number(selectedAlert.latitude), Number(selectedAlert.longitude)],
             DETAIL_ZOOM,
             { duration: 1.5, animate: true }
           );
+        } else {
+          const office = KPWBI_OFFICES.find((o) => o.provinceId === selectedAlert.provinceId);
+          if (office && isValidCoord(office.latitude, office.longitude)) {
+            map.flyTo([office.latitude, office.longitude], DETAIL_ZOOM, { duration: 1.5, animate: true });
+          }
         }
       } else if (selectedOffice) {
         if (isValidCoord(selectedOffice.latitude, selectedOffice.longitude)) {

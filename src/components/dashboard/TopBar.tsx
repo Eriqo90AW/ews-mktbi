@@ -169,6 +169,27 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
       <div className="topbar-right">
         <span className="topbar-clock">{timeStr || '—'}</span>
 
+        <button className="topbar-report-btn" onClick={async () => {
+          try {
+            const mapElement = document.querySelector('.map-wrapper');
+            if (!mapElement) return;
+            const html2canvas = (await import('html2canvas')).default;
+            const canvas = await html2canvas(mapElement as HTMLElement, { useCORS: true });
+            const link = document.createElement('a');
+            link.download = `Peta_EWS_${new Date().toISOString().slice(0,10)}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+          } catch (error) {
+            console.error('Gagal mengambil screenshot', error);
+          }
+        }}>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="4"></circle>
+          </svg>
+          Screenshot
+        </button>
+
         <button className="topbar-report-btn" onClick={onGenerateReport}>
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="20" x2="18" y2="10" />

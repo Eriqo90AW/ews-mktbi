@@ -17,7 +17,7 @@ export function getAlertImpactRadiusKm(alert: DisasterAlert): number {
     case 'landslide':
       return 15;
     case 'extreme_weather':
-      return 50;
+      return 60;
     case 'karhutla':
       return 30;
     case 'kekeringan':

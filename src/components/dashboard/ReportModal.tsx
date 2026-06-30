@@ -11,6 +11,7 @@ import {
   vulnerabilityToScore,
   getRiskLevel,
 } from '../../utils/riskCalculator';
+import * as XLSX from 'xlsx';
 import './ReportModal.css';
 
 interface ReportModalProps {
@@ -24,6 +25,8 @@ interface ImpactedRecord {
   alert: DisasterAlert;
   distanceKm: number | null;
   riskLevel: string;
+  vulnerabilityIndex?: number;
+  riskScore?: number;
 }
 
 export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alerts }) => {
@@ -84,13 +87,17 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
               : null;
           
           let riskLevelStr = '-';
+          let vulIndex = 0;
+          let rScoreVal = 0;
           const event = mapAlertToDisasterEvent(alert);
           if (event) {
             const hazard = mapDisasterTypeToInariskHazard(event.type);
             const index = BnpbInariskService.getLocalHazardIndex(office.id, hazard);
             const vulLevel = mapInariskToVulnerability(index);
             const vulScore = vulnerabilityToScore(vulLevel);
+            vulIndex = vulScore;
             const rScore = event.disasterScore * vulScore;
+            rScoreVal = rScore;
             riskLevelStr = getRiskLevel(rScore);
           }
 
@@ -99,6 +106,8 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
             alert,
             distanceKm,
             riskLevel: riskLevelStr,
+            vulnerabilityIndex: vulIndex,
+            riskScore: rScoreVal,
           });
         }
       });
@@ -148,78 +157,65 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
   const handleExportExcel = () => {
     if (!report) return;
 
-    let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`;
-    html += `<head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Disaster Report</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>`;
-    html += `<body>`;
-    
-    // Title
-    html += `<h2>REPORTING DISASTER & KPW IMPACT</h2>`;
-    html += `<p><b>Range Waktu:</b> ${startDate.replace('T', ' ')} s.d ${endDate.replace('T', ' ')}</p><br/>`;
-    
-    // Summary Stats Table
-    html += `<h3>SUMMARY STATS</h3>`;
-    html += `<table border="1">`;
-    html += `<tr><td><b>Total Alerts</b></td><td>${report.totalAlerts}</td></tr>`;
-    html += `<tr><td><b>Gempa Bumi</b></td><td>${report.earthquakes}</td></tr>`;
-    html += `<tr><td><b>Bencana Lainnya</b></td><td>${report.otherDisasters}</td></tr>`;
-    html += `<tr><td><b>Gempa Critical</b></td><td>${report.severityBreakdown.critical}</td></tr>`;
-    html += `<tr><td><b>Gempa Warning</b></td><td>${report.severityBreakdown.warning}</td></tr>`;
-    html += `<tr><td><b>Gempa Watch</b></td><td>${report.severityBreakdown.watch}</td></tr>`;
-    html += `</table><br/>`;
+    const SEVERITY_NUM: Record<string, number> = { critical: 3, warning: 2, watch: 1 };
 
-    // KPW Impacted List Table
-    html += `<h3>KPW IMPACTED LIST</h3>`;
-    html += `<table border="1">`;
-    html += `<thead><tr style="background-color: #f2f2f2;">`;
-    html += `<th>KPW Office</th><th>City</th><th>Disaster Title</th><th>Type</th><th>Severity</th><th>Tingkat Risiko</th><th>Distance (km)</th><th>Time</th>`;
-    html += `</tr></thead><tbody>`;
-    report.impactedOffices.forEach(({ office, alert, distanceKm, riskLevel }) => {
-      const distanceStr = distanceKm !== null ? distanceKm.toFixed(1) : '-';
-      html += `<tr>`;
-      html += `<td>${office.name}</td>`;
-      html += `<td>${office.city}</td>`;
-      html += `<td>${alert.title}</td>`;
-      html += `<td>${alert.type}</td>`;
-      html += `<td>${alert.severity}</td>`;
-      html += `<td>${riskLevel}</td>`;
-      html += `<td>${distanceStr}</td>`;
-      html += `<td>${new Date(alert.timestamp).toLocaleString('id-ID')}</td>`;
-      html += `</tr>`;
-    });
-    html += `</tbody></table><br/>`;
+    // Create a new workbook
+    const wb = XLSX.utils.book_new();
 
-    // All Disasters List Table
-    html += `<h3>ALL DISASTERS LIST</h3>`;
-    html += `<table border="1">`;
-    html += `<thead><tr style="background-color: #f2f2f2;">`;
-    html += `<th>Time</th><th>Disaster Title</th><th>Type</th><th>Severity</th><th>Magnitude</th><th>Depth (km)</th><th>Area</th>`;
-    html += `</tr></thead><tbody>`;
-    report.allAlertsInRange.forEach((alert) => {
-      const magStr = alert.magnitude !== undefined ? alert.magnitude : '-';
-      const depthStr = alert.depth !== undefined ? alert.depth : '-';
-      html += `<tr>`;
-      html += `<td>${new Date(alert.timestamp).toLocaleString('id-ID')}</td>`;
-      html += `<td>${alert.title}</td>`;
-      html += `<td>${alert.type}</td>`;
-      html += `<td>${alert.severity}</td>`;
-      html += `<td>${magStr}</td>`;
-      html += `<td>${depthStr}</td>`;
-      html += `<td>${alert.affectedArea || alert.description || ''}</td>`;
-      html += `</tr>`;
-    });
-    html += `</tbody></table>`;
+    // 1. Summary Sheet
+    const summaryData = [
+      ["REPORTING DISASTER & KPW IMPACT"],
+      [`Range Waktu: ${startDate.replace('T', ' ')} s.d ${endDate.replace('T', ' ')}`],
+      [],
+      ["SUMMARY STATS"],
+      ["Metric", "Value"],
+      ["Total Alerts", report.totalAlerts],
+      ["Gempa Bumi", report.earthquakes],
+      ["Bencana Lainnya", report.otherDisasters],
+      ["Gempa Critical", report.severityBreakdown.critical],
+      ["Gempa Warning", report.severityBreakdown.warning],
+      ["Gempa Watch", report.severityBreakdown.watch],
+    ];
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
 
-    html += `</body></html>`;
+    // 2. KPW Impacted Sheet
+    const impactedHeaders = [
+      "KPW Office", "City", "Disaster Title", "Type", "Severity", "Indeks Kerentanan", "Skor Risiko", "Tingkat Risiko", "Distance (km)", "Time"
+    ];
+    const impactedRows = report.impactedOffices.map(({ office, alert, distanceKm, riskLevel, vulnerabilityIndex, riskScore }) => [
+      office.name,
+      office.city,
+      alert.title,
+      alert.type,
+      SEVERITY_NUM[alert.severity] || alert.severity,
+      vulnerabilityIndex !== undefined ? vulnerabilityIndex : 0,
+      riskScore !== undefined ? Math.round(riskScore) : 0,
+      riskLevel,
+      distanceKm !== null ? Number(distanceKm.toFixed(1)) : '-',
+      new Date(alert.timestamp).toLocaleString('id-ID')
+    ]);
+    const wsImpacted = XLSX.utils.aoa_to_sheet([impactedHeaders, ...impactedRows]);
+    XLSX.utils.book_append_sheet(wb, wsImpacted, "KPW Impacted");
 
-    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `disaster_report_${startDate.split('T')[0]}_to_${endDate.split('T')[0]}.xls`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // 3. All Disasters Sheet
+    const disasterHeaders = [
+      "Time", "Disaster Title", "Type", "Severity", "Magnitude", "Depth (km)", "Area"
+    ];
+    const disasterRows = report.allAlertsInRange.map((alert) => [
+      new Date(alert.timestamp).toLocaleString('id-ID'),
+      alert.title,
+      alert.type,
+      SEVERITY_NUM[alert.severity] || alert.severity,
+      alert.magnitude !== undefined ? alert.magnitude : '-',
+      alert.depth !== undefined ? alert.depth : '-',
+      alert.affectedArea || alert.description || ''
+    ]);
+    const wsDisasters = XLSX.utils.aoa_to_sheet([disasterHeaders, ...disasterRows]);
+    XLSX.utils.book_append_sheet(wb, wsDisasters, "All Disasters");
+
+    // Write workbook and download as .xlsx
+    XLSX.writeFile(wb, `disaster_report_${startDate.split('T')[0]}_to_${endDate.split('T')[0]}.xlsx`);
   };
 
   return (
@@ -297,23 +293,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
                 </div>
               </div>
 
-              {/* Earthquake Severity Breakdown */}
-              {report.earthquakes > 0 && (
-                <div className="severity-breakdown-section">
-                  <h4>Tingkat Keparahan Gempa (Earthquake Severity)</h4>
-                  <div className="severity-bar-container">
-                    <div className="severity-segment critical" style={{ flex: report.severityBreakdown.critical || 1 }}>
-                      Critical: {report.severityBreakdown.critical}
-                    </div>
-                    <div className="severity-segment warning" style={{ flex: report.severityBreakdown.warning || 1 }}>
-                      Warning: {report.severityBreakdown.warning}
-                    </div>
-                    <div className="severity-segment watch" style={{ flex: report.severityBreakdown.watch || 1 }}>
-                      Watch: {report.severityBreakdown.watch}
-                    </div>
-                  </div>
-                </div>
-              )}
+
 
               {/* Impacted KPW Offices List */}
               <div className="impacted-offices-section">
@@ -326,13 +306,16 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
                           <th>Kantor Perwakilan</th>
                           <th>Kota</th>
                           <th>Disaster</th>
-                          <th>Tingkat</th>
+                          <th style={{ textAlign: 'center' }}>Tingkat</th>
+                          <th style={{ textAlign: 'center' }}>Kerentanan</th>
+                          <th style={{ textAlign: 'center' }}>Skor Risiko</th>
+                          <th style={{ textAlign: 'center' }}>Tingkat Risiko</th>
                           <th>Jarak Epicenter</th>
                           <th>Waktu</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {report.impactedOffices.map(({ office, alert, distanceKm }, idx) => (
+                        {report.impactedOffices.map(({ office, alert, distanceKm, vulnerabilityIndex, riskScore, riskLevel }, idx) => (
                           <tr key={`${office.id}-${alert.id}-${idx}`}>
                             <td className="font-semibold">{office.name}</td>
                             <td>{office.city}</td>
@@ -342,9 +325,14 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
                                 {alert.title}
                               </span>
                             </td>
-                            <td>
-                              <span className={`severity-tag ${alert.severity}`}>
-                                {alert.severity.toUpperCase()}
+                            <td style={{ textAlign: 'center' }}>
+                              {{ critical: 3, warning: 2, watch: 1 }[alert.severity] || 1}
+                            </td>
+                            <td style={{ textAlign: 'center' }}>{vulnerabilityIndex !== undefined ? vulnerabilityIndex : '-'}</td>
+                             <td className='font-semibold' style={{ textAlign: 'center' }}>{riskScore !== undefined ? Math.round(riskScore) : '-'}</td>
+                            <td style={{ textAlign: 'center' }}>
+                              <span className={`severity-tag ${riskLevel === 'Tinggi' ? 'critical' : riskLevel === 'Sedang' ? 'warning' : 'watch'}`}>
+                                {riskLevel}
                               </span>
                             </td>
                             <td className="font-semibold">
@@ -383,7 +371,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
                           <th>Waktu</th>
                           <th>Judul Bencana</th>
                           <th>Tipe</th>
-                          <th>Tingkat Keparahan</th>
+                          <th style={{ textAlign: 'center' }}>Tingkat Keparahan</th>
                           <th style={{ textAlign: 'center' }}>Kekuatan</th>
                           <th>Kedalaman</th>
                           <th>Area / Wilayah</th>
@@ -405,10 +393,8 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
                             </td>
                             <td className="font-semibold">{alert.title}</td>
                             <td style={{ textTransform: 'capitalize' }}>{alert.type}</td>
-                            <td>
-                              <span className={`severity-tag ${alert.severity}`}>
-                                {alert.severity.toUpperCase()}
-                              </span>
+                            <td className="font-semibold" style={{ textAlign: 'center' }}>
+                              {{ critical: 3, warning: 2, watch: 1 }[alert.severity] || 1}
                             </td>
                             <td className="font-semibold" style={{ textAlign: 'center' }}>
                               {alert.magnitude !== undefined ? `${alert.magnitude} M` : '-'}

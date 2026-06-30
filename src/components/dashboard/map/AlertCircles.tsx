@@ -1,13 +1,14 @@
 import React from 'react';
-import { Circle, Tooltip, Marker } from 'react-leaflet';
+import { Circle, Tooltip, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import type { DisasterAlert, AlertSeverity } from '../../../types';
 import { KPWBI_OFFICES } from '../../../constants/kpwbiOffices';
 import { isValidCoord } from '../../../utils/geo';
-import { getDisasterIconHtml } from '../../../utils/alertUtils';
+import { getDisasterIconHtml, renderDisasterIcon } from '../../../utils/alertUtils';
 
 interface AlertCirclesProps {
   alerts: DisasterAlert[];
+  onAlertSelect?: (alertId: string) => void;
 }
 
 interface CircleConfig {
@@ -18,29 +19,30 @@ interface CircleConfig {
     fillOpacity: number;
     weight: number;
     dashArray?: string;
+    bubblingMouseEvents?: boolean;
   };
 }
 
 function getCircleRadius(alert: DisasterAlert): number {
   switch (alert.type) {
     case 'earthquake':
-      return (alert.magnitude || 5) * 15000;
+      return (alert.magnitude || 5) * 35000;
     case 'tsunami':
-      return 80000;
+      return 150000;
     case 'flood':
-      return (alert.waterLevel || 1.5) * 12000;
+      return (alert.waterLevel || 1.5) * 40000;
     case 'volcanic':
-      return 35000;
+      return 85000;
     case 'landslide':
-      return 15000;
-    case 'extreme_weather':
       return 50000;
+    case 'extreme_weather':
+      return 60000;
     case 'karhutla':
-      return 30000;
+      return 90000;
     case 'kekeringan':
-      return 40000;
+      return 100000;
     default:
-      return 20000;
+      return 60000;
   }
 }
 
@@ -62,6 +64,7 @@ function getCircleConfig(alert: DisasterAlert): CircleConfig {
       fillOpacity: 0.12, // Match earthquake fill opacity
       weight: 1.5,
       dashArray: '4, 4', // Match earthquake dashed style
+      bubblingMouseEvents: false,
     },
   };
 }
@@ -96,7 +99,7 @@ function getBottomRightCoords(centerLat: number, centerLng: number, radiusMeters
   return [destLat, destLng];
 }
 
-const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts }) => {
+const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts, onAlertSelect }) => {
   return (
     <>
       {alerts.map((alert) => {
@@ -134,9 +137,69 @@ const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts }) => {
           iconAnchor: [12, 12],
         });
 
+        const popupContent = (
+          <div className="ews-popup-content">
+            <div className={`ews-popup-header ${alert.severity}`}>
+              <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                {renderDisasterIcon(alert.type)}
+              </span>
+              <span>{alert.title}</span>
+            </div>
+            <div className="ews-popup-title" style={{ marginTop: 0 }}>
+              {alert.affectedArea || 'Area Terdampak'}
+            </div>
+            <p className="ews-popup-desc">
+              {alert.description}
+            </p>
+            <div className="ews-popup-footer">
+              <span>Radius: {(radius / 1000).toFixed(0)} km</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Severity:</span>
+                <span className="ews-popup-tag" style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  padding: '2px 4px',
+                  borderColor: alert.severity === 'critical' ? 'var(--alert-critical-border)' : alert.severity === 'warning' ? 'var(--alert-warning-border)' : 'var(--alert-watch-border)',
+                  backgroundColor: alert.severity === 'critical' ? 'var(--alert-critical-bg)' : alert.severity === 'warning' ? 'var(--alert-warning-bg)' : 'var(--alert-watch-bg)',
+                }}>
+                  {[1, 2, 3].map((i) => {
+                    const sevBoxCount = { critical: 3, warning: 2, watch: 1 }[alert.severity] || 1;
+                    const filled = i <= sevBoxCount;
+                    const fillColor = filled 
+                      ? { critical: 'var(--alert-critical)', warning: 'var(--alert-warning)', watch: 'var(--alert-watch)' }[alert.severity]
+                      : 'var(--border-default)';
+                    return (
+                      <span
+                        key={i}
+                        style={{
+                          width: '12px',
+                          height: '4px',
+                          borderRadius: '1px',
+                          backgroundColor: fillColor,
+                          display: 'inline-block'
+                        }}
+                      />
+                    );
+                  })}
+                </span>
+              </div>
+            </div>
+          </div>
+        );
+
         return (
           <React.Fragment key={`alert-group-${alert.id}`}>
-            <Circle center={center} radius={radius} pathOptions={pathOptions}>
+            <Circle 
+              center={center} 
+              radius={radius} 
+              pathOptions={pathOptions}
+              eventHandlers={{
+                click: () => {
+                  onAlertSelect?.(alert.id);
+                }
+              }}
+            >
               <Tooltip sticky>
                 <div>
                   <strong>{alert.title}</strong><br />
@@ -145,11 +208,46 @@ const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts }) => {
                     <>Epicenter: {Number(alert.latitude).toFixed(4)}, {Number(alert.longitude).toFixed(4)}<br /></>
                   )}
                   Area: {alert.affectedArea || 'Sekitar KPW'}<br />
-                  Severity: <span style={{ textTransform: 'capitalize', fontWeight: 'bold', color: pathOptions.color }}>{alert.severity}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                    <span>Severity:</span>
+                    <div style={{ display: 'flex', gap: '3px' }}>
+                      {[1, 2, 3].map((i) => {
+                        const sevBoxCount = { critical: 3, warning: 2, watch: 1 }[alert.severity] || 1;
+                        const filled = i <= sevBoxCount;
+                        const fillColor = filled 
+                          ? { critical: 'var(--alert-critical)', warning: 'var(--alert-warning)', watch: 'var(--alert-watch)' }[alert.severity]
+                          : 'rgba(255, 255, 255, 0.2)'; // semi-transparent fallback if border-default isn't visible in dark tooltip
+                        return (
+                          <span
+                            key={i}
+                            style={{
+                              width: '12px',
+                              height: '4px',
+                              borderRadius: '1px',
+                              backgroundColor: fillColor,
+                              display: 'inline-block'
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               </Tooltip>
+              <Popup>{popupContent}</Popup>
             </Circle>
-            <Marker position={iconCoords} icon={customIcon} interactive={false} />
+            <Marker 
+              position={iconCoords} 
+              icon={customIcon} 
+              interactive={true}
+              eventHandlers={{
+                click: () => {
+                  onAlertSelect?.(alert.id);
+                }
+              }}
+            >
+              <Popup>{popupContent}</Popup>
+            </Marker>
           </React.Fragment>
         );
       })}
