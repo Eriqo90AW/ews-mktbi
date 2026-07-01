@@ -71,7 +71,7 @@ const PotensiScreen: React.FC<PotensiScreenProps> = ({ onBack }) => {
           <div className="topbar-divider-v" />
           <div className="topbar-brand-text">
             <h1 className="topbar-title">Potensi <span>Bencana</span></h1>
-            <span className="topbar-brand-sub">BIMA — Analisis Potensi</span>
+            <span className="topbar-brand-sub">DEWA - Analisis Potensi</span>
           </div>
         </div>
 

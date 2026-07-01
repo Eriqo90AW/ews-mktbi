@@ -59,7 +59,7 @@ function buildRiskMailtoUrl(
   const to = [officeEmail, DMR_EMAIL].join(',');
 
   const subject = encodeURIComponent(
-    `[BIMA ALERT] Peringatan Risiko ${riskLevel} — ${office.name} — Skor: ${riskScore}`
+    `[DEWA ALERT] Peringatan Risiko ${riskLevel} — ${office.name} — Skor: ${riskScore}`
   );
 
   const alertDetails = alerts
@@ -68,19 +68,19 @@ function buildRiskMailtoUrl(
 
   const body = encodeURIComponent(
     `Yth. Pimpinan ${office.name} dan Satker DMR,\n\n` +
-    `Sistem BIMA (Bank Indonesia Monitoring & Mitigation Alert) mendeteksi status risiko bencana tingkat [${riskLevel.toUpperCase()}] untuk wilayah kerja Anda dengan rincian berikut:\n\n` +
+    `Sistem DEWA (Bank Indonesia Disaster Early Warning Alert) mendeteksi status risiko bencana tingkat [${riskLevel.toUpperCase()}] untuk wilayah kerja Anda dengan rincian berikut:\n\n` +
     `Kantor: ${office.name} (${office.city})\n` +
     `Skor Risiko: ${riskScore} / 9 (Tingkat Risiko: ${riskLevel})\n\n` +
     `Detail Bencana Terdeteksi:\n` +
     alertDetails + `\n\n` +
     `Langkah Tindak Lanjut:\n` +
-    `1. Pantau perkembangan situasi melalui aplikasi BIMA atau instansi resmi (BMKG/PVMBG).\n` +
+    `1. Pantau perkembangan situasi melalui aplikasi DEWA atau instansi resmi (BMKG/PVMBG).\n` +
     `2. Lakukan koordinasi dengan Tim Kesiapsiagaan dan Satker DMR.\n` +
     `3. Lakukan langkah kontinjensi dan evakuasi mandiri jika situasi memburuk sesuai dengan SOP.\n\n` +
     `Hormat kami,\n` +
-    `BIMA — Bank Indonesia Monitoring & Mitigation Alert\n` +
-    `(Dikirim via BIMA Dashboard — ${new Date().toLocaleString('id-ID')} WIB)\n` +
-    `http://bima-ews-bi.org\n`
+    `DEWA - Disaster Early Warning Alert\n` +
+    `(Dikirim via DEWA Dashboard — ${new Date().toLocaleString('id-ID')} WIB)\n` +
+    `http://ews-mktbi.vercel.app\n`
   );
 
   return `mailto:${to}?subject=${subject}&body=${body}`;
@@ -234,10 +234,10 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
           <img src="/bima-logo.jpg" alt="BIMA Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
         <div className="topbar-brand-text">
-          <h1 className="topbar-title">BIMA</h1>
+          <h1 className="topbar-title">DEWA</h1>
           <span className="topbar-brand-sub" style={{ lineHeight: '1.3' }}>
             Bank Indonesia<br />
-            Monitoring & Mitigation Alert
+            Disaster Early Warning Alert
           </span>
         </div>
       </div>

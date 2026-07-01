@@ -163,7 +163,7 @@ export const GunungApiScreen: React.FC<GunungApiScreenProps> = ({ onBack }) => {
           <div className="topbar-divider-v" />
           <div className="topbar-brand-text">
             <h1 className="topbar-title">Status <span>Gunung Api</span></h1>
-            <span className="topbar-brand-sub">BIMA — MAGMA Indonesia</span>
+            <span className="topbar-brand-sub">DEWA - MAGMA Indonesia</span>
           </div>
         </div>
 

@@ -957,7 +957,7 @@
 .checklist-progress-bar-wrap {
   height: 6px;
   border-radius: 3px;
-  background: var(--bg-tertiary);
+  background: rgba(220, 38, 38, 0.2);
   overflow: hidden;
 }
 
