@@ -9,7 +9,6 @@ import EwsMap from './EwsMap';
 import ReportModal from './ReportModal';
 import AlertToast from '../ui/AlertToast';
 import type { ToastItem } from '../ui/AlertToast';
-import DisasterAlertBanner from '../ui/DisasterAlertBanner';
 import LaporanSidebar from './LaporanSidebar';
 import './DisasterDashboard.css';
 import './LaporanSidebar.css';
@@ -155,7 +154,6 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
 
   return (
     <div className="dashboard-container">
-      <DisasterAlertBanner activeAlerts={todayActiveAlerts} />
       <TopBar
         criticalCount={filteredStats[3]}
         totalAlerts={filteredAlerts.length}

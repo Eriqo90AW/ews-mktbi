@@ -22,9 +22,10 @@ const HAZARD_TABS: { key: InariskHazard; label: string }[] = [
 ];
 
 function riskLevel(score: number): { label: string; cls: string } {
-  if (score >= 0.65) return { label: 'Tinggi', cls: 'risk-high' };
-  if (score >= 0.35) return { label: 'Sedang', cls: 'risk-medium' };
-  if (score > 0) return { label: 'Rendah', cls: 'risk-low' };
+  const val = Math.round(score * 100);
+  if (val >= 64) return { label: 'Tinggi', cls: 'risk-high' };
+  if (val > 40) return { label: 'Sedang', cls: 'risk-medium' };
+  if (val > 0) return { label: 'Rendah', cls: 'risk-low' };
   return { label: 'N/A', cls: 'risk-none' };
 }
 

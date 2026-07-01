@@ -41,7 +41,7 @@ export const useDisasterAlert = () => {
 
         // ─── Syarat "Tinggi": ─────────────────────────────────────────────────
         // 1. Bencana level 3 (critical → disasterScore = 3)
-        // 2. Kerentanan InaRisk lokasi terdampak = Tinggi (index ≥ 0.65)
+        // 2. Kerentanan InaRisk lokasi terdampak = Tinggi (index >= 0.64 atau 64%)
         // 3. Minimal satu lokasi (KPW/DRC) berada DI DALAM radius dampak
         //
         // Jika tidak ada lokasi dalam radius → riskLevel = Rendah, shouldAlert = false.

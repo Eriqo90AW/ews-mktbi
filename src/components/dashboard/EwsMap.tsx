@@ -105,13 +105,14 @@ export const EwsMap: React.FC<EwsMapProps> = ({
       score = getProvincePotensi(provinceId, hazard);
     }
 
-    if (score > 0.6) {
+    const val = Math.round(score * 100);
+    if (val >= 64) {
       return { fillColor: 'var(--alert-critical)', fillOpacity: 0.35, color: 'var(--alert-critical)', weight: 1.5, bubblingMouseEvents: false };
     }
-    if (score > 0.3) {
+    if (val > 40) {
       return { fillColor: 'var(--alert-warning)', fillOpacity: 0.3, color: 'var(--alert-warning)', weight: 1.5, bubblingMouseEvents: false };
     }
-    if (score > 0) {
+    if (val > 0) {
       return { fillColor: 'var(--alert-watch)', fillOpacity: 0.2, color: 'var(--alert-watch)', weight: 1.2, bubblingMouseEvents: false };
     }
     return { fillColor: 'transparent', fillOpacity: 0, color: 'rgba(0,0,0,0.12)', weight: 0.8, bubblingMouseEvents: false };
@@ -136,8 +137,9 @@ export const EwsMap: React.FC<EwsMapProps> = ({
       return;
     }
 
-    const severity = score > 0.6 ? 'Tinggi' : score > 0.3 ? 'Sedang' : score > 0 ? 'Rendah' : 'Aman';
-    const statusColor = score > 0.6 ? 'var(--alert-critical)' : score > 0.3 ? 'var(--alert-warning)' : 'var(--alert-watch)';
+    const val = Math.round(score * 100);
+    const severity = val >= 64 ? 'Tinggi' : val > 40 ? 'Sedang' : val > 0 ? 'Rendah' : 'Aman';
+    const statusColor = val >= 64 ? 'var(--alert-critical)' : val > 40 ? 'var(--alert-warning)' : 'var(--alert-watch)';
 
     layer.bindTooltip(`
       <div style="font-family: var(--font-sans); font-size: 12px; line-height: 1.4; padding: 4px;">
@@ -349,6 +351,7 @@ export const EwsMap: React.FC<EwsMapProps> = ({
           selectedAlert={selectedAlert}
           resetTrigger={resetTrigger}
           isSidebarCollapsed={isSidebarCollapsed}
+          zoom={selectedOfficeId ? 9 : 7}
         />
         <MapEventsHandler onClearSelection={clearSelection} />
 

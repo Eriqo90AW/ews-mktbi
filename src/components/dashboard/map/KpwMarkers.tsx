@@ -198,8 +198,10 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                   const hazard = activeTypeFilter as 'flood' | 'tsunami' | 'kekeringan' | 'volcanic';
                   const indexVal = BnpbInariskService.getLocalHazardIndex(office.id, hazard);
                   const hazardTitle = { flood: 'Banjir', tsunami: 'Tsunami', kekeringan: 'Kekeringan', volcanic: 'Gunung Api' }[hazard];
+                  const val = Math.round(indexVal * 100);
+                  const color = val >= 64 ? 'var(--alert-critical)' : val > 40 ? 'var(--alert-warning)' : 'var(--alert-watch)';
                   return (
-                    <div style={{ marginTop: '4px', fontSize: '11px', fontWeight: 700, color: indexVal > 0.6 ? 'var(--alert-critical)' : indexVal > 0.3 ? 'var(--alert-warning)' : 'var(--alert-watch)' }}>
+                    <div style={{ marginTop: '4px', fontSize: '11px', fontWeight: 700, color }}>
                       {hazardTitle} Indeks: {indexVal.toFixed(2)}
                     </div>
                   );
@@ -213,9 +215,10 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                   const hazard = activeTypeFilter as 'flood' | 'tsunami' | 'kekeringan' | 'volcanic';
                   const indexVal = BnpbInariskService.getLocalHazardIndex(office.id, hazard);
                   const hazardTitle = { flood: 'Banjir', tsunami: 'Tsunami', kekeringan: 'Kekeringan', volcanic: 'Gunung Api' }[hazard];
-      let severity: AlertSeverity = 1;
-      if (indexVal > 0.6) severity = 3;
-      else if (indexVal > 0.3) severity = 2;
+                  const val = Math.round(indexVal * 100);
+                  let severity: AlertSeverity = 1;
+                  if (val >= 64) severity = 3;
+                  else if (val > 40) severity = 2;
                   return (
                     <div className="ews-popup-content">
                       <div className={`ews-popup-header ${severityToCssClass(severity)}`}>

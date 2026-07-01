@@ -79,7 +79,11 @@ const MapLegend: React.FC<MapLegendProps> = ({
                   ))}
                 </span>
                 <span>{isInariskFilter ? (() => {
-                  const inariskLabels: Record<number, string> = { 3: 'Kerentanan Tinggi (>0.6)', 2: 'Kerentanan Sedang (0.3-0.6)', 1: 'Kerentanan Rendah (>0-0.3)' };
+                  const inariskLabels: Record<number, string> = { 
+                    3: 'Kerentanan Tinggi (64-100)', 
+                    2: 'Kerentanan Sedang (41-63)', 
+                    1: 'Kerentanan Rendah (0-40)' 
+                  };
                   return inariskLabels[num];
                 })() : label}</span>
                 {!isInariskFilter && (

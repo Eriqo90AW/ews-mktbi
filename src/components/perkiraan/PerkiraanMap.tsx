@@ -243,6 +243,7 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
           selectedAlert={dummyAlert}
           resetTrigger={0}
           isSidebarCollapsed={false}
+          zoom={selectedOfficeId ? 9 : 7}
         />
         <MapEventsHandler onClearSelection={clearSelection} />
 

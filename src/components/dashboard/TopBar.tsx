@@ -221,7 +221,7 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
     : 'clear';
 
   const statusText = riskStats[3] > 0
-    ? `${riskStats[3]} KPwBI Bahaya`
+    ? `${riskStats[3]} KPwBI Berisiko Tinggi`
     : totalAffectedOffices > 0
     ? `${totalAffectedOffices} KPwBI Dipantau`
     : 'Sistem Normal';

@@ -123,8 +123,9 @@ export function mapAlertToDisasterEvent(alert: DisasterAlert): DisasterEvent | n
  * Mengonversi indeks kerentanan dari InaRisk (0 - 1) ke enum VulnerabilityLevel.
  */
 export function mapInariskToVulnerability(score: number): VulnerabilityLevel {
-  if (score >= 0.65) return 'Tinggi';
-  if (score >= 0.35) return 'Sedang';
+  const val = Math.round(score * 100);
+  if (val >= 64) return 'Tinggi';
+  if (val > 40) return 'Sedang';
   return 'Rendah';
 }
 
