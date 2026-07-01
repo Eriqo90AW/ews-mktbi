@@ -10,6 +10,7 @@ interface NearestKpwPanelProps {
   alerts: DisasterAlert[];
   onAlertSelect: (id: string) => void;
   onProvinceSelect: (id: string) => void;
+  onOfficeSelect?: (officeId: string) => void;
 }
 
 import { severityToCssClass } from '../../../types';
@@ -20,6 +21,7 @@ const NearestKpwPanel: React.FC<NearestKpwPanelProps> = ({
   alerts,
   onAlertSelect,
   onProvinceSelect,
+  onOfficeSelect,
 }) => {
   if (!selectedOffice || nearestOffices.length === 0) return null;
 
@@ -45,6 +47,7 @@ const NearestKpwPanel: React.FC<NearestKpwPanelProps> = ({
               className={`nearest-kpw-item ${hasAlert ? `alert-${severityToCssClass(mainAlert!.severity)}` : ''}`}
               onClick={() => {
                 if (hasAlert) onAlertSelect(mainAlert!.id);
+                else if (onOfficeSelect) onOfficeSelect(office.id);
                 else onProvinceSelect(office.provinceId);
               }}
             >

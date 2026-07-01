@@ -17,8 +17,9 @@ interface SidebarProps {
   filteredAlerts: DisasterAlert[];
   riskResults: RiskCalcResult[];
   stats: Record<AlertSeverity | 'total', number>;
-  selectedProvinceId: string | null;
+  selectedOfficeId: string | null;
   onProvinceSelect: (provinceId: string) => void;
+  onOfficeSelect?: (officeId: string) => void;
   selectedAlertId: string | null;
   onAlertSelect: (alertId: string) => void;
   severityFilter: AlertSeverity | 'all';
@@ -44,8 +45,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   filteredAlerts,
   riskResults,
   stats,
-  selectedProvinceId,
+  selectedOfficeId,
   onProvinceSelect,
+  onOfficeSelect,
   selectedAlertId,
   onAlertSelect,
   severityFilter,
@@ -285,8 +287,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     offices.map(({ office, topHazards }) => (
                       <button
                         key={office.id}
-                        className={`stat-panel-item${selectedProvinceId === office.provinceId ? ' selected' : ''}`}
-                        onClick={() => onProvinceSelect(office.provinceId)}
+                        className={`stat-panel-item${selectedOfficeId === office.id ? ' selected' : ''}`}
+                        onClick={() => onOfficeSelect ? onOfficeSelect(office.id) : onProvinceSelect(office.provinceId)}
                       >
                         <div className="stat-panel-item-info">
                           <span className="stat-panel-item-name">{office.name}</span>
@@ -449,8 +451,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                 return (
                                   <button
                                     key={office.id}
-                                    className={`province-item-btn ${selectedProvinceId === office.provinceId ? 'selected' : ''} ${office.isKorwil ? 'korwil-office' : ''}`}
-                                    onClick={() => onProvinceSelect(office.provinceId)}
+                                    className={`province-item-btn ${selectedOfficeId === office.id ? 'selected' : ''} ${office.isKorwil ? 'korwil-office' : ''}`}
+                                    onClick={() => onOfficeSelect ? onOfficeSelect(office.id) : onProvinceSelect(office.provinceId)}
                                   >
                                     <div className="province-item-left">
                                       <span className={`province-item-dot ${hasAlert ? 'active-alert' : ''}`} />

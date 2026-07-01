@@ -24,7 +24,9 @@ interface PerkiraanMapProps {
   forecastAlerts?: DisasterAlert[];
   ensoPhase?: EnsoPhase;
   selectedProvinceId?: string | null;
+  selectedOfficeId?: string | null;
   onProvinceSelect?: (id: string) => void;
+  onOfficeSelect?: (officeId: string) => void;
   selectedMegathrustId?: string | null;
   onMegathrustSelect?: (id: string) => void;
   showMegathrust?: boolean;
@@ -53,7 +55,9 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
   forecastAlerts = [],
   ensoPhase = 'netral',
   selectedProvinceId = null,
+  selectedOfficeId = null,
   onProvinceSelect,
+  onOfficeSelect,
   selectedMegathrustId = null,
   onMegathrustSelect,
   showMegathrust = true,
@@ -198,12 +202,15 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
     );
   }).filter(Boolean);
 
-  const selectedOffice = selectedProvinceId
-    ? KPWBI_OFFICES.find((o) => o.provinceId === selectedProvinceId) ?? null
-    : null;
+  const selectedOffice = selectedOfficeId
+    ? KPWBI_OFFICES.find((o) => o.id === selectedOfficeId) ?? null
+    : selectedProvinceId
+      ? KPWBI_OFFICES.find((o) => o.provinceId === selectedProvinceId) ?? null
+      : null;
   const dummyAlert = null;
   const clearSelection = () => {
     onProvinceSelect?.('');
+    onOfficeSelect?.('');
     onMegathrustSelect?.('');
   };
 
@@ -243,16 +250,27 @@ const PerkiraanMap: React.FC<PerkiraanMapProps> = ({
         {(mode === 'mingguan' || mode === 'iklim') && provinceSeverityMarkers}
 
         {/* KPW office dots */}
-        {KPWBI_OFFICES.map((o) => (
-          <CircleMarker
-            key={`kpw-${o.id}`}
-            center={[o.latitude, o.longitude]}
-            radius={4}
-            pathOptions={{ color: '#1e3a8a', fillColor: '#3b82f6', fillOpacity: 0.8, weight: 1 }}
-          >
-            <Tooltip direction="top" offset={[0, -4]}>{o.name}</Tooltip>
-          </CircleMarker>
-        ))}
+        {KPWBI_OFFICES.map((o) => {
+          const isSelected = selectedOfficeId === o.id;
+          return (
+            <CircleMarker
+              key={`kpw-${o.id}`}
+              center={[o.latitude, o.longitude]}
+              radius={isSelected ? 7 : 4}
+              pathOptions={{
+                color: isSelected ? '#2563eb' : '#1e3a8a',
+                fillColor: isSelected ? '#3b82f6' : '#3b82f6',
+                fillOpacity: isSelected ? 1 : 0.8,
+                weight: isSelected ? 3 : 1,
+              }}
+              eventHandlers={{
+                click: () => onOfficeSelect?.(o.id),
+              }}
+            >
+              <Tooltip direction="top" offset={[0, -4]}>{o.name}</Tooltip>
+            </CircleMarker>
+          );
+        })}
 
         {/* Ring of Fire arcs */}
         {mode === 'gempa' && showRingOfFire && RING_OF_FIRE_ARCS.map((arc) => (

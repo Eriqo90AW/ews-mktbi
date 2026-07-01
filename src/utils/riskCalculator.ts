@@ -43,6 +43,9 @@ export function isLocationInRadius(
   targetLon: number,
   radiusKm: number
 ): boolean {
+  if (isNaN(centerLat) || isNaN(centerLon) || isNaN(targetLat) || isNaN(targetLon)) {
+    return false;
+  }
   const distance = haversineDistance(centerLat, centerLon, targetLat, targetLon);
   return distance <= radiusKm;
 }
@@ -92,7 +95,7 @@ export function calculateRisk(
  * Mengonversi objek DisasterAlert ke DisasterEvent untuk kalkulator risiko.
  */
 export function mapAlertToDisasterEvent(alert: DisasterAlert): DisasterEvent | null {
-  if (alert.latitude === undefined || alert.longitude === undefined) {
+  if (alert.latitude === undefined || alert.longitude === undefined || isNaN(alert.latitude) || isNaN(alert.longitude)) {
     return null;
   }
 

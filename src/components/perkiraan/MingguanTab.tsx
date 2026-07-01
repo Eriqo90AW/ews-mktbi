@@ -37,6 +37,7 @@ const SEV_LABEL: Record<AlertSeverity, string> = {
 const MingguanTab: React.FC<MingguanTabProps> = () => {
   const { alerts } = useAlerts();
   const [selectedProvinceId, setSelectedProvinceId] = useState<string | null>(null);
+  const [selectedOfficeId, setSelectedOfficeId] = useState<string | null>(null);
 
   const forecastAlerts = useMemo(() => alerts.filter((a) => a.isForecast), [alerts]);
 
@@ -57,6 +58,13 @@ const MingguanTab: React.FC<MingguanTabProps> = () => {
 
   const handleProvinceSelect = (id: string) => {
     setSelectedProvinceId((prev) => (prev === id ? null : id));
+    setSelectedOfficeId(null);
+  };
+
+  const handleOfficeSelect = (officeId: string) => {
+    setSelectedOfficeId(officeId);
+    const office = KPWBI_OFFICES.find((o) => o.id === officeId);
+    if (office) setSelectedProvinceId(office.provinceId);
   };
 
   return (
@@ -89,13 +97,13 @@ const MingguanTab: React.FC<MingguanTabProps> = () => {
           ) : (
             rankedOffices.map(({ office, forecastSev, floodScore }) => {
               const province = provincesMap.get(office.provinceId);
-              const isSelected = selectedProvinceId === office.provinceId;
+              const isSelected = selectedOfficeId === office.id;
 
               return (
                 <div
                   key={office.id}
                   className={`perkiraan-row${isSelected ? ' selected' : ''}`}
-                  onClick={() => handleProvinceSelect(office.provinceId)}
+                  onClick={() => handleOfficeSelect(office.id)}
                 >
                   <div className="perkiraan-row-info">
                     <span className="perkiraan-office-name">{office.name}</span>
@@ -146,7 +154,9 @@ const MingguanTab: React.FC<MingguanTabProps> = () => {
           mode="mingguan"
           forecastAlerts={forecastAlerts}
           selectedProvinceId={selectedProvinceId}
+          selectedOfficeId={selectedOfficeId}
           onProvinceSelect={handleProvinceSelect}
+          onOfficeSelect={handleOfficeSelect}
         />
       </div>
     </div>

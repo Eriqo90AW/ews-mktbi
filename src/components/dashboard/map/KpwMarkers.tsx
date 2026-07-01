@@ -22,8 +22,10 @@ interface KpwMarkersProps {
   riskResults: RiskCalcResult[];
   activeTypeFilter: DisasterType | 'all';
   selectedProvinceId: string | null;
+  selectedOfficeId: string | null;
   nearestOffices: NearestKpwResult[];
   onProvinceSelect: (id: string) => void;
+  onOfficeSelect?: (officeId: string) => void;
   markerRefs: React.MutableRefObject<Record<string, L.Marker | null>>;
   mapLayers: {
     kp: boolean;
@@ -64,12 +66,12 @@ function getProvinceName(provinceId: string): string {
 function createMarkerIcon(
   office: KpwbiOffice,
   riskSeverity: AlertSeverity | null,
-  selectedProvinceId: string | null,
+  selectedOfficeId: string | null,
   nearestOffices: NearestKpwResult[]
 ): L.DivIcon {
   const classes: string[] = [];
   if (riskSeverity) classes.push('has-alert', `alert-${severityToCssClass(riskSeverity)}`);
-  if (selectedProvinceId === office.provinceId) {
+  if (selectedOfficeId === office.id) {
     classes.push('selected');
   } else if (nearestOffices.some((n) => n.office.id === office.id)) {
     classes.push('nearest');
@@ -116,8 +118,10 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
   riskResults,
   activeTypeFilter,
   selectedProvinceId,
+  selectedOfficeId,
   nearestOffices,
   onProvinceSelect,
+  onOfficeSelect,
   markerRefs,
   mapLayers,
   selectedAlertId,
@@ -155,19 +159,22 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
         return mapLayers.normal;
       }).map((office) => {
         const nearestInfo = nearestOffices.find((n) => n.office.id === office.id);
-        const riskSeverity = getOfficeRiskSeverity(office, riskResults);
         const officeAlerts = alerts.filter((a) => isOfficeAffectedByAlert(office, a));
+        const officeAlertIds = new Set(officeAlerts.map((a) => a.id));
+        const filteredRiskResults = riskResults.filter((r) => officeAlertIds.has(r.event.id));
+        const riskSeverity = filteredRiskResults.length > 0 ? getOfficeRiskSeverity(office, filteredRiskResults) : null;
 
         return (
           <Marker
             key={office.id}
             position={[office.latitude, office.longitude]}
-            icon={createMarkerIcon(office, riskSeverity, selectedProvinceId, nearestOffices)}
+            icon={createMarkerIcon(office, riskSeverity, selectedOfficeId, nearestOffices)}
             zIndexOffset={office.isKantorPusat ? 1000 : office.isKorwil ? 500 : 0}
             ref={(ref) => { markerRefs.current[office.id] = ref; }}
             eventHandlers={{
               click: () => {
-                onProvinceSelect(office.provinceId);
+                if (onOfficeSelect) onOfficeSelect(office.id);
+                else onProvinceSelect(office.provinceId);
               },
             }}
           >

@@ -30,6 +30,7 @@ function riskLevel(score: number): { label: string; cls: string } {
 const PotensiScreen: React.FC<PotensiScreenProps> = ({ onBack }) => {
   const [selectedHazard, setSelectedHazard] = useState<PotensiHazard>('gempa');
   const [selectedProvinceId, setSelectedProvinceId] = useState<string | null>(null);
+  const [selectedOfficeId, setSelectedOfficeId] = useState<string | null>(null);
 
   const provincesMap = useMemo(() => new Map(PROVINCES.map((p) => [p.id, p])), []);
 
@@ -44,6 +45,13 @@ const PotensiScreen: React.FC<PotensiScreenProps> = ({ onBack }) => {
 
   const handleProvinceSelect = (provinceId: string) => {
     setSelectedProvinceId((prev) => (prev === provinceId ? null : provinceId));
+    setSelectedOfficeId(null);
+  };
+
+  const handleOfficeSelect = (officeId: string) => {
+    setSelectedOfficeId(officeId);
+    const office = KPWBI_OFFICES.find((o) => o.id === officeId);
+    if (office) setSelectedProvinceId(office.provinceId);
   };
 
   const currentHazard = HAZARD_TABS.find((t) => t.key === selectedHazard)!;
@@ -112,12 +120,12 @@ const PotensiScreen: React.FC<PotensiScreenProps> = ({ onBack }) => {
               rankedOffices.map(({ office, score }, idx) => {
                 const risk = riskLevel(score);
                 const province = provincesMap.get(office.provinceId);
-                const isSelected = selectedProvinceId === office.provinceId;
+                const isSelected = selectedOfficeId === office.id;
                 return (
                   <button
                     key={office.id}
                     className={`potensi-row${isSelected ? ' selected' : ''}`}
-                    onClick={() => handleProvinceSelect(office.provinceId)}
+                    onClick={() => handleOfficeSelect(office.id)}
                   >
                     <span className="potensi-rank">#{idx + 1}</span>
                     <div className="potensi-row-info">
@@ -145,8 +153,10 @@ const PotensiScreen: React.FC<PotensiScreenProps> = ({ onBack }) => {
           <EwsMap
             alerts={[]}
             selectedProvinceId={selectedProvinceId}
+            selectedOfficeId={selectedOfficeId}
             selectedAlertId={null}
             onProvinceSelect={handleProvinceSelect}
+            onOfficeSelect={handleOfficeSelect}
             onAlertSelect={() => {}}
             activeTypeFilter={selectedHazard}
             isPotensiView={true}

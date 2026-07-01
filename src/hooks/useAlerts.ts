@@ -8,8 +8,21 @@ import { BnpbKarhutlaService } from '../services/bnpbKarhutlaService';
 // This hook only aggregates real-time BMKG alert streams.
 
 // Global cache variables to persist data across component mounts
+const ALERTS_STORAGE_KEY = 'ews_cached_alerts';
+
 let cachedAlerts: DisasterAlert[] = [];
-let cachedIsLoading = true;
+try {
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem(ALERTS_STORAGE_KEY);
+    if (stored) {
+      cachedAlerts = JSON.parse(stored);
+    }
+  }
+} catch (e) {
+  console.error('Failed to parse cached alerts from localStorage', e);
+}
+
+let cachedIsLoading = cachedAlerts.length === 0;
 let isFetching = false;
 let lastCheckedTime: Date | null = null;
 let pollingIntervalId: any = null;
@@ -22,8 +35,28 @@ const notifyListeners = () => {
 
 const mergeAlerts = (existing: DisasterAlert[], incoming: DisasterAlert[]) => {
   const map = new Map(existing.map((a) => [a.id, a]));
-  incoming.forEach((a) => map.set(a.id, a));
-  return Array.from(map.values());
+  let hasChanges = false;
+  
+  incoming.forEach((a) => {
+    if (!map.has(a.id)) {
+      map.set(a.id, a);
+      hasChanges = true;
+    }
+  });
+  
+  const merged = Array.from(map.values());
+  
+  if (hasChanges || existing.length === 0) {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(ALERTS_STORAGE_KEY, JSON.stringify(merged));
+      }
+    } catch (e) {
+      console.error('Failed to save alerts to localStorage', e);
+    }
+  }
+  
+  return merged;
 };
 
 const fetchAllSources = async () => {

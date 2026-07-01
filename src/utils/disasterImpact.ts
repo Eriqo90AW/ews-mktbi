@@ -35,7 +35,7 @@ export function getAlertImpactRadiusKm(alert: DisasterAlert): number {
  * Otherwise, falls back to checking if they share the same provinceId.
  */
 export function isOfficeAffectedByAlert(office: KpwbiOffice, alert: DisasterAlert): boolean {
-  if (alert.latitude !== undefined && alert.longitude !== undefined) {
+  if (alert.latitude !== undefined && alert.longitude !== undefined && !isNaN(alert.latitude) && !isNaN(alert.longitude)) {
     const distance = haversineDistance(
       office.latitude,
       office.longitude,

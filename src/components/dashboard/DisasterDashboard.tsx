@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { useAlerts } from '../../hooks/useAlerts';
 import { useDisasterAlert } from '../../hooks/useDisasterAlert';
 import type { AlertSeverity, DisasterType } from '../../types';
+import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import TopBar from './TopBar';
 import Sidebar from './Sidebar';
 import EwsMap from './EwsMap';
@@ -29,6 +30,7 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
   const [typeFilter, setTypeFilter] = useState<DisasterType | 'all'>('all');
 
   const [selectedProvinceId, setSelectedProvinceId] = useState<string | null>(null);
+  const [selectedOfficeId, setSelectedOfficeId] = useState<string | null>(null);
   const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -133,11 +135,20 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
 
   const handleProvinceSelect = (provinceId: string) => {
     setSelectedProvinceId(provinceId);
+    setSelectedOfficeId(null);
+    setSelectedAlertId(null);
+  };
+
+  const handleOfficeSelect = (officeId: string) => {
+    setSelectedOfficeId(officeId);
+    const office = KPWBI_OFFICES.find((o) => o.id === officeId);
+    if (office) setSelectedProvinceId(office.provinceId);
     setSelectedAlertId(null);
   };
 
   const handleAlertSelect = (alertId: string) => {
     setSelectedAlertId(alertId);
+    setSelectedOfficeId(null);
     const alert = alerts.find((a) => a.id === alertId);
     if (alert) setSelectedProvinceId(alert.provinceId);
   };
@@ -164,8 +175,9 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
           filteredAlerts={filteredAlerts}
           riskResults={riskResults}
           stats={filteredStats}
-          selectedProvinceId={selectedProvinceId}
+          selectedOfficeId={selectedOfficeId}
           onProvinceSelect={handleProvinceSelect}
+          onOfficeSelect={handleOfficeSelect}
           selectedAlertId={selectedAlertId}
           onAlertSelect={handleAlertSelect}
           severityFilter={severityFilter}
@@ -182,8 +194,10 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
           alerts={filteredAlerts}
           riskResults={riskResults}
           selectedProvinceId={selectedProvinceId}
+          selectedOfficeId={selectedOfficeId}
           selectedAlertId={selectedAlertId}
           onProvinceSelect={handleProvinceSelect}
+          onOfficeSelect={handleOfficeSelect}
           onAlertSelect={handleAlertSelect}
           activeTypeFilter={typeFilter}
           isSidebarCollapsed={isSidebarCollapsed}

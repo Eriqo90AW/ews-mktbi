@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { MapContainer, TileLayer, GeoJSON, Polyline } from 'react-leaflet';
 import L from 'leaflet';
-import type { DisasterAlert, DisasterType, AlertSeverity } from '../../types';
-import { PROVINCES } from '../../constants/provinces';
+import type { DisasterAlert, DisasterType, AlertSeverity, KpwbiOffice } from '../../types';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
-import { findNearestOfficesByProvince } from '../../utils/geo';
+import { findNearestOffices } from '../../utils/geo';
 import { mapTextToProvinceId } from '../../utils/provinceMap';
 import { BnpbInariskService } from '../../services/bnpbInariskService';
 import MapController from './map/MapController';
@@ -20,8 +19,10 @@ export interface EwsMapProps {
   alerts: DisasterAlert[];
   riskResults?: import('../../types').RiskCalcResult[];
   selectedProvinceId: string | null;
+  selectedOfficeId?: string | null;
   selectedAlertId: string | null;
   onProvinceSelect: (provinceId: string) => void;
+  onOfficeSelect?: (officeId: string) => void;
   onAlertSelect: (alertId: string) => void;
   activeTypeFilter?: DisasterType | 'all' | any;
   isSidebarCollapsed?: boolean;
@@ -51,8 +52,10 @@ export const EwsMap: React.FC<EwsMapProps> = ({
   alerts,
   riskResults = [],
   selectedProvinceId,
+  selectedOfficeId = null,
   selectedAlertId,
   onProvinceSelect,
+  onOfficeSelect,
   onAlertSelect,
   activeTypeFilter = 'all',
   isSidebarCollapsed = false,
@@ -239,7 +242,15 @@ export const EwsMap: React.FC<EwsMapProps> = ({
     });
   };
 
-  const selectedOffice = KPWBI_OFFICES.find((o) => o.provinceId === selectedProvinceId) ?? null;
+  const selectedOffice = useMemo(() => {
+    if (selectedOfficeId) {
+      return KPWBI_OFFICES.find((o) => o.id === selectedOfficeId) ?? null;
+    }
+    if (selectedProvinceId) {
+      return KPWBI_OFFICES.find((o) => o.provinceId === selectedProvinceId) ?? null;
+    }
+    return null;
+  }, [selectedOfficeId, selectedProvinceId]);
   const selectedAlert = alerts.find((a) => a.id === selectedAlertId) ?? null;
 
   const visibleAlerts = useMemo(() => {
@@ -274,20 +285,27 @@ export const EwsMap: React.FC<EwsMapProps> = ({
 
   const nearestOffices = useMemo(() => {
     if (!selectedOffice || !mapLayers.nearest) return [];
-    return findNearestOfficesByProvince(selectedOffice, KPWBI_OFFICES, PROVINCES, 3);
+    return findNearestOffices(selectedOffice, KPWBI_OFFICES, 3);
   }, [selectedOffice, mapLayers.nearest]);
 
   // Open the relevant marker popup when the selection changes
   useEffect(() => {
-    const targetProvinceId = selectedAlert?.provinceId ?? selectedProvinceId;
-    if (!targetProvinceId) return;
-    const office = KPWBI_OFFICES.find((o) => o.provinceId === targetProvinceId);
+    let office: KpwbiOffice | undefined;
+    if (selectedOfficeId) {
+      office = KPWBI_OFFICES.find((o) => o.id === selectedOfficeId);
+    }
+    if (!office && selectedAlert) {
+      office = KPWBI_OFFICES.find((o) => o.provinceId === selectedAlert.provinceId);
+    }
+    if (!office && selectedProvinceId) {
+      office = KPWBI_OFFICES.find((o) => o.provinceId === selectedProvinceId);
+    }
     if (!office) return;
     const marker = markerRefs.current[office.id];
     if (marker) setTimeout(() => marker.openPopup(), 100);
-  }, [selectedAlert, selectedProvinceId]);
+  }, [selectedAlert, selectedProvinceId, selectedOfficeId]);
 
-  const clearSelection = () => { onAlertSelect(''); onProvinceSelect(''); };
+  const clearSelection = () => { onAlertSelect(''); onProvinceSelect(''); onOfficeSelect?.(''); };
 
   return (
     <div className="map-wrapper">
@@ -349,8 +367,10 @@ export const EwsMap: React.FC<EwsMapProps> = ({
           riskResults={riskResults}
           activeTypeFilter={activeTypeFilter}
           selectedProvinceId={selectedProvinceId}
+          selectedOfficeId={selectedOfficeId}
           nearestOffices={nearestOffices}
           onProvinceSelect={onProvinceSelect}
+          onOfficeSelect={onOfficeSelect}
           markerRefs={markerRefs}
           mapLayers={mapLayers}
           selectedAlertId={selectedAlertId}
@@ -364,6 +384,7 @@ export const EwsMap: React.FC<EwsMapProps> = ({
         alerts={alerts}
         onAlertSelect={onAlertSelect}
         onProvinceSelect={onProvinceSelect}
+        onOfficeSelect={onOfficeSelect}
       />
 
       <MapLegend

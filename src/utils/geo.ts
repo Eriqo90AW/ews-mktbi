@@ -1,4 +1,4 @@
-import type { KpwbiOffice, Province } from '../types';
+import type { KpwbiOffice } from '../types';
 import { KPWBI_OFFICES } from '../constants/kpwbiOffices';
 
 export function haversineDistance(
@@ -75,59 +75,6 @@ export function findNearestOffices(
     .sort((a, b) => a.distanceKm - b.distanceKm)
     .slice(0, count);
 }
-
-export function findNearestOfficesByProvince(
-  targetOffice: KpwbiOffice,
-  allOffices: KpwbiOffice[],
-  allProvinces: Province[],
-  count: number = 3
-): NearestKpwResult[] {
-  const targetProvince = allProvinces.find((p) => p.id === targetOffice.provinceId);
-  if (!targetProvince) return [];
-
-  const nearestProvinces = allProvinces
-    .filter((p) => p.id !== targetOffice.provinceId)
-    .map((p) => ({
-      province: p,
-      distanceKm: haversineDistance(
-        targetProvince.latitude,
-        targetProvince.longitude,
-        p.latitude,
-        p.longitude
-      ),
-    }))
-    .sort((a, b) => a.distanceKm - b.distanceKm)
-    .slice(0, count);
-
-  const results: NearestKpwResult[] = [];
-  for (const { province, distanceKm: provinceDistance } of nearestProvinces) {
-    const officesInProvince = allOffices.filter((o) => o.provinceId === province.id);
-    if (officesInProvince.length === 0) continue;
-
-    let closest = officesInProvince[0];
-    let minDist = haversineDistance(
-      targetOffice.latitude,
-      targetOffice.longitude,
-      closest.latitude,
-      closest.longitude
-    );
-    for (let i = 1; i < officesInProvince.length; i++) {
-      const d = haversineDistance(
-        targetOffice.latitude,
-        targetOffice.longitude,
-        officesInProvince[i].latitude,
-        officesInProvince[i].longitude
-      );
-      if (d < minDist) {
-        minDist = d;
-        closest = officesInProvince[i];
-      }
-    }
-    results.push({ office: closest, distanceKm: provinceDistance });
-  }
-  return results;
-}
-
 
 export function distanceToPolyline(
   lat: number,
