@@ -174,7 +174,8 @@ export async function fetchExtremeWeather(): Promise<DisasterAlert[]> {
       affectedArea: 'Sulawesi Selatan',
     };
 
-    return [...parsedAlerts, mockSulawesiSelatanAlert]; // change here to simulate danger toast
+    return [...parsedAlerts]; // change to simulate danger toast
+    // return [...parsedAlerts, mockSulawesiSelatanAlert]; // change to simulate danger toast
   } catch (error) {
     console.error('Failed to fetch BMKG extreme weather data:', error);
     return [];
