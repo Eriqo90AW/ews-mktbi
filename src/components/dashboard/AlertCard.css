@@ -180,6 +180,13 @@
   overflow: hidden;
 }
 
+.alertcard-desc.weather-early-warning {
+  display: block;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  overflow: visible;
+}
+
 /* Footer: province · time · forecast tag */
 .alertcard-footer {
   display: flex;

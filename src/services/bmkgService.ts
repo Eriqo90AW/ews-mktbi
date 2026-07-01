@@ -161,6 +161,7 @@ export async function fetchExtremeWeather(): Promise<DisasterAlert[]> {
       .filter((r): r is PromiseFulfilledResult<DisasterAlert> => r.status === 'fulfilled')
       .map((r) => r.value);
 
+    /*
     const mockSulawesiSelatanAlert: DisasterAlert = {
       id: 'mock-sulawesi-selatan-weather-today',
       type: 'extreme_weather',
@@ -173,6 +174,7 @@ export async function fetchExtremeWeather(): Promise<DisasterAlert[]> {
       longitude: 119.4109,
       affectedArea: 'Sulawesi Selatan',
     };
+    */
 
     // return [...parsedAlerts, mockSulawesiSelatanAlert]; // change to simulate danger toast
     return [...parsedAlerts]; // change to simulate danger toast

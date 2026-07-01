@@ -90,6 +90,28 @@ function renderMetrics(alert: DisasterAlert) {
   }
 }
 
+function formatTimeRange(rangeStr: string): string {
+  const parts = rangeStr.split('-').map((p) => p.trim());
+  if (parts.length !== 2) return rangeStr;
+
+  const start = parts[0];
+  const end = parts[1];
+
+  if (start.includes('•') && end.includes('•')) {
+    const startDatePart = start.split('•')[0].trim();
+    const startTimePart = start.split('•')[1].trim();
+
+    const endDatePart = end.split('•')[0].trim();
+    const endTimePart = end.split('•')[1].trim();
+
+    if (startDatePart === endDatePart) {
+      return `${startDatePart} • ${startTimePart} - ${endTimePart}`;
+    }
+  }
+
+  return rangeStr;
+}
+
 export const AlertCard: React.FC<AlertCardProps> = ({ alert, province, isSelected, onClick }) => {
   const formatWibTime = (isoString: string) => {
     try {
@@ -157,7 +179,17 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, province, isSelecte
 
       {renderMetrics(alert)}
 
-      <div className="alertcard-desc">{alert.description}</div>
+      <div className={`alertcard-desc${alert.title === 'Peringatan Dini Cuaca' ? ' weather-early-warning' : ''}`}>
+        {alert.title === 'Peringatan Dini Cuaca' && alert.description.includes('Waktu:') ? (
+          <>
+            {alert.description.split('Waktu:')[0].trim()}
+            <br />
+            {formatTimeRange(alert.description.split('Waktu:')[1].trim())}
+          </>
+        ) : (
+          alert.description
+        )}
+      </div>
 
       <div className="alertcard-footer">
         <span className="alertcard-province">{province?.name ?? 'Unknown Province'}</span>
