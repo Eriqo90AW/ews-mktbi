@@ -307,9 +307,9 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
                           <th>Kantor Perwakilan</th>
                           <th>Kota</th>
                           <th>Disaster</th>
-                          <th style={{ textAlign: 'center' }}>Tingkat</th>
-                          <th style={{ textAlign: 'center' }}>Kerentanan</th>
-                          <th style={{ textAlign: 'center' }}>Skor Risiko</th>
+                          <th style={{ textAlign: 'center' }}>Keparahan ([H]azard)</th>
+                          <th style={{ textAlign: 'center' }}>Kerentanan ([V]ulnerability)</th>
+                          <th style={{ textAlign: 'center' }}>Risiko ([R]isk)</th>
                           <th style={{ textAlign: 'center' }}>Tingkat Risiko</th>
                           <th>Jarak Epicenter</th>
                           <th>Waktu</th>

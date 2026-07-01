@@ -110,7 +110,7 @@ export const GunungApiScreen: React.FC<GunungApiScreenProps> = ({ onBack }) => {
 
     const intervalId = setInterval(() => {
       loadData(true);
-    }, 30000); // 30 seconds
+    }, 300000); // 5 minutes
 
     return () => clearInterval(intervalId);
   }, [reportDate, isAutoCheckActive, todayStr]);

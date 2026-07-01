@@ -10,12 +10,67 @@ import { BnpbKarhutlaService } from '../services/bnpbKarhutlaService';
 // Global cache variables to persist data across component mounts
 const ALERTS_STORAGE_KEY = 'ews_cached_alerts';
 
+const MONTH_MAP: Record<string, string> = {
+  jan: 'Jan',
+  feb: 'Feb',
+  mar: 'Mar',
+  apr: 'Apr',
+  mei: 'May',
+  jun: 'Jun',
+  jul: 'Jul',
+  agt: 'Aug',
+  sep: 'Sep',
+  okt: 'Oct',
+  nov: 'Nov',
+  des: 'Dec',
+};
+
+function getWaktuBerakhir(description: string): Date | null {
+  try {
+    if (!description.includes('Waktu:')) return null;
+    const timePart = description.split('Waktu:')[1];
+    const parts = timePart.split('-').map((p) => p.trim());
+    if (parts.length < 2) return null;
+
+    const waktuBerakhirStr = parts[1];
+    const clean = waktuBerakhirStr.replace('•', ' ').trim();
+    const subParts = clean.split(/\s+/);
+    if (subParts.length >= 5) {
+      let tzOffset = '+0700'; // WIB
+      const tz = subParts[4].toUpperCase();
+      if (tz === 'WITA') tzOffset = '+0800';
+      if (tz === 'WIT') tzOffset = '+0900';
+
+      const indMonth = subParts[1].toLowerCase();
+      const engMonth = MONTH_MAP[indMonth] || subParts[1];
+
+      const dateStr = `${subParts[0]} ${engMonth} ${subParts[2]} ${subParts[3].replace('.', ':')}:00 ${tzOffset}`;
+      const d = new Date(dateStr);
+      if (!isNaN(d.getTime())) return d;
+    }
+  } catch (e) {
+    console.error('Error parsing waktuBerakhir:', e);
+  }
+  return null;
+}
+
 let cachedAlerts: DisasterAlert[] = [];
 try {
   if (typeof window !== 'undefined') {
     const stored = localStorage.getItem(ALERTS_STORAGE_KEY);
     if (stored) {
-      cachedAlerts = JSON.parse(stored);
+      const parsed = JSON.parse(stored) as DisasterAlert[];
+      const now = new Date();
+      cachedAlerts = parsed.filter((a) => {
+        if (a.title === 'Peringatan Dini Cuaca') {
+          const end = getWaktuBerakhir(a.description);
+          if (end && now > end) return false;
+        }
+        return true;
+      });
+      if (cachedAlerts.length !== parsed.length) {
+        localStorage.setItem(ALERTS_STORAGE_KEY, JSON.stringify(cachedAlerts));
+      }
     }
   }
 } catch (e) {
@@ -45,23 +100,56 @@ const mergeAlerts = (existing: DisasterAlert[], incoming: DisasterAlert[]) => {
   });
   
   const merged = Array.from(map.values());
+  const now = new Date();
+  const filtered = merged.filter((a) => {
+    if (a.title === 'Peringatan Dini Cuaca') {
+      const end = getWaktuBerakhir(a.description);
+      if (end && now > end) {
+        hasChanges = true;
+        return false;
+      }
+    }
+    return true;
+  });
   
   if (hasChanges || existing.length === 0) {
     try {
       if (typeof window !== 'undefined') {
-        localStorage.setItem(ALERTS_STORAGE_KEY, JSON.stringify(merged));
+        localStorage.setItem(ALERTS_STORAGE_KEY, JSON.stringify(filtered));
       }
     } catch (e) {
       console.error('Failed to save alerts to localStorage', e);
     }
   }
   
-  return merged;
+  return filtered;
 };
 
 const fetchAllSources = async () => {
   if (isFetching) return;
   isFetching = true;
+
+  // Cleanup expired alerts from the in-memory cache and localStorage
+  const now = new Date();
+  const activeAlerts = cachedAlerts.filter((a) => {
+    if (a.title === 'Peringatan Dini Cuaca') {
+      const end = getWaktuBerakhir(a.description);
+      if (end && now > end) return false;
+    }
+    return true;
+  });
+
+  if (activeAlerts.length !== cachedAlerts.length) {
+    cachedAlerts = activeAlerts;
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(ALERTS_STORAGE_KEY, JSON.stringify(cachedAlerts));
+      }
+    } catch (e) {
+      console.error('Failed to save alerts to localStorage', e);
+    }
+  }
+
   cachedLoadingSources = ['Gempa BMKG', 'Cuaca Ekstrem BMKG', 'Peringatan Dini Cuaca BMKG', 'Prakiraan 3 Hari BMKG', 'Curah Hujan Tinggi BMKG', 'Live Gunung Api Magma', 'Karhutla BNPB'];
   notifyListeners();
 
