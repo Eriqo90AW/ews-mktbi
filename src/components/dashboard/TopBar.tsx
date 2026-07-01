@@ -177,14 +177,18 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
         if (!office) return;
         
         const matchedAlert = allAlerts.find((a) => a.id === res.event.id);
+        
+        // Ignore if the alert is filtered out
+        if (!matchedAlert) return;
+        
         const existing = map.get(office.id);
         if (!existing || res.riskScore > existing.riskScore) {
           map.set(office.id, {
             riskLevel: res.riskLevel,
             riskScore: res.riskScore,
-            alerts: existing ? [...existing.alerts, matchedAlert].filter(Boolean) as DisasterAlert[] : ([matchedAlert].filter(Boolean) as DisasterAlert[]),
+            alerts: existing ? [...existing.alerts, matchedAlert] : [matchedAlert],
           });
-        } else if (existing && matchedAlert) {
+        } else if (existing) {
           if (!existing.alerts.some(a => a.id === matchedAlert.id)) {
             existing.alerts.push(matchedAlert);
           }
