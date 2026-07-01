@@ -32,12 +32,14 @@ const MapLegend: React.FC<MapLegendProps> = ({
     <div className={`map-legend ${isExpanded ? 'expanded' : 'collapsed'}`}>
       <div className="legend-header" onClick={() => setIsExpanded(!isExpanded)}>
         <div className="legend-header-title-container">
-          <img
-            src={isInariskFilter ? "/bnpb-logo.png" : "/bmkg-logo.png"}
-            alt={isInariskFilter ? "BNPB Logo" : "BMKG Logo"}
-            className="legend-agency-logo"
-          />
-          <span className="legend-title">{isInariskFilter ? 'Indikator Wilayah (InaRisk)' : 'Map Legend'}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+            <img src="/bmkg-logo.png" alt="BMKG Logo" className="legend-agency-logo" />
+            <img src="/esdm-logo.png" alt="ESDM Logo" className="legend-agency-logo" />
+            <img src="/bnpb-logo.png" alt="BNPB Logo" className="legend-agency-logo" />
+          </div>
+          <span className="legend-title" style={{ marginLeft: '4px' }}>
+            {isInariskFilter ? 'Indikator Wilayah (InaRisk)' : 'Map Legend'}
+          </span>
         </div>
         <svg
           className={`legend-toggle-icon ${isExpanded ? 'rotated' : ''}`}

@@ -44,8 +44,8 @@
 }
 
 .bi-triangle.nearest {
-  color: #10b981;
-  filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.7));
+  color: #8b5cf6;
+  filter: drop-shadow(0 0 5px rgba(139, 92, 246, 0.7));
 }
 
 .bi-triangle.has-alert.alert-critical {
@@ -105,8 +105,8 @@
 }
 
 .kp-building.nearest {
-  color: #10b981; /* Green if nearest */
-  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.75));
+  color: #8b5cf6; /* Purple if nearest */
+  filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.75));
 }
 
 .kp-building.has-alert.alert-critical {
@@ -138,8 +138,8 @@
 }
 
 .korwil-star.nearest {
-  color: #10b981; /* Green if nearest */
-  filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.7));
+  color: #8b5cf6; /* Purple if nearest */
+  filter: drop-shadow(0 0 5px rgba(139, 92, 246, 0.7));
 }
 
 .korwil-star.has-alert.alert-critical {
@@ -514,19 +514,19 @@
 
 /* Nearest KPW marker styles */
 .marker-dot.nearest {
-  background-color: #10b981; /* Emerald/Teal green */
+  background-color: #8b5cf6; /* Purple/Violet */
   border-color: var(--bg-surface);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.4);
 }
 
 .marker-dot.nearest.korwil {
-  background-color: #10b981;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.45);
+  background-color: #8b5cf6;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.45);
 }
 
 /* Legend items */
 .legend-color.nearest-dot {
-  background-color: #10b981;
+  background-color: #8b5cf6;
 }
 
 /* Nearest KPW Panel overlay (glassmorphism style) */
@@ -612,7 +612,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #10b981; /* Green for normal */
+  background-color: #8b5cf6; /* Purple for normal */
   flex-shrink: 0;
 }
 

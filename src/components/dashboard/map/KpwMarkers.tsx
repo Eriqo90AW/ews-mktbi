@@ -9,6 +9,12 @@ import { isOfficeAffectedByAlert } from '../../../utils/disasterImpact';
 import { BnpbInariskService } from '../../../services/bnpbInariskService';
 import { renderDisasterIcon } from '../../../utils/alertUtils';
 import type { NearestKpwResult } from '../../../utils/geo';
+import {
+  mapDisasterTypeToInariskHazard,
+  mapInariskToVulnerability,
+  vulnerabilityToScore,
+  getRiskLevel,
+} from '../../../utils/riskCalculator';
 
 
 interface KpwMarkersProps {
@@ -131,7 +137,7 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
           if (selectedProvinceId && office.provinceId === selectedProvinceId) {
             return true;
           }
-          // 3. Atau jika kantor tersebut adalah kantor terdekat (hijau)
+          // 3. Atau jika kantor tersebut adalah kantor terdekat (ungu)
           if (nearestOffices.some((n) => n.office.id === office.id)) {
             return true;
           }
@@ -150,6 +156,7 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
       }).map((office) => {
         const nearestInfo = nearestOffices.find((n) => n.office.id === office.id);
         const riskSeverity = getOfficeRiskSeverity(office, riskResults);
+        const officeAlerts = alerts.filter((a) => isOfficeAffectedByAlert(office, a));
 
         return (
           <Marker
@@ -171,8 +178,13 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                 {office.isKorwil && !office.isKantorPusat && ' ★ Korwil'}
                 {office.category === 'dc' && ' ▲ Data Center'}
                 {nearestInfo && (
-                  <div style={{ marginTop: '4px', fontSize: '11px', color: '#10b981', fontWeight: 600 }}>
+                  <div style={{ marginTop: '4px', fontSize: '11px', color: '#8b5cf6', fontWeight: 600 }}>
                     ↔️ Terdekat ({nearestInfo.distanceKm.toFixed(1)} km)
+                  </div>
+                )}
+                {officeAlerts.length > 0 && (
+                  <div style={{ marginTop: '4px', fontSize: '11px', color: 'var(--alert-critical)', fontWeight: 600 }}>
+                    ⚠️ {officeAlerts.length} Alert Terdampak
                   </div>
                 )}
                 {isInariskFilter && (() => {
@@ -220,30 +232,93 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                   );
                 })()
               ) : (
-                  <div className="ews-popup-content" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div className="ews-popup-header" style={{ color: 'var(--accent-primary)' }}>
-                      <span>📍</span>
-                      <span>{office.category === 'dc' ? 'DATA CENTER — BI' : office.category === 'drc' ? 'DISASTER RECOVERY CENTER — BI' : 'KPwBI OFFICE'}</span>
+                  <div className="ews-popup-content" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div className="ews-popup-header" style={{ color: 'var(--accent-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', paddingBottom: '4px', marginBottom: '2px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span>📍</span>
+                        <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
+                          {office.category === 'dc' ? 'DATA CENTER' : office.category === 'drc' ? 'DRC' : 'KPwBI OFFICE'}
+                        </span>
+                      </div>
+                      {riskSeverity && (
+                        <span className="ews-popup-tag" style={{
+                          fontSize: '10px',
+                          padding: '2px 6px',
+                          fontWeight: 600,
+                          borderRadius: 'var(--radius-sm)',
+                          color: `var(--alert-${severityToCssClass(riskSeverity)})`,
+                          backgroundColor: `var(--alert-${severityToCssClass(riskSeverity)}-bg)`,
+                          borderColor: `var(--alert-${severityToCssClass(riskSeverity)}-border)`,
+                        }}>
+                          Risiko: {riskSeverity === 3 ? 'Tinggi' : riskSeverity === 2 ? 'Sedang' : 'Rendah'}
+                        </span>
+                      )}
                     </div>
-                  <div className="ews-popup-title" style={{ marginTop: 0 }}>{office.name}</div>
-                  <p className="ews-popup-desc" style={{ marginBottom: 0 }}>
-                    City: <strong>{office.city}</strong><br />
-                    Province: {getProvinceName(office.provinceId)}<br />
-                    Region: {office.region}
-                  </p>
-                                    
-                  <div className="ews-popup-footer" style={{ marginTop: '4px' }}>
-                    {riskSeverity && (
-                      <span className="ews-popup-tag" style={{
-                        color: `var(--alert-${severityToCssClass(riskSeverity)})`,
-                        backgroundColor: `var(--alert-${severityToCssClass(riskSeverity)}-bg)`,
-                        borderColor: `var(--alert-${severityToCssClass(riskSeverity)}-border)`,
-                      }}>
-                        Risiko: {riskSeverity === 3 ? 'Tinggi' : riskSeverity === 2 ? 'Sedang' : 'Rendah'}
-                      </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                      <div className="ews-popup-title" style={{ marginTop: 0, fontSize: '12.5px', fontWeight: 700 }}>{office.name}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                        {office.city}, {getProvinceName(office.provinceId)} ({office.region})
+                      </div>
+                    </div>
+
+                    {officeAlerts.length > 0 && (
+                      <div style={{ marginTop: '4px', paddingTop: '6px', borderTop: '1px dashed var(--border-default)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                          ⚠️ Bencana Terdampak ({officeAlerts.length})
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '160px', overflowY: 'auto', paddingRight: '2px' }}>
+                          {officeAlerts.map((alert) => {
+                            const hazard = mapDisasterTypeToInariskHazard(alert.type);
+                            const indexVal = BnpbInariskService.getLocalHazardIndex(office.id, hazard);
+                            const vulLevel = mapInariskToVulnerability(indexVal);
+                            const vulScore = vulnerabilityToScore(vulLevel);
+                            const disasterScore = alert.severity;
+                            const totalScore = disasterScore * vulScore;
+                            const riskLevel = getRiskLevel(totalScore);
+
+                            return (
+                              <div 
+                                key={alert.id} 
+                                style={{ 
+                                  padding: '5px 8px', 
+                                  borderRadius: 'var(--radius-sm)', 
+                                  backgroundColor: 'var(--bg-sidebar)', 
+                                  border: '1px solid var(--border-default)',
+                                  fontSize: '11px',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '2px'
+                                }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                                    <span style={{ display: 'inline-flex' }}>{renderDisasterIcon(alert.type, undefined, { color: 'inherit', width: '12px', height: '12px' })}</span>
+                                    <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '160px' }} title={alert.title}>{alert.title}</span>
+                                  </div>
+                                  <span style={{ 
+                                    fontSize: '10px', 
+                                    fontWeight: 700, 
+                                    color: totalScore >= 7 ? 'var(--alert-critical)' : totalScore >= 4 ? 'var(--alert-warning)' : 'var(--alert-watch)'
+                                  }}>
+                                    Skor {totalScore}/9
+                                  </span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)' }}>
+                                  <span>Alert: {disasterScore}/3 • InaRisk: {vulScore}/3</span>
+                                  <span style={{ 
+                                    fontWeight: 600, 
+                                    color: totalScore >= 7 ? 'var(--alert-critical)' : totalScore >= 4 ? 'var(--alert-warning)' : 'var(--alert-watch)' 
+                                  }}>
+                                    {riskLevel}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                     )}
                   </div>
-                </div>
               )}
             </Popup>
           </Marker>
