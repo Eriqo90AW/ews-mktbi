@@ -124,8 +124,8 @@ export function mapAlertToDisasterEvent(alert: DisasterAlert): DisasterEvent | n
  */
 export function mapInariskToVulnerability(score: number): VulnerabilityLevel {
   const val = Math.round(score * 100);
-  if (val >= 64) return 'Tinggi';
-  if (val > 40) return 'Sedang';
+  if (val >= 61) return 'Tinggi';
+  if (val >= 31) return 'Sedang';
   return 'Rendah';
 }
 

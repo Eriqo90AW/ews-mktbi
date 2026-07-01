@@ -23,9 +23,9 @@ const HAZARD_TABS: { key: InariskHazard; label: string }[] = [
 
 function riskLevel(score: number): { label: string; cls: string } {
   const val = Math.round(score * 100);
-  if (val >= 64) return { label: 'Tinggi', cls: 'risk-high' };
-  if (val > 40) return { label: 'Sedang', cls: 'risk-medium' };
-  if (val > 0) return { label: 'Rendah', cls: 'risk-low' };
+  if (val >= 61) return { label: 'Tinggi', cls: 'risk-high' };
+  if (val >= 31) return { label: 'Sedang', cls: 'risk-medium' };
+  if (val >= 0) return { label: 'Rendah', cls: 'risk-low' };
   return { label: 'N/A', cls: 'risk-none' };
 }
 

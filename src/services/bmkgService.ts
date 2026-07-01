@@ -48,6 +48,28 @@ function parsePolygonCentroid(polygonStr: string): { latitude: number; longitude
 
 // Removed local fetchWithProxy in favor of fetchHtmlWithCorsProxy from proxy.ts
 
+function getEarthquakeSeverityByMMI(dirasakan: string): AlertSeverity {
+  if (!dirasakan) return 1;
+
+  const mmiMap: Record<string, number> = {
+    'XII': 12, 'XI': 11, 'X': 10, 'IX': 9, 'VIII': 8,
+    'VII': 7, 'VI': 6, 'V': 5, 'IV': 4, 'III': 3, 'II': 2, 'I': 1
+  };
+  
+  const regex = /\b(XII|XI|X|IX|VIII|VII|VI|V|IV|III|II|I)\b/g;
+  let match;
+  let max = 0;
+  
+  while ((match = regex.exec(dirasakan)) !== null) {
+    const val = mmiMap[match[1]];
+    if (val > max) max = val;
+  }
+  
+  if (max >= 9) return 3; // IX - XII (Tinggi)
+  if (max >= 5) return 2; // V - VIII (Sedang)
+  return 1; // I - IV or none (Rendah)
+}
+
 export async function fetchLatestEarthquakes(): Promise<DisasterAlert[]> {
   try {
     const response = await fetch('https://data.bmkg.go.id/DataMKG/TEWS/gempadirasakan.json');
@@ -62,9 +84,7 @@ export async function fetchLatestEarthquakes(): Promise<DisasterAlert[]> {
       const magnitude = parseFloat(gempa.Magnitude);
       const depth = parseFloat(gempa.Kedalaman);
 
-      let severity: AlertSeverity = 1;
-      if (magnitude >= 5.0) severity = 3;
-      else if (magnitude >= 4.0) severity = 2;
+      const severity = getEarthquakeSeverityByMMI(gempa.Dirasakan);
 
       const nearestOffice = findNearestKpwOffice(latitude, longitude);
 
