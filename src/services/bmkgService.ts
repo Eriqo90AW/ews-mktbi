@@ -181,20 +181,18 @@ export async function fetchExtremeWeather(): Promise<DisasterAlert[]> {
       .filter((r): r is PromiseFulfilledResult<DisasterAlert> => r.status === 'fulfilled')
       .map((r) => r.value);
 
-    /*
-    const mockSulawesiSelatanAlert: DisasterAlert = {
-      id: 'mock-sulawesi-selatan-weather-today',
-      type: 'extreme_weather',
-      severity: 3,
-      provinceId: 'ID-SN',
-      title: 'Hujan Lebat disertai Petir di Sulawesi Selatan',
-      description: 'Hujan lebat disertai petir akan terjadi pada 01 July 2026, 08:30 WIB di sebagian wilayah Sulawesi Selatan, khususnya di Makassar, Gowa, Maros, Pangkep.\n Kondisi ini berpotensi menimbulkan dampak berupa jarak pandang berkurang, angin kencang, dan banjir lokal.\n Masyarakat dihimbau untuk tetap waspada, mengurangi aktivitas di luar ruangan, serta mengambil langkah-langkah pencegahan yang diperlukan guna menjaga keselamatan.\n Kondisi diperkirakan dapat berlangsung hingga 01 July 2026, 11:30 WIB.',
-      timestamp: '2026-07-01T08:30:00+07:00',
-      latitude: -5.1384,
-      longitude: 119.4109,
-      affectedArea: 'Sulawesi Selatan',
-    };
-    */
+    // const mockSulawesiSelatanAlert: DisasterAlert = {
+    //   id: 'mock-sulawesi-selatan-weather-today',
+    //   type: 'extreme_weather',
+    //   severity: 3,
+    //   provinceId: 'ID-SN',
+    //   title: 'Hujan Lebat disertai Petir di Sulawesi Selatan',
+    //   description: 'Hujan lebat disertai petir akan terjadi pada 01 July 2026, 08:30 WIB di sebagian wilayah Sulawesi Selatan, khususnya di Makassar, Gowa, Maros, Pangkep.\n Kondisi ini berpotensi menimbulkan dampak berupa jarak pandang berkurang, angin kencang, dan banjir lokal.\n Masyarakat dihimbau untuk tetap waspada, mengurangi aktivitas di luar ruangan, serta mengambil langkah-langkah pencegahan yang diperlukan guna menjaga keselamatan.\n Kondisi diperkirakan dapat berlangsung hingga 01 July 2026, 11:30 WIB.',
+    //   timestamp: '2026-07-01T08:30:00+07:00',
+    //   latitude: -5.1384,
+    //   longitude: 119.4109,
+    //   affectedArea: 'Sulawesi Selatan',
+    // };
 
     // return [...parsedAlerts, mockSulawesiSelatanAlert]; // change to simulate danger toast
     return [...parsedAlerts]; // change to simulate danger toast
