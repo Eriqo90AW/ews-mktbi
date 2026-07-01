@@ -289,7 +289,6 @@ export async function fetchEarlyWarning(): Promise<DisasterAlert[]> {
         const provinceName = cells[1];
         const waktuMulai = cells[2];
         const waktuBerakhir = cells[3];
-        const detail = cells[4];
 
         const provinceId = mapTextToProvinceId(provinceName);
         const office = KPWBI_OFFICES.find((o) => o.provinceId === provinceId) || KPWBI_OFFICES[0];
