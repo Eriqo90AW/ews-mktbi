@@ -32,7 +32,7 @@ export function mapTextToProvinceId(text: string): string {
   if (t.includes('sulawesi selatan') || t.includes('sulsel')) return 'ID-SN';
   if (t.includes('maluku utara')) return 'ID-MU';
   if (t.includes('maluku')) return 'ID-MA';
-  if (t.includes('papua barat')) return 'ID-PB';
-  if (t.includes('papua')) return 'ID-PA';
+  if (t.includes('papua barat') || t.includes('irian jaya barat')) return 'ID-PB';
+  if (t.includes('papua') || t.includes('irian jaya')) return 'ID-PA';
   return 'ID-JK';
 }

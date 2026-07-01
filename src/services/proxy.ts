@@ -1,11 +1,9 @@
 export async function fetchWithCorsProxy(url: string): Promise<unknown> {
   try {
-    const proxied = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const proxied = `https://corsproxy.io/?${encodeURIComponent(url)}`;
     const res = await fetch(proxied);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    if (!json.contents) throw new Error('No contents in proxy response');
-    return JSON.parse(json.contents);
+    return await res.json();
   } catch (error) {
     console.warn(`CORS proxy failed for ${url}, trying direct fetch...`, error);
     const res = await fetch(url);
@@ -16,12 +14,10 @@ export async function fetchWithCorsProxy(url: string): Promise<unknown> {
 
 export async function fetchHtmlWithCorsProxy(url: string): Promise<string> {
   try {
-    const proxied = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const proxied = `https://corsproxy.io/?${encodeURIComponent(url)}`;
     const res = await fetch(proxied);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    if (!json.contents) throw new Error('No contents in proxy response');
-    return json.contents;
+    return await res.text();
   } catch (error) {
     console.warn(`CORS proxy failed for ${url}, trying direct fetch...`, error);
     const res = await fetch(url);

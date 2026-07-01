@@ -245,6 +245,80 @@ export async function fetchThreeDayForecast(): Promise<DisasterAlert[]> {
   }
 }
 
+function parseWaktuMulai(waktu: string): string {
+  try {
+    const clean = waktu.replace('•', ' ').trim();
+    const parts = clean.split(/\s+/);
+    if (parts.length >= 5) {
+      let tzOffset = '+0700'; // WIB
+      const tz = parts[4].toUpperCase();
+      if (tz === 'WITA') tzOffset = '+0800';
+      if (tz === 'WIT') tzOffset = '+0900';
+      
+      const dateStr = `${parts[0]} ${parts[1]} ${parts[2]} ${parts[3].replace('.', ':')}:00 ${tzOffset}`;
+      const d = new Date(dateStr);
+      if (!isNaN(d.getTime())) return d.toISOString();
+    }
+  } catch (e) {}
+  return new Date().toISOString();
+}
+
+export async function fetchEarlyWarning(): Promise<DisasterAlert[]> {
+  try {
+    const html = await fetchHtmlWithCorsProxy('https://www.bmkg.go.id/cuaca/peringatan-dini-cuaca');
+    if (!html) throw new Error('No HTML content returned');
+
+    const tbodyMatch = html.match(/<tbody[^>]*>([\s\S]*?)<\/tbody>/i);
+    if (!tbodyMatch) return [];
+
+    const tbody = tbodyMatch[1];
+    const alerts: DisasterAlert[] = [];
+    const rxTr = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+    let mTr;
+
+    while ((mTr = rxTr.exec(tbody)) !== null) {
+      const trContent = mTr[1];
+      const rxTd = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+      let mTd;
+      const cells: string[] = [];
+      while ((mTd = rxTd.exec(trContent)) !== null) {
+        cells.push(mTd[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
+      }
+
+      if (cells.length >= 5) {
+        const provinceName = cells[1];
+        const waktuMulai = cells[2];
+        const waktuBerakhir = cells[3];
+        const detail = cells[4];
+
+        const provinceId = mapTextToProvinceId(provinceName);
+        const office = KPWBI_OFFICES.find((o) => o.provinceId === provinceId) || KPWBI_OFFICES[0];
+
+        let severity: AlertSeverity = 1;
+
+        alerts.push({
+          id: `bmkg-early-warning-${provinceId}`,
+          type: 'extreme_weather',
+          severity,
+          provinceId,
+          title: `Peringatan Dini Cuaca`,
+          description: `Peringatan dini hujan sedang hingga lebat yang dapat disertai petir dan angin kencang di wilayah Indonesia. Waktu: ${waktuMulai} - ${waktuBerakhir}`,
+          timestamp: parseWaktuMulai(waktuMulai),
+          latitude: office.latitude,
+          longitude: office.longitude,
+          affectedArea: provinceName,
+          isForecast: false,
+        });
+      }
+    }
+
+    return alerts;
+  } catch (error) {
+    console.error('Failed to fetch/parse BMKG early warning data:', error);
+    return [];
+  }
+}
+
 export async function fetchProvinceWeatherForecast(provinceId: string): Promise<any> {
   const mapping = PROVINCIAL_CAPITALS_ADM4[provinceId];
   if (!mapping) {

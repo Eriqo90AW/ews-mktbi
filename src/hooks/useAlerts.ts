@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { DisasterAlert, AlertSeverity } from '../types';
-import { fetchLatestEarthquakes, fetchExtremeWeather, fetchThreeDayForecast, fetchHighRainfallWarning } from '../services/bmkgService';
+import { fetchLatestEarthquakes, fetchExtremeWeather, fetchThreeDayForecast, fetchHighRainfallWarning, fetchEarlyWarning } from '../services/bmkgService';
 import { MagmaService } from '../services/magmaService';
 import { BnpbKarhutlaService } from '../services/bnpbKarhutlaService';
 
@@ -62,12 +62,13 @@ const mergeAlerts = (existing: DisasterAlert[], incoming: DisasterAlert[]) => {
 const fetchAllSources = async () => {
   if (isFetching) return;
   isFetching = true;
-  cachedLoadingSources = ['Gempa BMKG', 'Cuaca Ekstrem BMKG', 'Prakiraan 3 Hari BMKG', 'Curah Hujan Tinggi BMKG', 'Live Gunung Api Magma', 'Karhutla BNPB'];
+  cachedLoadingSources = ['Gempa BMKG', 'Cuaca Ekstrem BMKG', 'Peringatan Dini Cuaca BMKG', 'Prakiraan 3 Hari BMKG', 'Curah Hujan Tinggi BMKG', 'Live Gunung Api Magma', 'Karhutla BNPB'];
   notifyListeners();
 
   const apis = [
     { call: fetchLatestEarthquakes, name: 'Gempa BMKG' },
     { call: fetchExtremeWeather, name: 'Cuaca Ekstrem BMKG' },
+    { call: fetchEarlyWarning, name: 'Peringatan Dini Cuaca BMKG' },
     { call: fetchThreeDayForecast, name: 'Prakiraan 3 Hari BMKG' },
     { call: fetchHighRainfallWarning, name: 'Curah Hujan Tinggi BMKG' },
     { call: () => MagmaService.fetchLiveAlerts(false), name: 'Live Gunung Api Magma' },
