@@ -304,7 +304,7 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                                   </span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)' }}>
-                                  <span>Alert: {disasterScore}/3 • InaRisk: {vulScore}/3</span>
+                                  <span>Alert: {disasterScore}/3 • Kerentanan: {vulScore}/3</span>
                                   <span style={{ 
                                     fontWeight: 600, 
                                     color: totalScore >= 7 ? 'var(--alert-critical)' : totalScore >= 4 ? 'var(--alert-warning)' : 'var(--alert-watch)' 

@@ -37,9 +37,24 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const shownAlertIds = useRef<Set<string>>(new Set());
 
+  // Today's date data ONLY — alerts older than today (00:00:00 local time) are excluded
+  const minTimestamp = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  }, []);
+
+  const todayActiveAlerts = useMemo(() => {
+    return activeAlerts.filter((calc) => {
+      const alert = alerts.find((a) => a.id === calc.event.id);
+      if (!alert) return false;
+      return new Date(alert.timestamp).getTime() >= minTimestamp;
+    });
+  }, [activeAlerts, alerts, minTimestamp]);
+
   useEffect(() => {
     if (isLoading) return;
-    const unseen = activeAlerts.filter(
+    const unseen = todayActiveAlerts.filter(
       (calc) => !shownAlertIds.current.has(calc.event.id)
     );
     unseen.forEach((calc) => shownAlertIds.current.add(calc.event.id));
@@ -55,18 +70,10 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
         ]);
       }, i * 350);
     });
-  }, [activeAlerts, alerts, isLoading]);
+  }, [todayActiveAlerts, alerts, isLoading]);
 
   const dismissToast = useCallback((toastId: string) => {
     setToasts((prev) => prev.filter((t) => t.toastId !== toastId));
-  }, []);
-
-  // Last 2 days window — alerts older than yesterday are excluded
-  const minTimestamp = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    d.setHours(0, 0, 0, 0);
-    return d.getTime();
   }, []);
 
   const calculatedCriticalAlerts = useMemo(() => {
@@ -137,7 +144,7 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
 
   return (
     <div className="dashboard-container">
-      <DisasterAlertBanner activeAlerts={activeAlerts} />
+      <DisasterAlertBanner activeAlerts={todayActiveAlerts} />
       <TopBar
         criticalCount={filteredStats[3]}
         totalAlerts={filteredAlerts.length}

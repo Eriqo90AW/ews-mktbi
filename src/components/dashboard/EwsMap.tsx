@@ -103,13 +103,13 @@ export const EwsMap: React.FC<EwsMapProps> = ({
     }
 
     if (score > 0.6) {
-      return { fillColor: isPotensiFilter ? '#f97316' : '#dc2626', fillOpacity: 0.35, color: isPotensiFilter ? '#c2410c' : '#b91c1c', weight: 1.5, bubblingMouseEvents: false };
+      return { fillColor: 'var(--alert-critical)', fillOpacity: 0.35, color: 'var(--alert-critical)', weight: 1.5, bubblingMouseEvents: false };
     }
     if (score > 0.3) {
-      return { fillColor: isPotensiFilter ? '#fbbf24' : '#ea580c', fillOpacity: 0.3, color: isPotensiFilter ? '#d97706' : '#c2410c', weight: 1.5, bubblingMouseEvents: false };
+      return { fillColor: 'var(--alert-warning)', fillOpacity: 0.3, color: 'var(--alert-warning)', weight: 1.5, bubblingMouseEvents: false };
     }
     if (score > 0) {
-      return { fillColor: '#22c55e', fillOpacity: 0.2, color: '#16a34a', weight: 1.2, bubblingMouseEvents: false };
+      return { fillColor: 'var(--alert-watch)', fillOpacity: 0.2, color: 'var(--alert-watch)', weight: 1.2, bubblingMouseEvents: false };
     }
     return { fillColor: 'transparent', fillOpacity: 0, color: 'rgba(0,0,0,0.12)', weight: 0.8, bubblingMouseEvents: false };
   };
