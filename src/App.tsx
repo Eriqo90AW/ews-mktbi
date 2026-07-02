@@ -2,7 +2,6 @@ import { useState } from 'react';
 import './App.css';
 import DisasterDashboard from './components/dashboard/DisasterDashboard';
 import KerentananScreen from './components/kerentanan/KerentananScreen';
-import GunungApiScreen from './components/gunungapi/GunungApiScreen';
 import PerkiraanScreen from './components/perkiraan/PerkiraanScreen';
 
 type AppScreen = 'dashboard' | 'kerentanan' | 'gunungapi' | 'perkiraan';
@@ -20,9 +19,6 @@ function App() {
       )}
       {screen === 'kerentanan' && (
         <KerentananScreen onBack={() => setScreen('dashboard')} />
-      )}
-      {screen === 'gunungapi' && (
-        <GunungApiScreen onBack={() => setScreen('dashboard')} />
       )}
       {screen === 'perkiraan' && (
         <PerkiraanScreen onBack={() => setScreen('dashboard')} />

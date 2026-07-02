@@ -260,6 +260,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
           <div className="quick-picks-row">
             <span className="quick-picks-label">Quick Pick:</span>
             <button className="quick-pick-btn" onClick={() => handleQuickPick(7)}>Last Week</button>
+            <button className="quick-pick-btn" onClick={() => handleQuickPick(30)}>Last Month</button>
             <button className="quick-pick-btn" onClick={() => handleQuickPick(365)}>Last Year</button>
             <button className="quick-pick-btn" onClick={() => handleQuickPick(365 * 3)}>Last 3Y</button>
             <button className="quick-pick-btn" onClick={() => handleQuickPick(365 * 5)}>Last 5Y</button>

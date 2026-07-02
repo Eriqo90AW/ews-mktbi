@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "appId": null,
-  "appDisplayName": "Early Warning System - MKTBI",
+  "appDisplayName": "DEWA - Disaster Early Warning Application",
   "region": "prod",
   "appType": "CodeApp",
   "environmentId": "Default-ca37492e-f410-427b-ab39-055bdc18ce02",

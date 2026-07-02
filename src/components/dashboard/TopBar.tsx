@@ -231,7 +231,7 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
       {/* Left: brand */}
       <div className="topbar-brand">
         <div className="topbar-logo" style={{ overflow: 'hidden', padding: 0 }}>
-          <img src="/bima-logo.jpg" alt="BIMA Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src="/bima-logo.jpg" alt="DEWA Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
         <div className="topbar-brand-text">
           <h1 className="topbar-title">DEWA</h1>
