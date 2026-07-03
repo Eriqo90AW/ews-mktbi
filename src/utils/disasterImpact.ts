@@ -27,14 +27,11 @@ export function getAlertImpactRadiusKm(alert: DisasterAlert): number {
   }
 }
 
-/**
- * Determines whether a KPW office is affected ("terdampak") by a specific disaster alert.
- * 
- * If coordinates are present in the alert, calculates distance using Haversine formula
- * and checks if it falls within the disaster's impact radius.
- * Otherwise, falls back to checking if they share the same provinceId.
- */
 export function isOfficeAffectedByAlert(office: KpwbiOffice, alert: DisasterAlert): boolean {
+  if (alert.type === 'extreme_weather' || alert.type === 'karhutla') {
+    return alert.provinceId === office.provinceId;
+  }
+
   if (alert.latitude !== undefined && alert.longitude !== undefined && !isNaN(alert.latitude) && !isNaN(alert.longitude)) {
     const distance = haversineDistance(
       office.latitude,

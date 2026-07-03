@@ -4,6 +4,14 @@ import { severityToCssClass } from '../../types';
 import { PROVINCES } from '../../constants/provinces';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { renderDisasterIcon } from '../../utils/alertUtils';
+import { isOfficeAffectedByAlert } from '../../utils/disasterImpact';
+import { BnpbInariskService } from '../../services/bnpbInariskService';
+import {
+  mapDisasterTypeToInariskHazard,
+  mapInariskToVulnerability,
+  vulnerabilityToScore,
+  getRiskLevel,
+} from '../../utils/riskCalculator';
 import AlertCard from './AlertCard';
 import './Sidebar.css';
 
@@ -72,37 +80,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
     'Sulawesi, Maluku, & Papua': true,
   });
 
-  // Build a map: officeId -> highest riskLevel from riskResults
+  // Build a map: officeId -> highest riskLevel from active alerts affecting the office
   const officeRiskLevels = useMemo(() => {
     const map = new Map<string, { riskLevel: string; riskScore: number; alerts: DisasterAlert[] }>();
     
-    riskResults.forEach((res) => {
-      res.affectedLocations.forEach((loc) => {
-        const office = KPWBI_OFFICES.find((o) => o.id === loc.id);
-        if (!office) return;
-        
-        const matchedAlert = filteredAlerts.find((a) => a.id === res.event.id);
-        
-        // Ignore if the alert is filtered out
-        if (!matchedAlert) return;
-        
-        const existing = map.get(office.id);
-        if (!existing || res.riskScore > existing.riskScore) {
-          map.set(office.id, {
-            riskLevel: res.riskLevel,
-            riskScore: res.riskScore,
-            alerts: existing ? [...existing.alerts, matchedAlert] : [matchedAlert],
-          });
-        } else if (existing) {
-          if (!existing.alerts.some(a => a.id === matchedAlert.id)) {
-            existing.alerts.push(matchedAlert);
-          }
+    KPWBI_OFFICES.forEach((office) => {
+      const officeAlerts = filteredAlerts.filter((a) => isOfficeAffectedByAlert(office, a));
+      if (officeAlerts.length === 0) return;
+
+      let maxRiskScore = 0;
+      officeAlerts.forEach((alert) => {
+        const isKerentananSupported = ['flood', 'tsunami', 'kekeringan', 'volcanic'].includes(alert.type);
+        let vulScore = 1;
+        if (!isKerentananSupported) {
+          vulScore = 3; // Bypass kerentanan
+        } else {
+          const hazard = mapDisasterTypeToInariskHazard(alert.type);
+          const index = BnpbInariskService.getLocalHazardIndex(office.id, hazard);
+          const vulLevel = mapInariskToVulnerability(index);
+          vulScore = vulnerabilityToScore(vulLevel);
+        }
+        const totalScore = alert.severity * vulScore;
+        if (totalScore > maxRiskScore) {
+          maxRiskScore = totalScore;
         }
       });
+
+      if (maxRiskScore > 0) {
+        const riskLevel = getRiskLevel(maxRiskScore);
+        map.set(office.id, {
+          riskLevel,
+          riskScore: maxRiskScore,
+          alerts: officeAlerts,
+        });
+      }
     });
     
     return map;
-  }, [riskResults, filteredAlerts]);
+  }, [filteredAlerts]);
 
   // Counts of offices per risk level
   const riskStats = useMemo(() => {

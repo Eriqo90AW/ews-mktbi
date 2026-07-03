@@ -156,6 +156,9 @@ const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts, onAlertSelect, prov
           </span>
         );
 
+        const isProvinceAlert = alert.type === 'extreme_weather' || alert.type === 'karhutla';
+        const isWeatherAlert = alert.type === 'extreme_weather';
+
         const popupContent = (
           <div className="ews-popup-content">
             <div className={`ews-popup-header ${severityToCssClass(alert.severity)}`}>
@@ -171,7 +174,15 @@ const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts, onAlertSelect, prov
               {alert.description}
             </p>
             <div className="ews-popup-footer">
-              <span>Radius: {(radius / 1000).toFixed(0)} km</span>
+              {isProvinceAlert ? (
+                <span>
+                  {alert.type === 'karhutla'
+                    ? 'Provinsi terdampak karhutla'
+                    : 'Provinsi terdampak cuaca ekstrim'}
+                </span>
+              ) : (
+                <span>Radius: {(radius / 1000).toFixed(0)} km</span>
+              )}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Severity:</span>
                 {renderSevBoxes()}
@@ -180,32 +191,6 @@ const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts, onAlertSelect, prov
           </div>
         );
 
-        const isWeatherAlert = alert.type === 'extreme_weather';
-
-        const weatherPopupContent = isWeatherAlert ? (
-          <div className="ews-popup-content">
-            <div className={`ews-popup-header ${severityToCssClass(alert.severity)}`}>
-              <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                {renderDisasterIcon(alert.type, undefined, { color: 'inherit' })}
-              </span>
-              <span>{alert.title}</span>
-            </div>
-            <div className="ews-popup-title" style={{ marginTop: 0 }}>
-              {alert.affectedArea || 'Area Terdampak'}
-            </div>
-            <p className="ews-popup-desc">
-              {alert.description}
-            </p>
-            <div className="ews-popup-footer">
-              <span>Provinsi terdampak cuaca ekstrim</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Severity:</span>
-                {renderSevBoxes()}
-              </div>
-            </div>
-          </div>
-        ) : null;
-
         // Use province geometric centroid for extreme weather marker placement
         const weatherPos: [number, number] | null = isWeatherAlert && provinceCentroids
           ? (provinceCentroids.get(alert.provinceId) ?? null)
@@ -213,7 +198,7 @@ const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts, onAlertSelect, prov
 
         return (
           <React.Fragment key={`alert-group-${alert.id}`}>
-            {!isWeatherAlert && (
+            {!isProvinceAlert && (
               <Circle
                 center={center}
                 radius={radius}
@@ -246,10 +231,14 @@ const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts, onAlertSelect, prov
               </Circle>
             )}
             <Marker
-              position={weatherPos ?? (isWeatherAlert ? (() => {
-                const province = PROVINCES.find((p) => p.id === alert.provinceId);
-                return province ? [province.latitude, province.longitude] as [number, number] : center!;
-              })() : iconCoords)}
+              position={
+                isWeatherAlert
+                  ? (weatherPos ?? (() => {
+                      const province = PROVINCES.find((p) => p.id === alert.provinceId);
+                      return province ? [province.latitude, province.longitude] as [number, number] : center!;
+                    })())
+                  : (alert.type === 'karhutla' ? center : iconCoords)
+              }
               icon={customIcon}
               interactive={true}
               eventHandlers={{
@@ -258,7 +247,7 @@ const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts, onAlertSelect, prov
                 }
               }}
             >
-              <Popup>{isWeatherAlert ? weatherPopupContent! : popupContent}</Popup>
+              <Popup>{popupContent}</Popup>
             </Marker>
           </React.Fragment>
         );

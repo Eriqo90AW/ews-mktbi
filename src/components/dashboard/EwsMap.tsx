@@ -215,7 +215,7 @@ export const EwsMap: React.FC<EwsMapProps> = ({
     if (!severity) return;
 
     const weatherAlerts = visibleAlerts.filter(
-      (a) => a.type === 'extreme_weather' && a.provinceId === provinceId
+      (a) => (a.type === 'extreme_weather' || a.type === 'karhutla') && a.provinceId === provinceId
     );
 
     const sevBoxes = '<div style="display:flex;gap:3px">' + [1,2,3].map((i) =>
@@ -225,8 +225,8 @@ export const EwsMap: React.FC<EwsMapProps> = ({
     layer.bindTooltip(`
       <div style="font-family: var(--font-sans); font-size: 12px; line-height: 1.4; padding: 4px;">
         <strong>Provinsi ${propName}</strong><br/>
-        <span>Peringatan Cuaca Ekstrim</span><br/>
-        ${weatherAlerts.map((a) => `<div>• ${a.title}</div>`).join('')}
+        <span>Peringatan Kebencanaan</span><br/>
+        ${weatherAlerts.map((a) => `<div>• [${a.type === 'karhutla' ? 'Karhutla' : 'Cuaca Ekstrem'}] ${a.title}</div>`).join('')}
         <div style="margin-top: 4px; display:flex; align-items:center; gap:6px">
           <span>Severity:</span>${sevBoxes}
         </div>
@@ -268,11 +268,11 @@ export const EwsMap: React.FC<EwsMapProps> = ({
     });
   }, [alerts, selectedAlertId, mapLayers.critical, mapLayers.warning, mapLayers.watch]);
 
-  // Compute province highlights for extreme_weather alerts (province-level impact instead of circle radius)
+  // Compute province highlights for extreme_weather & karhutla alerts (province-level impact instead of circle radius)
   const weatherAlertProvinces = useMemo(() => {
     const provinceMap = new Map<string, AlertSeverity>();
     for (const alert of visibleAlerts) {
-      if (alert.type !== 'extreme_weather' || !alert.provinceId) continue;
+      if ((alert.type !== 'extreme_weather' && alert.type !== 'karhutla') || !alert.provinceId) continue;
       const existing = provinceMap.get(alert.provinceId);
       if (!existing || alert.severity > existing) {
         provinceMap.set(alert.provinceId, alert.severity);

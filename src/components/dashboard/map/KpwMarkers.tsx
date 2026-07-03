@@ -160,9 +160,30 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
       }).map((office) => {
         const nearestInfo = nearestOffices.find((n) => n.office.id === office.id);
         const officeAlerts = alerts.filter((a) => isOfficeAffectedByAlert(office, a));
-        const officeAlertIds = new Set(officeAlerts.map((a) => a.id));
-        const filteredRiskResults = riskResults.filter((r) => officeAlertIds.has(r.event.id));
-        const riskSeverity = filteredRiskResults.length > 0 ? getOfficeRiskSeverity(office, filteredRiskResults) : null;
+        
+        // Calculate the highest risk score for this office across all active alerts (including province-wide ones)
+        let maxRiskScore = 0;
+        officeAlerts.forEach((alert) => {
+          const isKerentananSupported = ['flood', 'tsunami', 'kekeringan', 'volcanic'].includes(alert.type);
+          let vulScore = 1;
+          if (!isKerentananSupported) {
+            vulScore = 3; // Bypass kerentanan
+          } else {
+            const hazard = mapDisasterTypeToInariskHazard(alert.type);
+            const index = BnpbInariskService.getLocalHazardIndex(office.id, hazard);
+            const vulLevel = mapInariskToVulnerability(index);
+            vulScore = vulnerabilityToScore(vulLevel);
+          }
+          const totalScore = alert.severity * vulScore;
+          if (totalScore > maxRiskScore) {
+            maxRiskScore = totalScore;
+          }
+        });
+
+        let riskSeverity: AlertSeverity | null = null;
+        if (maxRiskScore >= 7) riskSeverity = 3;
+        else if (maxRiskScore >= 4) riskSeverity = 2;
+        else if (maxRiskScore > 0) riskSeverity = 1;
 
         return (
           <Marker
@@ -280,20 +301,21 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                           {officeAlerts.map((alert) => {
                             const isKerentananSupported = ['flood', 'tsunami', 'kekeringan', 'volcanic'].includes(alert.type);
                             let vulScore = 1;
-                            let indexValStr = '-';
                             if (!isKerentananSupported) {
                               vulScore = 3; // Bypass kerentanan
-                              indexValStr = 'N/A';
                             } else {
                               const hazard = mapDisasterTypeToInariskHazard(alert.type);
                               const indexVal = BnpbInariskService.getLocalHazardIndex(office.id, hazard);
                               const vulLevel = mapInariskToVulnerability(indexVal);
                               vulScore = vulnerabilityToScore(vulLevel);
-                              indexValStr = `${vulScore}/3`;
                             }
-                            
+                            const totalScore = alert.severity * vulScore;
+                            return { alert, totalScore, vulScore, isKerentananSupported };
+                          })
+                          .sort((a, b) => b.totalScore - a.totalScore)
+                          .map(({ alert, totalScore, vulScore, isKerentananSupported }) => {
+                            const indexValStr = isKerentananSupported ? `${vulScore}/3` : 'N/A';
                             const disasterScore = alert.severity;
-                            const totalScore = disasterScore * vulScore;
                             const riskLevel = getRiskLevel(totalScore);
 
                             return (
