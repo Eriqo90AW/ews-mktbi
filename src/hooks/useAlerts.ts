@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import type { DisasterAlert, AlertSeverity } from '../types';
 import { fetchLatestEarthquakes, fetchExtremeWeather, fetchThreeDayForecast, fetchHighRainfallWarning, fetchEarlyWarning } from '../services/bmkgService';
 import { MagmaService } from '../services/magmaService';
-import { BnpbKarhutlaService } from '../services/bnpbKarhutlaService';
+import { SipongiService } from '../services/sipongiService';
 
 // InaRisk / BNPB data is shown in the Kerentanan screen, not as live alerts.
 // This hook only aggregates real-time BMKG alert streams.
@@ -150,7 +150,7 @@ const fetchAllSources = async () => {
     }
   }
 
-  cachedLoadingSources = ['Gempa BMKG', 'Cuaca Ekstrem BMKG', 'Peringatan Dini Cuaca BMKG', 'Prakiraan 3 Hari BMKG', 'Curah Hujan Tinggi BMKG', 'Live Gunung Api Magma', 'Karhutla BNPB'];
+  cachedLoadingSources = ['Gempa BMKG', 'Cuaca Ekstrem BMKG', 'Peringatan Dini Cuaca BMKG', 'Prakiraan 3 Hari BMKG', 'Curah Hujan Tinggi BMKG', 'Live Gunung Api Magma', 'Sipongi Karhutla'];
   notifyListeners();
 
   const apis = [
@@ -160,7 +160,7 @@ const fetchAllSources = async () => {
     { call: fetchThreeDayForecast, name: 'Prakiraan 3 Hari BMKG' },
     { call: fetchHighRainfallWarning, name: 'Curah Hujan Tinggi BMKG' },
     { call: () => MagmaService.fetchLiveAlerts(false), name: 'Live Gunung Api Magma' },
-    { call: () => BnpbKarhutlaService.fetchKarhutlaAlerts(true), name: 'Karhutla BNPB' }
+    { call: () => SipongiService.fetchKarhutlaAlerts(true), name: 'Sipongi Karhutla' }
   ];
 
   let pending = apis.length;
@@ -185,15 +185,15 @@ const fetchAllSources = async () => {
             })
             .catch((err) => console.error('Fallback fetch for Magma failed:', err));
         }
-        if (name === 'Karhutla BNPB') {
-          BnpbKarhutlaService.fetchKarhutlaAlerts(false)
+        if (name === 'Sipongi Karhutla') {
+          SipongiService.fetchKarhutlaAlerts(false)
             .then((data) => {
               if (data && data.length > 0) {
                 cachedAlerts = mergeAlerts(cachedAlerts, data);
                 notifyListeners();
               }
             })
-            .catch((err) => console.error('Fallback fetch for Karhutla failed:', err));
+            .catch((err) => console.error('Fallback fetch for Sipongi Karhutla failed:', err));
         }
       })
       .finally(() => {
