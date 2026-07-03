@@ -1,0 +1,39 @@
+id,name,capital,latitude,longitude,island
+ID-AC,Aceh,Banda Aceh,5.5483,95.3238,Sumatera
+ID-SU,Sumatera Utara,Medan,3.5952,98.6722,Sumatera
+ID-SB,Sumatera Barat,Padang,-0.9471,100.4172,Sumatera
+ID-RI,Riau,Pekanbaru,0.5071,101.4478,Sumatera
+ID-JA,Jambi,Jambi,-1.6101,103.6131,Sumatera
+ID-SS,Sumatera Selatan,Palembang,-2.9909,104.7566,Sumatera
+ID-BE,Bengkulu,Bengkulu,-3.7928,102.2608,Sumatera
+ID-LA,Lampung,Bandar Lampung,-5.3971,105.2668,Sumatera
+ID-BB,Kepulauan Bangka Belitung,Pangkal Pinang,-2.1319,106.1161,Sumatera
+ID-KR,Kepulauan Riau,Tanjung Pinang,0.9169,104.4585,Sumatera
+ID-JK,DKI Jakarta,Jakarta,-6.2088,106.8456,Jawa
+ID-JB,Jawa Barat,Bandung,-6.9175,107.6191,Jawa
+ID-JT,Jawa Tengah,Semarang,-6.9667,110.4167,Jawa
+ID-YO,DI Yogyakarta,Yogyakarta,-7.7956,110.3695,Jawa
+ID-JI,Jawa Timur,Surabaya,-7.2575,112.7521,Jawa
+ID-BT,Banten,Serang,-6.1104,106.1622,Jawa
+ID-BA,Bali,Denpasar,-8.6705,115.2126,Bali & Nusa Tenggara
+ID-NB,Nusa Tenggara Barat,Mataram,-8.5833,116.1167,Bali & Nusa Tenggara
+ID-NT,Nusa Tenggara Timur,Kupang,-10.1772,123.6078,Bali & Nusa Tenggara
+ID-KB,Kalimantan Barat,Pontianak,-0.0263,109.3425,Kalimantan
+ID-KT,Kalimantan Tengah,Palangka Raya,-2.2161,113.9145,Kalimantan
+ID-KS,Kalimantan Selatan,Banjarmasin,-3.3186,114.5944,Kalimantan
+ID-KI,Kalimantan Timur,Samarinda,-0.5022,117.1536,Kalimantan
+ID-KU,Kalimantan Utara,Tanjung Selor,2.8375,117.3653,Kalimantan
+ID-SA,Sulawesi Utara,Manado,1.4748,124.8428,Sulawesi
+ID-ST,Sulawesi Tengah,Palu,-0.8917,119.8708,Sulawesi
+ID-SN,Sulawesi Selatan,Makassar,-5.1477,119.4327,Sulawesi
+ID-SG,Sulawesi Tenggara,Kendari,-3.9722,122.5144,Sulawesi
+ID-GO,Gorontalo,Gorontalo,0.5435,123.0568,Sulawesi
+ID-SR,Sulawesi Barat,Mamuju,-2.6736,118.8914,Sulawesi
+ID-MA,Maluku,Ambon,-3.6954,128.1814,Maluku & Papua
+ID-MU,Maluku Utara,Sofifi,0.7414,127.6163,Maluku & Papua
+ID-PB,Papua Barat,Manokwari,-0.8614,134.062,Maluku & Papua
+ID-PA,Papua,Jayapura,-2.5413,140.7121,Maluku & Papua
+ID-PS,Papua Selatan,Merauke,-8.4991,140.4022,Maluku & Papua
+ID-PT,Papua Tengah,Nabire,-3.3667,135.4833,Maluku & Papua
+ID-PE,Papua Pegunungan,Wamena,-4.095,138.9482,Maluku & Papua
+ID-PD,Papua Barat Daya,Sorong,-0.8765,131.2514,Maluku & Papua

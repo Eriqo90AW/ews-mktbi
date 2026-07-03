@@ -1,0 +1,49 @@
+id,name,city,provinceId,latitude,longitude,region,isKorwil,category
+kpwbi-banda-aceh,KPwBI Provinsi Aceh,Banda Aceh,ID-AC,5.5562,95.3184,Sumatera,false,kpw
+kpwbi-lhokseumawe,KPwBI Lhokseumawe,Lhokseumawe,ID-AC,5.1764,97.1432,Sumatera,false,kpw
+kpwbi-medan,KPwBI Provinsi Sumatera Utara,Medan,ID-SU,3.5902,98.6775,Sumatera,true,korwil
+kpwbi-pematangsiantar,KPwBI Pematangsiantar,Pematangsiantar,ID-SU,2.9602,99.0621,Sumatera,false,kpw
+kpwbi-sibolga,KPwBI Sibolga,Sibolga,ID-SU,1.7371,98.7845,Sumatera,false,kpw
+kpwbi-padang,KPwBI Provinsi Sumatera Barat,Padang,ID-SB,-0.9427,100.3608,Sumatera,false,kpw
+kpwbi-pekanbaru,KPwBI Provinsi Riau,Pekanbaru,ID-RI,0.5186,101.4468,Sumatera,false,kpw
+kpwbi-batam,KPwBI Provinsi Kepulauan Riau,Batam,ID-KR,1.1278,104.0559,Sumatera,false,kpw
+kpwbi-jambi,KPwBI Provinsi Jambi,Jambi,ID-JA,-1.5947,103.6143,Sumatera,false,kpw
+kpwbi-bengkulu,KPwBI Provinsi Bengkulu,Bengkulu,ID-BE,-3.8055,102.269,Sumatera,false,kpw
+kpwbi-palembang,KPwBI Provinsi Sumatera Selatan,Palembang,ID-SS,-2.9818,104.746,Sumatera,false,kpw
+kpwbi-pangkalpinang,KPwBI Provinsi Kepulauan Bangka Belitung,Pangkalpinang,ID-BB,-2.1226,106.1087,Sumatera,false,kpw
+kpwbi-bandar-lampung,KPwBI Provinsi Lampung,Bandar Lampung,ID-LA,-5.4372,105.2638,Sumatera,false,kpw
+kpwbi-jakarta,Bank Indonesia Kantor Pusat,Jakarta Pusat (Thamrin),ID-JK,-6.1823,106.8216,Jawa,false,kantor_pusat
+kpwbi-jakarta-kpw,KPwBI Provinsi DKI Jakarta,Jakarta Pusat (Senen),ID-JK,-6.177,106.8373,Jawa,false,kpw
+kpwbi-bandung,KPwBI Provinsi Jawa Barat,Bandung,ID-JB,-6.9172,107.6105,Jawa,false,kpw
+kpwbi-cirebon,KPwBI Cirebon,Cirebon,ID-JB,-6.7171,108.567,Jawa,false,kpw
+kpwbi-tasikmalaya,KPwBI Tasikmalaya,Tasikmalaya,ID-JB,-7.3241,108.2227,Jawa,false,kpw
+kpwbi-serang,KPwBI Provinsi Banten,Serang,ID-BT,-6.1171,106.1557,Jawa,false,kpw
+kpwbi-semarang,KPwBI Provinsi Jawa Tengah,Semarang,ID-JT,-6.9931,110.4208,Jawa,false,kpw
+kpwbi-solo,KPwBI Solo / Surakarta,Solo,ID-JT,-7.5714,110.8291,Jawa,false,kpw
+kpwbi-purwokerto,KPwBI Purwokerto,Purwokerto,ID-JT,-7.4239,109.2315,Jawa,false,kpw
+kpwbi-tegal,KPwBI Tegal,Tegal,ID-JT,-6.8665,109.1352,Jawa,false,kpw
+kpwbi-yogyakarta,KPwBI DI Yogyakarta,Yogyakarta,ID-YO,-7.8016,110.3663,Jawa,false,kpw
+kpwbi-surabaya,KPwBI Provinsi Jawa Timur,Surabaya,ID-JI,-7.2473,112.738,Jawa,true,korwil
+kpwbi-malang,KPwBI Malang,Malang,ID-JI,-7.9812,112.6306,Jawa,false,kpw
+kpwbi-kediri,KPwBI Kediri,Kediri,ID-JI,-7.8189,112.0125,Jawa,false,kpw
+kpwbi-jember,KPwBI Jember,Jember,ID-JI,-8.1725,113.6934,Jawa,false,kpw
+kpwbi-pontianak,KPwBI Provinsi Kalimantan Barat,Pontianak,ID-KB,-0.0242,109.3424,Kalimantan,false,kpw
+kpwbi-palangka-raya,KPwBI Provinsi Kalimantan Tengah,Palangka Raya,ID-KT,-2.2091,113.916,Kalimantan,false,kpw
+kpwbi-banjarmasin,KPwBI Provinsi Kalimantan Selatan,Banjarmasin,ID-KS,-3.3243,114.5916,Kalimantan,true,korwil
+kpwbi-samarinda,KPwBI Provinsi Kalimantan Timur,Samarinda,ID-KI,-0.5034,117.1471,Kalimantan,false,kpw
+kpwbi-balikpapan,KPwBI Balikpapan,Balikpapan,ID-KI,-1.2721,116.8293,Kalimantan,false,kpw
+kpwbi-tarakan,KPwBI Provinsi Kalimantan Utara,Tarakan,ID-KU,3.3087,117.5913,Kalimantan,false,kpw
+kpwbi-denpasar,KPwBI Provinsi Bali,Denpasar,ID-BA,-8.6757,115.2285,Bali & Nusa Tenggara,true,korwil
+kpwbi-mataram,KPwBI Provinsi Nusa Tenggara Barat,Mataram,ID-NB,-8.5831,116.1026,Bali & Nusa Tenggara,false,kpw
+kpwbi-kupang,KPwBI Provinsi Nusa Tenggara Timur,Kupang,ID-NT,-10.1585,123.5855,Bali & Nusa Tenggara,false,kpw
+kpwbi-manado,KPwBI Provinsi Sulawesi Utara,Manado,ID-SA,1.4646,124.8499,"Sulawesi, Maluku, & Papua",false,kpw
+kpwbi-gorontalo,KPwBI Provinsi Gorontalo,Gorontalo,ID-GO,0.5428,123.0583,"Sulawesi, Maluku, & Papua",false,kpw
+kpwbi-palu,KPwBI Provinsi Sulawesi Tengah,Palu,ID-ST,-0.8953,119.8519,"Sulawesi, Maluku, & Papua",false,kpw
+kpwbi-mamuju,KPwBI Provinsi Sulawesi Barat,Mamuju,ID-SR,-2.6841,118.877,"Sulawesi, Maluku, & Papua",false,kpw
+kpwbi-kendari,KPwBI Provinsi Sulawesi Tenggara,Kendari,ID-SG,-3.9723,122.5834,"Sulawesi, Maluku, & Papua",false,kpw
+kpwbi-makassar,KPwBI Provinsi Sulawesi Selatan,Makassar,ID-SN,-5.1384,119.4109,"Sulawesi, Maluku, & Papua",true,korwil
+kpwbi-ternate,KPwBI Provinsi Maluku Utara,Ternate,ID-MU,0.7891,127.3855,"Sulawesi, Maluku, & Papua",false,kpw
+kpwbi-ambon,KPwBI Provinsi Maluku,Ambon,ID-MA,-3.6961,128.1832,"Sulawesi, Maluku, & Papua",false,kpw
+kpwbi-manokwari,KPwBI Provinsi Papua Barat,Manokwari,ID-PB,-0.866,134.076,"Sulawesi, Maluku, & Papua",false,kpw
+kpwbi-jayapura,KPwBI Provinsi Papua,Jayapura,ID-PA,-2.5369,140.7107,"Sulawesi, Maluku, & Papua",false,kpw
+drc-sinergi-karawang,Gedung Sinergi — Data Center Bank Indonesia,Karawang,ID-JB,-6.3215,107.3381,Jawa,false,dc

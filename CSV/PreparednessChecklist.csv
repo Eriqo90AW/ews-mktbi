@@ -1,0 +1,6 @@
+id,label,description,category
+fasilitas-umum,Kelengkapan Fasilitas Kpw,"Kotak P3K, senter/lampu darurat, radio komunikasi cadangan, dan prosedur evakuasi tersedia di gedung.",umum
+asesmen-gedung,Asesmen Gedung oleh Satker Dpan,Gedung KPw telah dilakukan asesmen struktural dan keandalan bangunan oleh Satker Departemen Pengembangan dan Pengawasan (Dpan) atau konsultan terakreditasi.,gempa
+simulasi-gempa,Simulasi Gempa Rutin,KPw telah melakukan simulasi evakuasi gempa bumi minimal sekali dalam setahun bersama seluruh pegawai.,gempa
+jalur-evakuasi,Jalur Evakuasi & Titik Kumpul,"Jalur evakuasi darurat dan titik kumpul (meeting point) sudah ditandai, dikomunikasikan, dan diketahui seluruh pegawai.",gempa
+perahu-karet,Ketersediaan Perahu Karet,Perahu karet/inflatable rescue boat tersedia atau ada kesepakatan peminjaman dari instansi terkait untuk wilayah dengan risiko banjir tinggi.,banjir
