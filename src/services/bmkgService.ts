@@ -20,7 +20,7 @@ interface BmkgEarthquake {
 
 interface BmkgResponse {
   Infogempa?: {
-    gempa?: BmkgEarthquake[];
+    gempa?: BmkgEarthquake[] | BmkgEarthquake;
   };
 }
 
@@ -48,61 +48,105 @@ function parsePolygonCentroid(polygonStr: string): { latitude: number; longitude
 
 // Removed local fetchWithProxy in favor of fetchHtmlWithCorsProxy from proxy.ts
 
-function getEarthquakeSeverityByMMI(dirasakan: string): AlertSeverity {
-  if (!dirasakan) return 1;
-
-  const mmiMap: Record<string, number> = {
-    'XII': 12, 'XI': 11, 'X': 10, 'IX': 9, 'VIII': 8,
-    'VII': 7, 'VI': 6, 'V': 5, 'IV': 4, 'III': 3, 'II': 2, 'I': 1
-  };
-  
-  const regex = /\b(XII|XI|X|IX|VIII|VII|VI|V|IV|III|II|I)\b/g;
-  let match;
-  let max = 0;
-  
-  while ((match = regex.exec(dirasakan)) !== null) {
-    const val = mmiMap[match[1]];
-    if (val > max) max = val;
+function getEarthquakeSeverity(dirasakan: string, magnitude: number): AlertSeverity {
+  if (dirasakan && dirasakan !== '-') {
+    const mmiMap: Record<string, number> = {
+      'XII': 12, 'XI': 11, 'X': 10, 'IX': 9, 'VIII': 8,
+      'VII': 7, 'VI': 6, 'V': 5, 'IV': 4, 'III': 3, 'II': 2, 'I': 1
+    };
+    
+    const regex = /\b(XII|XI|X|IX|VIII|VII|VI|V|IV|III|II|I)\b/g;
+    let match;
+    let max = 0;
+    
+    while ((match = regex.exec(dirasakan)) !== null) {
+      const val = mmiMap[match[1]];
+      if (val > max) max = val;
+    }
+    
+    if (max >= 9) return 3; // IX - XII (Tinggi)
+    if (max >= 5) return 2; // V - VIII (Sedang)
+    if (max > 0) return 1; // I - IV (Rendah)
   }
   
-  if (max >= 9) return 3; // IX - XII (Tinggi)
-  if (max >= 5) return 2; // V - VIII (Sedang)
-  return 1; // I - IV or none (Rendah)
+  // Fallback to magnitude
+  if (magnitude >= 5.5) return 3;
+  if (magnitude >= 3.5) return 2;
+  return 1;
 }
 
 export async function fetchLatestEarthquakes(): Promise<DisasterAlert[]> {
   try {
-    const response = await fetch('https://data.bmkg.go.id/DataMKG/TEWS/gempadirasakan.json');
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data: BmkgResponse = await response.json();
-    const gempaList = data.Infogempa?.gempa || [];
+    const [dirasakanResponse, autoResponse] = await Promise.all([
+      fetch('https://data.bmkg.go.id/DataMKG/TEWS/gempadirasakan.json').catch(e => {
+        console.error('Failed to fetch gempadirasakan:', e);
+        return null;
+      }),
+      fetch('https://data.bmkg.go.id/DataMKG/TEWS/autogempa.json').catch(e => {
+        console.error('Failed to fetch autogempa:', e);
+        return null;
+      })
+    ]);
 
-    return gempaList.map((gempa, index) => {
-      const [latStr, lonStr] = gempa.Coordinates.split(',');
-      const latitude = parseFloat(latStr);
-      const longitude = parseFloat(lonStr);
-      const magnitude = parseFloat(gempa.Magnitude);
-      const depth = parseFloat(gempa.Kedalaman);
+    let rawGempaList: BmkgEarthquake[] = [];
 
-      const severity = getEarthquakeSeverityByMMI(gempa.Dirasakan);
+    if (dirasakanResponse && dirasakanResponse.ok) {
+      const data: BmkgResponse = await dirasakanResponse.json();
+      if (data.Infogempa?.gempa) {
+        const gempa = data.Infogempa.gempa;
+        rawGempaList = rawGempaList.concat(Array.isArray(gempa) ? gempa : [gempa]);
+      }
+    }
 
-      const nearestOffice = findNearestKpwOffice(latitude, longitude);
+    if (autoResponse && autoResponse.ok) {
+      const data: BmkgResponse = await autoResponse.json();
+      if (data.Infogempa?.gempa) {
+        const gempa = data.Infogempa.gempa;
+        rawGempaList = rawGempaList.concat(Array.isArray(gempa) ? gempa : [gempa]);
+      }
+    }
 
-      return {
-        id: `bmkg-eq-${gempa.DateTime.replace(/[^a-zA-Z0-9]/g, '') || index}`,
-        type: 'earthquake' as const,
-        severity,
-        provinceId: nearestOffice.provinceId,
-        title: `M ${gempa.Magnitude} Earthquake Warning`,
-        description: `${gempa.Wilayah}. Dirasakan di: ${gempa.Dirasakan}.`,
-        timestamp: gempa.DateTime,
-        latitude,
-        longitude,
-        magnitude,
-        depth,
-        affectedArea: gempa.Dirasakan,
-      };
-    });
+    const uniqueGempaMap = new Map<string, BmkgEarthquake>();
+    for (const gempa of rawGempaList) {
+      if (gempa && gempa.DateTime) {
+        uniqueGempaMap.set(gempa.DateTime, gempa);
+      }
+    }
+    const uniqueGempaList = Array.from(uniqueGempaMap.values());
+
+    const alerts = uniqueGempaList
+      .filter((gempa) => {
+        const magnitude = parseFloat(gempa.Magnitude);
+        return !isNaN(magnitude) && magnitude >= 2.0;
+      })
+      .map((gempa, index) => {
+        const [latStr, lonStr] = gempa.Coordinates.split(',');
+        const latitude = parseFloat(latStr);
+        const longitude = parseFloat(lonStr);
+        const magnitude = parseFloat(gempa.Magnitude);
+        const depth = parseFloat(gempa.Kedalaman);
+
+        const severity = getEarthquakeSeverity(gempa.Dirasakan, magnitude);
+
+        const nearestOffice = findNearestKpwOffice(latitude, longitude);
+
+        return {
+          id: `bmkg-eq-${gempa.DateTime.replace(/[^a-zA-Z0-9]/g, '') || index}`,
+          type: 'earthquake' as const,
+          severity,
+          provinceId: nearestOffice.provinceId,
+          title: `M ${gempa.Magnitude} Earthquake Warning`,
+          description: `${gempa.Wilayah}. Dirasakan di: ${gempa.Dirasakan || '-'}.`,
+          timestamp: gempa.DateTime,
+          latitude,
+          longitude,
+          magnitude,
+          depth,
+          affectedArea: gempa.Dirasakan || '-',
+        };
+      });
+
+    return [...alerts];
   } catch (error) {
     console.error('Failed to fetch BMKG earthquake data:', error);
     return [];

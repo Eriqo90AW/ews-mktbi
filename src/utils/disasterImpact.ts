@@ -7,7 +7,7 @@ import { haversineDistance } from './geo';
 export function getAlertImpactRadiusKm(alert: DisasterAlert): number {
   switch (alert.type) {
     case 'earthquake':
-      return (alert.magnitude || 5) * 15;
+      return (alert.magnitude || 5) * 20;
     case 'tsunami':
       return 80;
     case 'flood':

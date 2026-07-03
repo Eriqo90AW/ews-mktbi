@@ -53,22 +53,33 @@ export const useDisasterAlert = () => {
         let maxRiskScore = event.disasterScore * 1; // worst case: disasterScore × Rendah
         let maxRiskLevel = getRiskLevel(maxRiskScore);
 
-        if (affectedLocations.length > 0) {
-          // Tentukan kerentanan tertinggi di antara lokasi-lokasi yang terdampak
-          affectedLocations.forEach((loc) => {
-            const hazard = mapDisasterTypeToInariskHazard(event.type);
-            const index = BnpbInariskService.getLocalHazardIndex(loc.id, hazard);
-            const vulLevel = mapInariskToVulnerability(index);
-            const vulScore = vulnerabilityToScore(vulLevel);
-            const rScore = event.disasterScore * vulScore;
+        const kerentananDisasters = ['flood', 'tsunami', 'kekeringan', 'volcanic'];
+        const isKerentananSupported = kerentananDisasters.includes(event.type);
 
-            if (vulScore > maxVulnerabilityScore) {
-              maxVulnerabilityLevel = vulLevel;
-              maxVulnerabilityScore = vulScore;
-              maxRiskScore = rScore;
-              maxRiskLevel = getRiskLevel(rScore);
-            }
-          });
+        if (affectedLocations.length > 0) {
+          if (!isKerentananSupported) {
+            // Bypass kerentanan dan ikuti severity level (disasterScore)
+            maxVulnerabilityScore = 3; // Set ke 3 agar riskScore (dikali disasterScore) langsung jadi 3, 6, atau 9
+            maxVulnerabilityLevel = 'Tinggi'; // Atau 'N/A', tapi kita isi Tinggi agar matematis sejalan
+            maxRiskScore = event.disasterScore * maxVulnerabilityScore;
+            maxRiskLevel = getRiskLevel(maxRiskScore);
+          } else {
+            // Tentukan kerentanan tertinggi di antara lokasi-lokasi yang terdampak
+            affectedLocations.forEach((loc) => {
+              const hazard = mapDisasterTypeToInariskHazard(event.type);
+              const index = BnpbInariskService.getLocalHazardIndex(loc.id, hazard);
+              const vulLevel = mapInariskToVulnerability(index);
+              const vulScore = vulnerabilityToScore(vulLevel);
+              const rScore = event.disasterScore * vulScore;
+
+              if (vulScore > maxVulnerabilityScore) {
+                maxVulnerabilityLevel = vulLevel;
+                maxVulnerabilityScore = vulScore;
+                maxRiskScore = rScore;
+                maxRiskLevel = getRiskLevel(rScore);
+              }
+            });
+          }
         }
         // Jika affectedLocations kosong: risk level tetap Rendah (disasterScore × 1).
         // Tidak ada fallback provinsi — radius harus benar-benar mencakup lokasi.

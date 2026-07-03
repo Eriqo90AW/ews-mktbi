@@ -278,10 +278,20 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '160px', overflowY: 'auto', paddingRight: '2px' }}>
                           {officeAlerts.map((alert) => {
-                            const hazard = mapDisasterTypeToInariskHazard(alert.type);
-                            const indexVal = BnpbInariskService.getLocalHazardIndex(office.id, hazard);
-                            const vulLevel = mapInariskToVulnerability(indexVal);
-                            const vulScore = vulnerabilityToScore(vulLevel);
+                            const isKerentananSupported = ['flood', 'tsunami', 'kekeringan', 'volcanic'].includes(alert.type);
+                            let vulScore = 1;
+                            let indexValStr = '-';
+                            if (!isKerentananSupported) {
+                              vulScore = 3; // Bypass kerentanan
+                              indexValStr = 'N/A';
+                            } else {
+                              const hazard = mapDisasterTypeToInariskHazard(alert.type);
+                              const indexVal = BnpbInariskService.getLocalHazardIndex(office.id, hazard);
+                              const vulLevel = mapInariskToVulnerability(indexVal);
+                              vulScore = vulnerabilityToScore(vulLevel);
+                              indexValStr = `${vulScore}/3`;
+                            }
+                            
                             const disasterScore = alert.severity;
                             const totalScore = disasterScore * vulScore;
                             const riskLevel = getRiskLevel(totalScore);
@@ -314,7 +324,7 @@ const KpwMarkers: React.FC<KpwMarkersProps> = ({
                                   </span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)' }}>
-                                  <span>Alert: {disasterScore}/3 • Kerentanan: {vulScore}/3</span>
+                                  <span>Alert: {disasterScore}/3 • Kerentanan: {indexValStr}</span>
                                   <span style={{ 
                                     fontWeight: 600, 
                                     color: totalScore >= 7 ? 'var(--alert-critical)' : totalScore >= 4 ? 'var(--alert-warning)' : 'var(--alert-watch)' 

@@ -93,10 +93,17 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, alert
           let rScoreVal = 0;
           const event = mapAlertToDisasterEvent(alert);
           if (event) {
-            const hazard = mapDisasterTypeToInariskHazard(event.type);
-            const index = BnpbInariskService.getLocalHazardIndex(office.id, hazard);
-            const vulLevel = mapInariskToVulnerability(index);
-            const vulScore = vulnerabilityToScore(vulLevel);
+            const kerentananDisasters = ['flood', 'tsunami', 'kekeringan', 'volcanic'];
+            const isKerentananSupported = kerentananDisasters.includes(event.type);
+            let vulScore = 1;
+            if (!isKerentananSupported) {
+              vulScore = 3;
+            } else {
+              const hazard = mapDisasterTypeToInariskHazard(event.type);
+              const index = BnpbInariskService.getLocalHazardIndex(office.id, hazard);
+              const vulLevel = mapInariskToVulnerability(index);
+              vulScore = vulnerabilityToScore(vulLevel);
+            }
             vulIndex = vulScore;
             const rScore = event.disasterScore * vulScore;
             rScoreVal = rScore;
