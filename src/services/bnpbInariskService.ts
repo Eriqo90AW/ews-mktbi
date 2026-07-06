@@ -133,7 +133,9 @@ export class BnpbInariskService {
       return val * 0.25;
     }
     if (hazard === 'cuaca') {
-      return 0.2 + val * 0.7;
+      const floodIndex = BnpbInariskService.getLocalHazardIndex(officeId, 'flood');
+      const tsunamiIndex = BnpbInariskService.getLocalHazardIndex(officeId, 'tsunami');
+      return Math.max(floodIndex, tsunamiIndex);
     }
     if (hazard === 'pasang') {
       const inlandOffices = ['yogyakarta', 'solo', 'malang', 'bandung', 'purwokerto', 'tasikmalaya', 'kediri', 'bogor'];
