@@ -5,6 +5,8 @@ const ALLOWED_DOMAINS = new Set([
   'api.bmkg.go.id',
   'api.rss2json.com',
   'gis.bnpb.go.id',
+  'opsroom.sipongidata.my.id',
+  'opsroom-sipongi.gakkum.kehutanan.go.id',
 ]);
 
 export default async function handler(req, res) {
