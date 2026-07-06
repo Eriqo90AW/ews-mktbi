@@ -97,7 +97,6 @@ function buildRiskMailtoUrl(
 export const TopBar: React.FC<TopBarProps> = (props) => {
   const {
     allAlerts,
-    riskResults,
     onGenerateReport,
     selectedType,
     onTypeChange,

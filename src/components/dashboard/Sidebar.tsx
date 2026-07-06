@@ -51,7 +51,6 @@ type SortKey = typeof SORT_OPTIONS[number]['value'];
 
 export const Sidebar: React.FC<SidebarProps> = ({
   filteredAlerts,
-  riskResults,
   stats,
   selectedOfficeId,
   onProvinceSelect,

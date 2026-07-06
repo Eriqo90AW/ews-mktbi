@@ -39,26 +39,6 @@ interface KpwMarkersProps {
   selectedAlertId?: string | null;
 }
 
-/**
- * Determine the highest risk-level severity for a given office from riskResults.
- * Returns 'critical' | 'warning' | 'watch' | null.
- */
-function getOfficeRiskSeverity(
-  office: KpwbiOffice,
-  riskResults: RiskCalcResult[]
-): AlertSeverity | null {
-  let maxScore = 0;
-  riskResults.forEach((res) => {
-    if (res.affectedLocations.some((loc) => loc.id === office.id)) {
-      if (res.riskScore > maxScore) maxScore = res.riskScore;
-    }
-  });
-  if (maxScore === 0) return null;
-  if (maxScore >= 7) return 3;
-  if (maxScore >= 4) return 2;
-  return 1;
-}
-
 function getProvinceName(provinceId: string): string {
   return PROVINCES.find((p) => p.id === provinceId)?.name ?? provinceId;
 }
@@ -115,7 +95,6 @@ function createMarkerIcon(
 
 const KpwMarkers: React.FC<KpwMarkersProps> = ({
   alerts,
-  riskResults,
   activeTypeFilter,
   selectedProvinceId,
   selectedOfficeId,

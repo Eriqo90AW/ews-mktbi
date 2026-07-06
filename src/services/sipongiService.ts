@@ -82,7 +82,7 @@ const MOCK_SIPONGI_ROWS: SipongiRow[] = [
   { provinsi: 'Aceh', kabupaten: 'Kota Langsa', sumber: 'NASA-SNPP', confidence: 'High', counter: 5 },
 ];
 
-export function rowToAlert(row: SipongiRow, index: number, totalCount: number): DisasterAlert {
+export function rowToAlert(row: SipongiRow, index: number): DisasterAlert {
   const coords = getSipongiCoordinates(row.kabupaten, row.provinsi);
   
   // Severity Logic: High -> 3, Medium -> 2, Low -> 1
@@ -150,13 +150,13 @@ export const SipongiService = {
         throw new Error("Sipongi API returned 0 results");
       }
 
-      return rows.map((row, idx) => rowToAlert(row, idx, rows.length));
+      return rows.map((row, idx) => rowToAlert(row, idx));
     } catch (e) {
       console.warn("Failed to fetch from Sipongi, falling back to mock data:", e);
       if (!fallbackToMock) {
         throw e;
       }
-      return MOCK_SIPONGI_ROWS.map((row, idx) => rowToAlert(row, idx, MOCK_SIPONGI_ROWS.length));
+      return MOCK_SIPONGI_ROWS.map((row, idx) => rowToAlert(row, idx));
     }
   }
 };
