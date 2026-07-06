@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { DisasterAlert, AlertSeverity } from '../../../types';
-import { getDisasterEmoji, getDisasterColor } from '../../../utils/alertUtils';
+import { getDisasterEmoji } from '../../../utils/alertUtils';
 
 interface MapLegendProps {
   isInariskFilter: boolean;

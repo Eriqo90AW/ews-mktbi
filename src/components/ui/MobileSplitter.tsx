@@ -54,7 +54,7 @@ export const MobileSplitter: React.FC = () => {
     };
   }, []);
 
-  const handleStart = (e: React.MouseEvent | React.TouchEvent) => {
+  const handleStart = () => {
     isDragging.current = true;
     document.body.classList.add('is-dragging-splitter');
   };
