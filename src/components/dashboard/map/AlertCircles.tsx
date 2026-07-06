@@ -47,7 +47,7 @@ function getCircleRadius(alert: DisasterAlert): number {
     case 'extreme_weather':
       return 60000;
     case 'karhutla':
-      return 90000;
+      return 10000;
     case 'kekeringan':
       return 100000;
     default:
@@ -156,7 +156,7 @@ const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts, onAlertSelect, prov
           </span>
         );
 
-        const isProvinceAlert = alert.type === 'extreme_weather' || alert.type === 'karhutla';
+        const isProvinceAlert = alert.type === 'extreme_weather';
         const isWeatherAlert = alert.type === 'extreme_weather';
 
         const popupContent = (
@@ -175,11 +175,7 @@ const AlertCircles: React.FC<AlertCirclesProps> = ({ alerts, onAlertSelect, prov
             </p>
             <div className="ews-popup-footer">
               {isProvinceAlert ? (
-                <span>
-                  {alert.type === 'karhutla'
-                    ? 'Provinsi terdampak karhutla'
-                    : 'Provinsi terdampak cuaca ekstrim'}
-                </span>
+                <span>Provinsi terdampak cuaca ekstrim</span>
               ) : (
                 <span>Radius: {(radius / 1000).toFixed(0)} km</span>
               )}

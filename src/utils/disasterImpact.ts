@@ -19,7 +19,7 @@ export function getAlertImpactRadiusKm(alert: DisasterAlert): number {
     case 'extreme_weather':
       return 60;
     case 'karhutla':
-      return 30;
+      return 10;
     case 'kekeringan':
       return 40;
     default:
@@ -28,7 +28,7 @@ export function getAlertImpactRadiusKm(alert: DisasterAlert): number {
 }
 
 export function isOfficeAffectedByAlert(office: KpwbiOffice, alert: DisasterAlert): boolean {
-  if (alert.type === 'extreme_weather' || alert.type === 'karhutla') {
+  if (alert.type === 'extreme_weather') {
     return alert.provinceId === office.provinceId;
   }
 

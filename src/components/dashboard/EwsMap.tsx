@@ -289,11 +289,11 @@ export const EwsMap: React.FC<EwsMapProps> = ({
     mapLayers.volcanic
   ]);
 
-  // Compute province highlights for extreme_weather & karhutla alerts (province-level impact instead of circle radius)
+  // Compute province highlights for extreme_weather alerts (province-level impact instead of circle radius)
   const weatherAlertProvinces = useMemo(() => {
     const provinceMap = new Map<string, AlertSeverity>();
     for (const alert of visibleAlerts) {
-      if ((alert.type !== 'extreme_weather' && alert.type !== 'karhutla') || !alert.provinceId) continue;
+      if (alert.type !== 'extreme_weather' || !alert.provinceId) continue;
       const existing = provinceMap.get(alert.provinceId);
       if (!existing || alert.severity > existing) {
         provinceMap.set(alert.provinceId, alert.severity);
