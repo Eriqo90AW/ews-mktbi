@@ -35,6 +35,10 @@ interface KpwMarkersProps {
     critical: boolean;
     warning: boolean;
     watch: boolean;
+    earthquake?: boolean;
+    extreme_weather?: boolean;
+    karhutla?: boolean;
+    volcanic?: boolean;
   };
   selectedAlertId?: string | null;
 }

@@ -10,6 +10,7 @@ import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { PROVINCES } from '../../constants/provinces';
 import { distanceToPolyline, haversineDistance } from '../../utils/geo';
 import PerkiraanMap from './PerkiraanMap';
+import MobileSplitter from '../ui/MobileSplitter';
 
 function getMwColor(mw: number): string {
   if (mw >= 9.0) return '#dc2626';
@@ -309,6 +310,8 @@ const GempaView: React.FC = () => {
           </div>
         )}
       </aside>
+
+      <MobileSplitter />
 
       <div className="perkiraan-map-wrap">
         <PerkiraanMap

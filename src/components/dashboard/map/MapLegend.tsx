@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { DisasterAlert, AlertSeverity } from '../../../types';
+import { getDisasterEmoji, getDisasterColor } from '../../../utils/alertUtils';
 
 interface MapLegendProps {
   isInariskFilter: boolean;
@@ -7,8 +8,12 @@ interface MapLegendProps {
     critical: boolean;
     warning: boolean;
     watch: boolean;
+    earthquake: boolean;
+    extreme_weather: boolean;
+    karhutla: boolean;
+    volcanic: boolean;
   };
-  onToggleLayer: (layerKey: 'critical' | 'warning' | 'watch') => void;
+  onToggleLayer: (layerKey: 'critical' | 'warning' | 'watch' | 'earthquake' | 'extreme_weather' | 'karhutla' | 'volcanic') => void;
   selectedAlert?: DisasterAlert | null;
 }
 
@@ -18,13 +23,20 @@ const SEV_CONFIG: Array<{ key: 'critical' | 'warning' | 'watch'; num: AlertSever
   { key: 'watch',    num: 1, label: 'Keparahan Rendah', color: 'var(--alert-watch)' },
 ];
 
+const DISASTER_TYPES_CONFIG: Array<{ key: 'earthquake' | 'extreme_weather' | 'karhutla' | 'volcanic'; label: string }> = [
+  { key: 'earthquake', label: 'Gempa Bumi' },
+  { key: 'extreme_weather', label: 'Cuaca Ekstrem' },
+  { key: 'karhutla', label: 'Kebakaran Hutan' },
+  { key: 'volcanic', label: 'Gunung Api' },
+];
+
 const MapLegend: React.FC<MapLegendProps> = ({
   isInariskFilter,
   mapLayers,
   onToggleLayer,
   selectedAlert,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(() => window.innerWidth > 768);
 
   const selectedSeverity = selectedAlert?.severity ?? null;
 
@@ -96,6 +108,63 @@ const MapLegend: React.FC<MapLegendProps> = ({
           })}
           {!isInariskFilter && (
             <>
+              <div 
+                className="legend-section-title" 
+                style={{ 
+                  margin: '8px 0 4px 0', 
+                  fontSize: '10px', 
+                  fontWeight: 700, 
+                  color: 'var(--text-secondary)', 
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  borderTop: '1px solid var(--border-default)', 
+                  paddingTop: '6px' 
+                }}
+              >
+                Tipe Bencana
+              </div>
+              {DISASTER_TYPES_CONFIG.map(({ key, label }) => {
+                const emoji = getDisasterEmoji(key);
+                const isPng = emoji.endsWith('.png') || emoji.startsWith('data:') || emoji.startsWith('/') || emoji.startsWith('static/') || emoji.startsWith('src/');
+                return (
+                  <div
+                    key={key}
+                    className={`legend-item ${!mapLayers[key] ? 'disabled' : ''}`}
+                    onClick={() => onToggleLayer(key)}
+                    title={`Toggle ${label}`}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <span className="legend-shape-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {isPng ? (
+                        <img src={emoji} style={{ width: '16px', height: '16px', objectFit: 'contain' }} alt={label} />
+                      ) : (
+                        <span style={{ fontSize: '14px', lineHeight: 1 }}>{emoji}</span>
+                      )}
+                    </span>
+                    <span>{label}</span>
+                    <span className={`legend-ios-toggle ${mapLayers[key] ? 'on' : 'off'}`}>
+                      <span className="legend-ios-thumb" />
+                    </span>
+                  </div>
+                );
+              })}
+
+              <div 
+                className="legend-section-title" 
+                style={{ 
+                  margin: '8px 0 4px 0', 
+                  fontSize: '10px', 
+                  fontWeight: 700, 
+                  color: 'var(--text-secondary)', 
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  borderTop: '1px solid var(--border-default)', 
+                  paddingTop: '6px' 
+                }}
+              >
+                Wilayah Kerja BI
+              </div>
+
               <div className="legend-item legend-item--shape">
                 <span className="legend-shape-icon">
                   <svg viewBox="0 0 24 24" width="14" height="14">

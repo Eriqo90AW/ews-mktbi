@@ -242,21 +242,280 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
 
   return (
     <header className="topbar-container">
-      {/* Left: brand */}
-      <div className="topbar-brand">
-        <div className="topbar-logo" style={{ overflow: 'hidden', padding: 0 }}>
-          <img src="/bima-logo.jpg" alt="DEWA Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      <div className="topbar-first-row">
+        <div className="topbar-brand">
+          <div className="topbar-logo" style={{ overflow: 'hidden', padding: 0 }}>
+            <img src="/bima-logo.jpg" alt="DEWA Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </div>
+          <div className="topbar-brand-text">
+            <h1 className="topbar-title">DEWA</h1>
+            <span className="topbar-brand-sub" style={{ lineHeight: '1.3' }}>
+              Bank Indonesia<br />
+              Disaster Early Warning Alert
+            </span>
+          </div>
         </div>
-        <div className="topbar-brand-text">
-          <h1 className="topbar-title">DEWA</h1>
-          <span className="topbar-brand-sub" style={{ lineHeight: '1.3' }}>
-            Bank Indonesia<br />
-            Disaster Early Warning Alert
-          </span>
+
+        <div className="topbar-right">
+          <div className="topbar-sync-status" title={lastCheckedTime ? `Terakhir sinkronisasi: ${lastCheckedTime.toLocaleTimeString('id-ID')} WIB` : 'Sinkronisasi berjalan...'}>
+            <span className={`sync-dot ${isFetching ? 'syncing' : 'active'}`} />
+            <span className="sync-text">{isFetching ? 'Sinkronisasi...' : 'Live'}</span>
+          </div>
+
+          <span className="topbar-clock">{timeStr || '—'}</span>
+
+          <button className="topbar-report-btn" onClick={async () => {
+            try {
+              const mapElement = document.querySelector('.map-wrapper');
+              if (!mapElement) return;
+              const domtoimage = (await import('dom-to-image-more')).default;
+              const dataUrl = await domtoimage.toPng(mapElement as HTMLElement);
+              setScreenshotUrl(dataUrl);
+            } catch (error) {
+              console.error('Gagal mengambil screenshot', error);
+            }
+          }}>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            Screenshot
+          </button>
+
+          <button className="topbar-report-btn" onClick={onGenerateReport}>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10" />
+              <line x1="12" y1="20" x2="12" y2="4" />
+              <line x1="6" y1="20" x2="6" y2="14" />
+            </svg>
+            Laporan
+          </button>
+
+          <div className="topbar-status-wrapper" ref={dropdownRef}>
+            {totalAffectedOffices > 0 ? (
+              <button
+                className={`topbar-status ${statusClass} topbar-status-btn${dropdownOpen ? ' open' : ''}`}
+                onClick={() => setDropdownOpen((o) => !o)}
+                aria-expanded={dropdownOpen}
+              >
+                <span className="topbar-status-dot" />
+                <span>{statusText}</span>
+                <svg
+                  className="topbar-status-chevron"
+                  viewBox="0 0 24 24" width="12" height="12" fill="none"
+                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                  style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.18s ease' }}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+            ) : (
+              <div className={`topbar-status ${statusClass}`}>
+                <span className="topbar-status-dot" />
+                <span>{statusText}</span>
+              </div>
+            )}
+
+            {dropdownOpen && (
+              <div className={`topbar-dropdown topbar-dropdown--${statusClass}`} role="listbox">
+                <div className="topbar-dropdown-header">
+                  <span className="topbar-dropdown-title">
+                    Kantor BI Dipantau
+                    <span className="topbar-dropdown-count">{totalAffectedOffices}</span>
+                  </span>
+                  <button
+                    className="topbar-dropdown-close"
+                    onClick={() => setDropdownOpen(false)}
+                    aria-label="Tutup"
+                  >
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="topbar-dropdown-list">
+                  {(['Tinggi', 'Sedang', 'Rendah'] as const).map((level) => {
+                    const levelOffices: Array<{ office: typeof KPWBI_OFFICES[0]; detail: { riskLevel: string; riskScore: number; alerts: DisasterAlert[] } }> = [];
+                    officeRiskLevels.forEach((detail, officeId) => {
+                      if (detail.riskLevel === level) {
+                        const office = KPWBI_OFFICES.find((o) => o.id === officeId);
+                        if (office) {
+                          levelOffices.push({ office, detail });
+                        }
+                      }
+                    });
+
+                    if (levelOffices.length === 0) return null;
+                    const levelClass = { Tinggi: 'critical', Sedang: 'warning', Rendah: 'watch' }[level];
+                    return (
+                      <div key={level}>
+                        <div className={`dropdown-risk-group-header dropdown-risk-group-header--${levelClass}`}>
+                          <span className="dropdown-risk-group-dot" />
+                          {level}
+                          <span className="dropdown-risk-group-count">{levelOffices.length}</span>
+                        </div>
+                        {levelOffices.map(({ office, detail }) => {
+                          const alertIcons = Array.from(new Set(detail.alerts.map((a) => a.type)));
+                          const sub = detail.alerts.map((a) => a.title).join(', ');
+                          return (
+                            <div
+                              key={office.id}
+                              className="topbar-dropdown-item"
+                              style={{ cursor: 'default', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}
+                            >
+                              <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', flex: 1 }}>
+                                <div className="dropdown-item-emoji" style={{ display: 'flex', gap: '3px', alignItems: 'center', marginTop: '2px' }}>
+                                  {alertIcons.map((type) => (
+                                    <React.Fragment key={type}>
+                                      {renderDisasterIcon(type, undefined, { width: '16px', height: '16px' })}
+                                    </React.Fragment>
+                                  ))}
+                                </div>
+                                <div className="dropdown-item-info" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                  <span className="dropdown-item-type" style={{ fontWeight: 600, fontSize: '12px' }}>{office.name}</span>
+                                  <span className="dropdown-item-title" style={{ fontSize: '11px' }}>{office.city}</span>
+                                  {sub && <span className="dropdown-item-sub" style={{ fontSize: '10px' }}>{sub}</span>}
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
+                                <span className="dropdown-item-time" style={{ fontWeight: 'bold', color: `var(--alert-${levelClass})`, fontSize: '11px' }}>
+                                  Skor: {detail.riskScore}
+                                </span>
+                                <a
+                                  href={buildRiskMailtoUrl(office, detail.riskLevel, detail.riskScore, detail.alerts)}
+                                  className="topbar-risk-notify-btn"
+                                  title={`Kirim Notifikasi Email ke ${office.name}`}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '3px 8px',
+                                    fontSize: '10px',
+                                    fontWeight: '600',
+                                    color: '#ffffff',
+                                    backgroundColor: `var(--alert-${levelClass})`,
+                                    border: 'none',
+                                    borderRadius: '3px',
+                                    cursor: 'pointer',
+                                    textDecoration: 'none',
+                                    transition: 'opacity 0.2s ease',
+                                  }}
+                                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
+                                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px' }}>
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                    <polyline points="22,6 12,13 2,6" />
+                                  </svg>
+                                  Notifikasi
+                                </a>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="topbar-noti-wrapper" ref={notiRef}>
+            <button
+              className={`topbar-noti-btn${notiOpen ? ' open' : ''}`}
+              onClick={() => setNotiOpen((o) => !o)}
+              title="Notifikasi Kebencanaan"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              {allAlerts.length > 0 && (
+                <span className="noti-badge">{allAlerts.length}</span>
+              )}
+            </button>
+
+            {notiOpen && (
+              <div className="topbar-dropdown noti-dropdown" role="listbox">
+                <div className="topbar-dropdown-header">
+                  <span className="topbar-dropdown-title">
+                    Peringatan Bencana (BMKG & MAGMA)
+                    <span className="topbar-dropdown-count">{allAlerts.length}</span>
+                  </span>
+                  <button
+                    className="topbar-dropdown-close"
+                    onClick={() => setNotiOpen(false)}
+                    aria-label="Tutup"
+                  >
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="topbar-dropdown-list">
+                  {allAlerts.length === 0 ? (
+                    <div className="noti-empty">
+                      <span>🔔</span>
+                      <p>Tidak ada peringatan bencana aktif saat ini.</p>
+                    </div>
+                  ) : (
+                    [...allAlerts]
+                      .sort((a, b) => {
+                        const sevDiff = (b.severity || 0) - (a.severity || 0);
+                        if (sevDiff !== 0) return sevDiff;
+                        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+                      })
+                      .map((alert) => {
+                        const levelClass = severityToCssClass(alert.severity);
+                        const sourceName = alert.type === 'volcanic' ? 'MAGMA' : 'BMKG';
+                        
+                        return (
+                          <div
+                            key={alert.id}
+                            className="topbar-dropdown-item noti-item"
+                            onClick={() => {
+                              onAlertSelect(alert.id);
+                              setNotiOpen(false);
+                            }}
+                          >
+                            <div className={`noti-severity-indicator noti-severity-indicator--${levelClass}`} />
+                            <div className="dropdown-item-emoji">
+                              {renderDisasterIcon(alert.type, undefined, { width: '18px', height: '18px' })}
+                            </div>
+                            <div className="dropdown-item-info">
+                              <span className="dropdown-item-type">
+                                {alert.title}
+                                <span className={`noti-source-badge noti-source-badge--${sourceName.toLowerCase()}`}>{sourceName}</span>
+                              </span>
+                              <span className="dropdown-item-title">{alert.description}</span>
+                              <span className="dropdown-item-sub" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span>{new Date(alert.timestamp).toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</span>
+                                <span>—</span>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                  Tingkat:
+                                  <span className={`alertcard-sev-badge sev-${levelClass}`}>
+                                    {[1, 2, 3].map((i) => (
+                                      <span key={i} className={`sev-box${i <= alert.severity ? ' filled' : ''}`} />
+                                    ))}
+                                  </span>
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Center: filter pills + kerentanan nav */}
       <div className="topbar-center">
         <div className="topbar-filter-group">
           {FILTER_OPTIONS.map((opt) => (
@@ -294,268 +553,7 @@ export const TopBar: React.FC<TopBarProps> = (props) => {
         </button>
       </div>
 
-      {/* Right: clock + report + status */}
-      <div className="topbar-right">
-        {/* Real-time Sync Indicator */}
-        <div className="topbar-sync-status" title={lastCheckedTime ? `Terakhir sinkronisasi: ${lastCheckedTime.toLocaleTimeString('id-ID')} WIB` : 'Sinkronisasi berjalan...'}>
-          <span className={`sync-dot ${isFetching ? 'syncing' : 'active'}`} />
-          <span className="sync-text">{isFetching ? 'Sinkronisasi...' : 'Live'}</span>
-        </div>
 
-        <span className="topbar-clock">{timeStr || '—'}</span>
-
-        <button className="topbar-report-btn" onClick={async () => {
-          try {
-            const mapElement = document.querySelector('.map-wrapper');
-            if (!mapElement) return;
-            const domtoimage = (await import('dom-to-image-more')).default;
-            const dataUrl = await domtoimage.toPng(mapElement as HTMLElement);
-            setScreenshotUrl(dataUrl);
-          } catch (error) {
-            console.error('Gagal mengambil screenshot', error);
-          }
-        }}>
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-            <circle cx="12" cy="13" r="4"></circle>
-          </svg>
-          Screenshot
-        </button>
-
-        <button className="topbar-report-btn" onClick={onGenerateReport}>
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" />
-          </svg>
-          Laporan
-        </button>
-
-        {/* Status chip — always a dropdown trigger when there are monitored alerts */}
-        <div className="topbar-status-wrapper" ref={dropdownRef}>
-          {totalAffectedOffices > 0 ? (
-            <button
-              className={`topbar-status ${statusClass} topbar-status-btn${dropdownOpen ? ' open' : ''}`}
-              onClick={() => setDropdownOpen((o) => !o)}
-              aria-expanded={dropdownOpen}
-            >
-              <span className="topbar-status-dot" />
-              <span>{statusText}</span>
-              <svg
-                className="topbar-status-chevron"
-                viewBox="0 0 24 24" width="12" height="12" fill="none"
-                stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.18s ease' }}
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-          ) : (
-            <div className={`topbar-status ${statusClass}`}>
-              <span className="topbar-status-dot" />
-              <span>{statusText}</span>
-            </div>
-          )}
-
-          {dropdownOpen && (
-            <div className={`topbar-dropdown topbar-dropdown--${statusClass}`} role="listbox">
-              <div className="topbar-dropdown-header">
-                <span className="topbar-dropdown-title">
-                  Kantor BI Dipantau
-                  <span className="topbar-dropdown-count">{totalAffectedOffices}</span>
-                </span>
-                <button
-                  className="topbar-dropdown-close"
-                  onClick={() => setDropdownOpen(false)}
-                  aria-label="Tutup"
-                >
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="topbar-dropdown-list">
-                {(['Tinggi', 'Sedang', 'Rendah'] as const).map((level) => {
-                  const levelOffices: Array<{ office: typeof KPWBI_OFFICES[0]; detail: { riskLevel: string; riskScore: number; alerts: DisasterAlert[] } }> = [];
-                  officeRiskLevels.forEach((detail, officeId) => {
-                    if (detail.riskLevel === level) {
-                      const office = KPWBI_OFFICES.find((o) => o.id === officeId);
-                      if (office) {
-                        levelOffices.push({ office, detail });
-                      }
-                    }
-                  });
-
-                  if (levelOffices.length === 0) return null;
-                  const levelClass = { Tinggi: 'critical', Sedang: 'warning', Rendah: 'watch' }[level];
-                  return (
-                    <div key={level}>
-                      <div className={`dropdown-risk-group-header dropdown-risk-group-header--${levelClass}`}>
-                        <span className="dropdown-risk-group-dot" />
-                        {level}
-                        <span className="dropdown-risk-group-count">{levelOffices.length}</span>
-                      </div>
-                      {levelOffices.map(({ office, detail }) => {
-                        const alertIcons = Array.from(new Set(detail.alerts.map((a) => a.type)));
-                        const sub = detail.alerts.map((a) => a.title).join(', ');
-                        return (
-                          <div
-                            key={office.id}
-                            className="topbar-dropdown-item"
-                            style={{ cursor: 'default', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}
-                          >
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', flex: 1 }}>
-                              <div className="dropdown-item-emoji" style={{ display: 'flex', gap: '3px', alignItems: 'center', marginTop: '2px' }}>
-                                {alertIcons.map((type) => (
-                                  <React.Fragment key={type}>
-                                    {renderDisasterIcon(type, undefined, { width: '16px', height: '16px' })}
-                                  </React.Fragment>
-                                ))}
-                              </div>
-                              <div className="dropdown-item-info" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                <span className="dropdown-item-type" style={{ fontWeight: 600, fontSize: '12px' }}>{office.name}</span>
-                                <span className="dropdown-item-title" style={{ fontSize: '11px' }}>{office.city}</span>
-                                {sub && <span className="dropdown-item-sub" style={{ fontSize: '10px' }}>{sub}</span>}
-                              </div>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
-                              <span className="dropdown-item-time" style={{ fontWeight: 'bold', color: `var(--alert-${levelClass})`, fontSize: '11px' }}>
-                                Skor: {detail.riskScore}
-                              </span>
-                              <a
-                                href={buildRiskMailtoUrl(office, detail.riskLevel, detail.riskScore, detail.alerts)}
-                                className="topbar-risk-notify-btn"
-                                title={`Kirim Notifikasi Email ke ${office.name}`}
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  padding: '3px 8px',
-                                  fontSize: '10px',
-                                  fontWeight: '600',
-                                  color: '#ffffff',
-                                  backgroundColor: `var(--alert-${levelClass})`,
-                                  border: 'none',
-                                  borderRadius: '3px',
-                                  cursor: 'pointer',
-                                  textDecoration: 'none',
-                                  transition: 'opacity 0.2s ease',
-                                }}
-                                onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
-                                onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px' }}>
-                                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                                  <polyline points="22,6 12,13 2,6" />
-                                </svg>
-                                Notifikasi
-                              </a>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Notification Icon & Dropdown */}
-        <div className="topbar-noti-wrapper" ref={notiRef}>
-          <button
-            className={`topbar-noti-btn${notiOpen ? ' open' : ''}`}
-            onClick={() => setNotiOpen((o) => !o)}
-            title="Notifikasi Kebencanaan"
-          >
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-            </svg>
-            {allAlerts.length > 0 && (
-              <span className="noti-badge">{allAlerts.length}</span>
-            )}
-          </button>
-
-          {notiOpen && (
-            <div className="topbar-dropdown noti-dropdown" role="listbox">
-              <div className="topbar-dropdown-header">
-                <span className="topbar-dropdown-title">
-                  Peringatan Bencana (BMKG & MAGMA)
-                  <span className="topbar-dropdown-count">{allAlerts.length}</span>
-                </span>
-                <button
-                  className="topbar-dropdown-close"
-                  onClick={() => setNotiOpen(false)}
-                  aria-label="Tutup"
-                >
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="topbar-dropdown-list">
-                {allAlerts.length === 0 ? (
-                  <div className="noti-empty">
-                    <span>🔔</span>
-                    <p>Tidak ada peringatan bencana aktif saat ini.</p>
-                  </div>
-                ) : (
-                  [...allAlerts]
-                    .sort((a, b) => {
-                      const sevDiff = (b.severity || 0) - (a.severity || 0);
-                      if (sevDiff !== 0) return sevDiff;
-                      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-                    })
-                    .map((alert) => {
-                      const levelClass = severityToCssClass(alert.severity);
-                      const sourceName = alert.type === 'volcanic' ? 'MAGMA' : 'BMKG';
-                      
-                      return (
-                        <div
-                          key={alert.id}
-                          className="topbar-dropdown-item noti-item"
-                          onClick={() => {
-                            onAlertSelect(alert.id);
-                            setNotiOpen(false);
-                          }}
-                        >
-                          <div className={`noti-severity-indicator noti-severity-indicator--${levelClass}`} />
-                          <div className="dropdown-item-emoji">
-                            {renderDisasterIcon(alert.type, undefined, { width: '18px', height: '18px' })}
-                          </div>
-                          <div className="dropdown-item-info">
-                            <span className="dropdown-item-type">
-                              {alert.title}
-                              <span className={`noti-source-badge noti-source-badge--${sourceName.toLowerCase()}`}>{sourceName}</span>
-                            </span>
-                            <span className="dropdown-item-title">{alert.description}</span>
-                            <span className="dropdown-item-sub" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span>{new Date(alert.timestamp).toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</span>
-                              <span>—</span>
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                Tingkat:
-                                <span className={`alertcard-sev-badge sev-${levelClass}`}>
-                                  {[1, 2, 3].map((i) => (
-                                    <span key={i} className={`sev-box${i <= alert.severity ? ' filled' : ''}`} />
-                                  ))}
-                                </span>
-                              </span>
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Toast Notification */}
       {showToast && latestAlert && (

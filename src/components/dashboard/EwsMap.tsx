@@ -74,6 +74,10 @@ export const EwsMap: React.FC<EwsMapProps> = ({
     critical: true,
     warning: true,
     watch: true,
+    earthquake: true,
+    extreme_weather: true,
+    karhutla: true,
+    volcanic: true,
   });
 
   const toggleLayer = (layerKey: keyof typeof mapLayers) => {
@@ -264,9 +268,26 @@ export const EwsMap: React.FC<EwsMapProps> = ({
       if (alert.severity === 3 && !mapLayers.critical) return false;
       if (alert.severity === 2 && !mapLayers.warning)  return false;
       if (alert.severity === 1 && !mapLayers.watch)    return false;
+
+      // Filter by disaster type toggle
+      if (alert.type === 'earthquake' && !mapLayers.earthquake) return false;
+      if (alert.type === 'extreme_weather' && !mapLayers.extreme_weather) return false;
+      if (alert.type === 'karhutla' && !mapLayers.karhutla) return false;
+      if (alert.type === 'volcanic' && !mapLayers.volcanic) return false;
+
       return true;
     });
-  }, [alerts, selectedAlertId, mapLayers.critical, mapLayers.warning, mapLayers.watch]);
+  }, [
+    alerts,
+    selectedAlertId,
+    mapLayers.critical,
+    mapLayers.warning,
+    mapLayers.watch,
+    mapLayers.earthquake,
+    mapLayers.extreme_weather,
+    mapLayers.karhutla,
+    mapLayers.volcanic
+  ]);
 
   // Compute province highlights for extreme_weather & karhutla alerts (province-level impact instead of circle radius)
   const weatherAlertProvinces = useMemo(() => {

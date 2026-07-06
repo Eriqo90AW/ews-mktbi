@@ -785,3 +785,10 @@
   flex-shrink: 0;
   letter-spacing: 1px;
 }
+
+@media (max-width: 768px) {
+  .sidebar-toggle-btn {
+    display: none !important;
+  }
+}
+

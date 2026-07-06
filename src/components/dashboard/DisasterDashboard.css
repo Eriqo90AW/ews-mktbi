@@ -19,17 +19,23 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .dashboard-content {
-    flex-direction: column-reverse;
+    display: flex;
+    flex-direction: column;
   }
   
   .sidebar-container {
     width: 100%;
-    height: 40vh;
+    flex: 1;
+    min-height: 0;
+    order: 3;
   }
   
   .map-wrapper {
     width: 100%;
-    height: 60vh;
+    height: var(--map-ratio-mobile, 60vh);
+    order: 1;
   }
 }
+
+
 

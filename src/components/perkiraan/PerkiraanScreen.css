@@ -1261,3 +1261,63 @@
 .gempa-map-legend .legend-ios-toggle.off .legend-ios-thumb {
   transform: translateX(0);
 }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .perkiraan-tab-layout {
+    display: flex;
+    flex-direction: column;
+  }
+  .perkiraan-panel {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    order: 3;
+  }
+  .perkiraan-map-wrap {
+    width: 100%;
+    height: var(--map-ratio-mobile, 60vh);
+    order: 1;
+  }
+  .perkiraan-subtabs, .jangka-panjang-subtabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+  .jangka-panjang-body {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .jangka-panjang-content {
+    flex: none;
+    height: auto;
+  }
+  .checklist-sidebar {
+    flex-direction: column;
+    width: 100% !important;
+    height: auto;
+    border-left: none;
+    border-top: 1px solid var(--border-default);
+    transition: height 0.22s ease;
+    order: 4;
+  }
+  .checklist-sidebar-toggle {
+    width: 100%;
+    height: 40px;
+    flex-direction: row;
+    padding: 0 16px;
+    border-right: none;
+    border-bottom: 1px solid var(--border-default);
+  }
+  .checklist-sidebar-label {
+    writing-mode: horizontal-tb;
+    transform: none;
+  }
+  .checklist-sidebar-content {
+    height: 350px;
+    overflow-y: auto;
+  }
+  .checklist-sidebar:not(.open) .checklist-sidebar-content {
+    display: none;
+  }
+}
+

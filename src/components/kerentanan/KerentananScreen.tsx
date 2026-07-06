@@ -5,6 +5,7 @@ import { BnpbInariskService } from '../../services/bnpbInariskService';
 import EwsMap from '../dashboard/EwsMap';
 import { renderDisasterIcon } from '../../utils/alertUtils';
 import ScreenshotPreviewModal from '../ui/ScreenshotPreviewModal';
+import MobileSplitter from '../ui/MobileSplitter';
 import '../dashboard/TopBar.css';
 import './KerentananScreen.css';
 
@@ -73,20 +74,39 @@ const KerentananScreen: React.FC<KerentananScreenProps> = ({ onBack }) => {
 
   return (
     <div className="kerentanan-container">
-      {/* Header — same topbar-container structure as TopBar */}
       <header className="topbar-container">
-        {/* Left: back btn + divider + brand */}
-        <div className="topbar-brand">
-          <button className="topbar-back-btn" onClick={onBack}>
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-            Kembali
-          </button>
-          <div className="topbar-divider-v" />
-          <div className="topbar-brand-text">
-            <h1 className="topbar-title">Analisis <span>Kerentanan</span></h1>
-            <span className="topbar-brand-sub">DEWA - BNPB InaRisk</span>
+        <div className="topbar-first-row">
+          {/* Left: back btn + divider + brand */}
+          <div className="topbar-brand">
+            <button className="topbar-back-btn" onClick={onBack}>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              Kembali
+            </button>
+            <div className="topbar-divider-v" />
+            <div className="topbar-brand-text">
+              <h1 className="topbar-title">Analisis <span>Kerentanan</span></h1>
+              <span className="topbar-brand-sub">DEWA - BNPB InaRisk</span>
+            </div>
+          </div>
+
+          {/* Right: count status chip + screenshot */}
+          <div className="topbar-right">
+            <button className="topbar-report-btn" onClick={handleScreenshot} title="Screenshot Peta">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+              Screenshot
+            </button>
+            <div className="topbar-status kerentanan">
+              <span className="topbar-status-dot" />
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                {renderDisasterIcon(selectedHazard, undefined, { width: '14px', height: '14px' })}
+                <span>{rankedOffices.length} Wilayah — {currentHazard.label}</span>
+              </span>
+            </div>
           </div>
         </div>
 
@@ -103,24 +123,6 @@ const KerentananScreen: React.FC<KerentananScreenProps> = ({ onBack }) => {
                 <span>{tab.label}</span>
               </button>
             ))}
-          </div>
-        </div>
-
-        {/* Right: count status chip + screenshot */}
-        <div className="topbar-right">
-          <button className="topbar-report-btn" onClick={handleScreenshot} title="Screenshot Peta">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-              <circle cx="12" cy="13" r="4"></circle>
-            </svg>
-            Screenshot
-          </button>
-          <div className="topbar-status kerentanan">
-            <span className="topbar-status-dot" />
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-              {renderDisasterIcon(selectedHazard, undefined, { width: '14px', height: '14px' })}
-              <span>{rankedOffices.length} Wilayah — {currentHazard.label}</span>
-            </span>
           </div>
         </div>
       </header>
@@ -170,6 +172,8 @@ const KerentananScreen: React.FC<KerentananScreenProps> = ({ onBack }) => {
             )}
           </div>
         </aside>
+
+        <MobileSplitter />
 
         <div className="kerentanan-map-wrap">
           <EwsMap

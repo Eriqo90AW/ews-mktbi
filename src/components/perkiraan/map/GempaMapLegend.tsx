@@ -13,7 +13,7 @@ const GempaMapLegend: React.FC<GempaMapLegendProps> = ({
   onToggleMegathrust,
   onToggleRingOfFire,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(() => window.innerWidth > 768);
 
   return (
     <div className={`gempa-map-legend ${isExpanded ? 'expanded' : 'collapsed'}`}>

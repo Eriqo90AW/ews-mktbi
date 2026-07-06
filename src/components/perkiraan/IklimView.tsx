@@ -8,6 +8,7 @@ import { PROVINCES } from '../../constants/provinces';
 import { KPWBI_OFFICES } from '../../constants/kpwbiOffices';
 import { BnpbInariskService } from '../../services/bnpbInariskService';
 import PerkiraanMap from './PerkiraanMap';
+import MobileSplitter from '../ui/MobileSplitter';
 import type { EnsoPhase, EnsoOutlook } from '../../constants/ensoData';
 
 const ENSO_OUTLOOKS: Record<EnsoPhase, EnsoOutlook> = {
@@ -221,6 +222,8 @@ const IklimView: React.FC = () => {
           </div>
         </div>
       </aside>
+
+      <MobileSplitter />
 
       {/* Map */}
       <div className="perkiraan-map-wrap">

@@ -11,6 +11,7 @@ import type { DisasterAlert, AlertSeverity } from '../../types';
 import { severityToCssClass } from '../../types';
 import PerkiraanMap from './PerkiraanMap';
 import EmailBlastButton from './EmailBlastButton';
+import MobileSplitter from '../ui/MobileSplitter';
 
 interface MingguanTabProps {
   onEmailBlast?: (officeId: string) => void;
@@ -147,6 +148,8 @@ const MingguanTab: React.FC<MingguanTabProps> = () => {
           )}
         </div>
       </aside>
+
+      <MobileSplitter />
 
       {/* Map */}
       <div className="perkiraan-map-wrap">

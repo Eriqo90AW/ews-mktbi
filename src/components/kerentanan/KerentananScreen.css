@@ -186,3 +186,23 @@
   position: relative;
   overflow: hidden;
 }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .kerentanan-content {
+    display: flex;
+    flex-direction: column;
+  }
+  .kerentanan-panel {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    order: 3;
+  }
+  .kerentanan-map-wrap {
+    width: 100%;
+    height: var(--map-ratio-mobile, 60vh);
+    order: 1;
+  }
+}
+

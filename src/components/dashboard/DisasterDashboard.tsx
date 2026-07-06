@@ -10,6 +10,7 @@ import ReportModal from './ReportModal';
 import AlertToast from '../ui/AlertToast';
 import type { ToastItem } from '../ui/AlertToast';
 import LaporanSidebar from './LaporanSidebar';
+import MobileSplitter from '../ui/MobileSplitter';
 import './DisasterDashboard.css';
 import './LaporanSidebar.css';
 
@@ -187,6 +188,8 @@ export const DisasterDashboard: React.FC<DisasterDashboardProps> = ({
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed((c) => !c)}
         />
+
+        <MobileSplitter />
 
         <EwsMap
           alerts={filteredAlerts}
