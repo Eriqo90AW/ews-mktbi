@@ -322,11 +322,41 @@
   min-width: 0;
 }
 
+.legend-agency-logos-container {
+  display: flex;
+  align-items: center;
+  margin-right: 4px;
+  padding-left: 2px;
+}
+
 .legend-agency-logo {
   width: 20px;
   height: 20px;
   object-fit: contain;
   flex-shrink: 0;
+  border-radius: 4px;
+  background-color: #ffffff;
+  padding: 1px;
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.legend-agency-logos-container .legend-agency-logo:not(:first-child) {
+  margin-left: -10px; /* half stacked (overlapping by 50% since width is 20px) */
+}
+
+/* Hover micro-interactions */
+.legend-agency-logos-container:hover .legend-agency-logo:not(:first-child) {
+  margin-left: 2px; /* spread out slightly on container hover */
+}
+
+.legend-agency-logos-container .legend-agency-logo:hover {
+  z-index: 10 !important;
+  transform: scale(1.25);
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent-primary);
 }
 
 .legend-title {

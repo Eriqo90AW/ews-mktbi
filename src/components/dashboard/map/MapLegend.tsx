@@ -44,12 +44,14 @@ const MapLegend: React.FC<MapLegendProps> = ({
     <div className={`map-legend ${isExpanded ? 'expanded' : 'collapsed'}`}>
       <div className="legend-header" onClick={() => setIsExpanded(!isExpanded)}>
         <div className="legend-header-title-container">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-            <img src="/bmkg-logo.png" alt="BMKG Logo" className="legend-agency-logo" />
-            <img src="/esdm-logo.png" alt="ESDM Logo" className="legend-agency-logo" />
-            <img src="/bnpb-logo.png" alt="BNPB Logo" className="legend-agency-logo" />
+          <div className="legend-agency-logos-container">
+            <img src="/bmkg-logo.png" alt="BMKG Logo" title="BMKG" className="legend-agency-logo" style={{ zIndex: 5 }} />
+            <img src="/esdm-logo.png" alt="ESDM Logo" title="ESDM" className="legend-agency-logo" style={{ zIndex: 4 }} />
+            <img src="/bnpb-logo.png" alt="BNPB Logo" title="BNPB" className="legend-agency-logo" style={{ zIndex: 3 }} />
+            <img src="/klhk-logo.png" alt="KLHK Logo" title="Kementerian Kehutanan (KLHK)" className="legend-agency-logo" style={{ zIndex: 2 }} />
+            <img src="/manggala-logo.png" alt="Manggala Agni Logo" title="Manggala Agni" className="legend-agency-logo" style={{ zIndex: 1 }} />
           </div>
-          <span className="legend-title" style={{ marginLeft: '4px' }}>
+          <span className="legend-title" style={{ marginLeft: '6px' }}>
             {isInariskFilter ? 'Indikator Wilayah (InaRisk)' : 'Map Legend'}
           </span>
         </div>
