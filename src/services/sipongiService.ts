@@ -119,28 +119,23 @@ export const SipongiService = {
   async fetchKarhutlaAlerts(fallbackToMock: boolean = true): Promise<DisasterAlert[]> {
     const apiBase = "https://opsroom.sipongidata.my.id";
     try {
-      // 1. Fetch configuration to get active satellite source
-      let satelliteSource = "lapan";
-      try {
-        const configRes = await fetchWithCorsProxy(`${apiBase}/api/konfigurasi`) as any;
-        if (configRes && configRes.sumber_satelit) {
-          satelliteSource = configRes.sumber_satelit;
-        }
-      } catch (err) {
-        console.warn("Failed to fetch Sipongi konfigurasi, using default 'lapan':", err);
-      }
-
-      // 2. Query hotspot data from the last 24 hours
-      const satellite = satelliteSource === "nasa" ? "all-nasa" : "all-lapan";
-      const sebaranUrl = `${apiBase}/api/sebaran?late=24&satelit=${satellite}&confidence=high&provinsi=all&length=50`;
+      // Query hotspot data from the last 24 hours for both satellites
+      const satellites = ["all-lapan", "all-nasa"];
       
-      const sebaranRes = await fetchWithCorsProxy(sebaranUrl) as any;
-      if (!sebaranRes || !sebaranRes.data) {
-        throw new Error("Invalid response structure from Sipongi API");
+      const results = await Promise.all(
+        satellites.map(sat => 
+          fetchWithCorsProxy(`${apiBase}/api/sebaran?late=24&satelit=${sat}&confidence=high&provinsi=all&length=50`)
+        )
+      );
+
+      let rows: SipongiRow[] = [];
+      for (const res of results) {
+        if (res && (res as any).data) {
+          rows = rows.concat((res as any).data as SipongiRow[]);
+        }
       }
 
-      const rows = sebaranRes.data as SipongiRow[];
-      if (!rows || rows.length === 0) {
+      if (rows.length === 0) {
         throw new Error("Sipongi API returned 0 results");
       }
 
