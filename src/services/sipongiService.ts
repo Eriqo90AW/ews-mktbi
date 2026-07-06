@@ -74,24 +74,18 @@ export function getSipongiCoordinates(regency: string, province: string): [numbe
   return [-2.5489, 118.0149]; // Center of Indonesia default
 }
 
-const MOCK_SIPONGI_ROWS: SipongiRow[] = [
-  { provinsi: 'Riau', kabupaten: 'Indragiri Hulu', sumber: 'NASA-NOAA20', confidence: 'High', counter: 3 },
-  { provinsi: 'Kalimantan Timur', kabupaten: 'Kutai Barat', sumber: 'NASA-SNPP', confidence: 'Medium', counter: 1 },
-  { provinsi: 'Maluku Utara', kabupaten: 'Pulau Taliabu', sumber: 'NASA-MODIS', confidence: 'Low', counter: 2 },
-  { provinsi: 'Jawa Tengah', kabupaten: 'Sukoharjo', sumber: 'NASA-NOAA20', confidence: 'Medium', counter: 1 },
-  { provinsi: 'Aceh', kabupaten: 'Kota Langsa', sumber: 'NASA-SNPP', confidence: 'High', counter: 5 },
-];
-
 export function rowToAlert(row: SipongiRow, index: number): DisasterAlert {
   const coords = getSipongiCoordinates(row.kabupaten, row.provinsi);
   
-  // Severity Logic: High -> 3, Medium -> 2, Low -> 1
+  // Severity Logic: jumlah = 1: 1 (rendah), jumlah < 3: 2 (sedang), jumlah >= 3: 3 (tinggi)
   let severity: AlertSeverity = 1;
-  const conf = row.confidence.toLowerCase();
-  if (conf.includes('high')) {
-    severity = 3;
-  } else if (conf.includes('medium')) {
+  const jumlah = row.counter;
+  if (jumlah === 1) {
+    severity = 1;
+  } else if (jumlah < 3) {
     severity = 2;
+  } else {
+    severity = 3;
   }
 
   const timestamp = new Date().toISOString();
@@ -138,7 +132,7 @@ export const SipongiService = {
 
       // 2. Query hotspot data from the last 24 hours
       const satellite = satelliteSource === "nasa" ? "all-nasa" : "all-lapan";
-      const sebaranUrl = `${apiBase}/api/sebaran?late=24&satelit=${satellite}&confidence=all&provinsi=all`;
+      const sebaranUrl = `${apiBase}/api/sebaran?late=24&satelit=${satellite}&confidence=high&provinsi=all&length=50`;
       
       const sebaranRes = await fetchWithCorsProxy(sebaranUrl) as any;
       if (!sebaranRes || !sebaranRes.data) {
@@ -152,11 +146,11 @@ export const SipongiService = {
 
       return rows.map((row, idx) => rowToAlert(row, idx));
     } catch (e) {
-      console.warn("Failed to fetch from Sipongi, falling back to mock data:", e);
+      console.warn("Failed to fetch from Sipongi:", e);
       if (!fallbackToMock) {
         throw e;
       }
-      return MOCK_SIPONGI_ROWS.map((row, idx) => rowToAlert(row, idx));
+      return [];
     }
   }
 };
